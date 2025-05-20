@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="maven-antrun-" default="main">
+  <target name="main">
+    <copy file="D:\Dokumenter\My Plugins\VSCode Workspace\vehicleframework\target/vehicleframework-0.7.8-ALPHA.jar" tofile="D:\Dokumenter\My Plugins\TFMC\VehicleFramework\vehicleframework-0.7.8-ALPHA.jar" />
+  </target>
+</project>

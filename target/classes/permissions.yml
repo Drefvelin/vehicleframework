@@ -1,0 +1,3 @@
+vehicleframework.spawn:
+       description: Spawn permission for VF.
+       default: false

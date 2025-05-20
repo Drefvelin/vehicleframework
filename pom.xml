@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.tfminecraft</groupId>
+    <artifactId>vehicleframework</artifactId>
+    <version>0.7.8-ALPHA</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/json-simple-1.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/gson-2.10.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/ProtocolLib.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>MythicMobs</artifactId>
+            <version>5.8.0</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MythicMobs-5.8.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>joml</artifactId>
+            <version>1.10.8</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/joml-1.10.8.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>ModelEngine</artifactId>
+            <version>4.0.8</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/ModelEngine-4.0.8.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>MMOCore</artifactId>
+            <version>1.11.3</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MMOCore-1.11.3.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>MMOItems</artifactId>
+            <version>6.10</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MMOItems-6.10.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>MythicLib</artifactId>
+            <version>1.6.1</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MythicLib-1.7.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.20.2-R0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/spigot-api-1.20.2-R0.1-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>local</groupId>
+            <artifactId>TLibs</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>D:/Dokumenter/My Plugins/TFMC/TLibs/TLibs.jar</systemPath>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                    tofile="D:\Dokumenter\My Plugins\TFMC\VehicleFramework\${project.build.finalName}.jar"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

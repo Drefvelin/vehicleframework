@@ -1,0 +1,12 @@
+main: net.tfminecraft.VehicleFramework.VehicleFramework
+api-version: 1.20
+name: VehicleFramework
+version: 1.0
+author: Drefvelin
+
+depend: [MythicMobs, MythicLib, ModelEngine, ProtocolLib]
+
+commands:
+  vf:
+    useage: /<command>
+    description: Vehicle Framework Command

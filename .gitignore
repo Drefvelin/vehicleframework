@@ -1,0 +1,33 @@
+# Ignore Maven target directory
+target
+
+# Ignore Eclipse/IntelliJ IDEA/NetBeans project files
+*.iml
+.idea/
+*.ipr
+*.iws
+*.bak
+*.swp
+*.tmp
+*.log
+*.class
+
+# NetBeans specific
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Eclipse specific
+.project
+.classpath
+.settings/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

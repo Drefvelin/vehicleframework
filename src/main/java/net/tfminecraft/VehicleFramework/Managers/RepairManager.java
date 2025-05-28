@@ -17,7 +17,11 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import io.lumine.mythic.bukkit.utils.lib.lang3.text.WordUtils;
+import me.Plugins.TLibs.TLibs;
+import me.Plugins.TLibs.Enums.APIType;
+import me.Plugins.TLibs.Objects.API.ItemAPI;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
@@ -27,6 +31,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 
 public class RepairManager implements Listener{
+	private ItemAPI api = (ItemAPI) TLibs.getApiInstance(APIType.ITEM_API);
 	private VehicleManager manager;
 	private InventoryManager inv = new InventoryManager();
 	
@@ -74,7 +79,7 @@ public class RepairManager implements Listener{
 
 	public void repair(Player p, ActiveVehicle v) {
 		ItemStack i = p.getInventory().getItemInMainHand();
-		if(!i.getType().equals(Material.IRON_SHOVEL)) return;
+		if(!api.getChecker().checkItemWithPath(i, Cache.repairItem)) return;
 		if(v.getSeat(p) == null) return;
 		Seat s = v.getSeat(p);
 		if(!s.getType().equals(SeatType.MECHANIC)) {

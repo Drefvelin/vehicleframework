@@ -55,5 +55,8 @@ public class ConfigLoader {
 		Cache.blockDamage = config.getBoolean("block-damage", true);
 		
 		Cache.despawnDistance = (int) Math.round(Math.pow(config.getInt("despawn-distance", 64), 2));
+
+		Cache.skinItem = config.getString("skin-item", "v.bucket");
+		Cache.repairItem = config.getString("repair-item", "v.iron_shovel");
 	}
 }

@@ -24,6 +24,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -32,8 +33,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import me.Plugins.TLibs.TLibs;
+import me.Plugins.TLibs.Enums.APIType;
+import me.Plugins.TLibs.Objects.API.ItemAPI;
+import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
+import net.Indyuce.mmoitems.stat.type.NameData;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Cache.Cache;
+import net.tfminecraft.VehicleFramework.Data.NamingData;
 import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Enums.Component;
@@ -53,6 +61,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 
 public class VehicleManager implements Listener{
+	private ItemAPI api = (ItemAPI) TLibs.getApiInstance(APIType.ITEM_API);
 	private Database db = new Database();
 	private InventoryManager inv = new InventoryManager();
 	private RepairManager repairManager = new RepairManager(this);
@@ -67,6 +76,7 @@ public class VehicleManager implements Listener{
 	//Player management
 	private HashMap<Player, ActiveVehicle> tempVehicle = new HashMap<>();
 	private HashMap<Player, ActiveVehicle> activeVehicle = new HashMap<>();
+	private HashMap<Player, NamingData> naming = new HashMap<>();
 	
 	private HashMap<Player, ActiveVehicle> tow = new HashMap<>();
 	
@@ -129,7 +139,8 @@ public class VehicleManager implements Listener{
 	}
 	private void vehicleSlowTickCycle() {
 		new BukkitRunnable() {
-	        @Override
+	        @SuppressWarnings("unchecked")
+			@Override
 	        public void run() {
 	            for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 	            	ActiveVehicle v = entry.getValue();
@@ -137,6 +148,12 @@ public class VehicleManager implements Listener{
 						v.slowTick();
 					} catch (Exception e) {
 						VFLogger.log(v.getId()+" has run into an issue");
+					}
+	            }
+				for (Map.Entry<Player, NamingData> entry : ((HashMap<Player, NamingData>) naming.clone()).entrySet()) {
+	            	if(entry.getValue().tick()) {
+						naming.remove(entry.getKey());
+						entry.getKey().sendMessage("§cNaming timed out.");
 					}
 	            }
 	        }
@@ -285,7 +302,7 @@ public class VehicleManager implements Listener{
 			}
 		}
 		cooldown.put(p, System.currentTimeMillis()+100);
-		if(p.getInventory().getItemInMainHand().getType().equals(Material.IRON_SHOVEL)) {
+		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.repairItem)) {
 			repairManager.repair(p, v);
 			return;
 		}
@@ -341,12 +358,35 @@ public class VehicleManager implements Listener{
 			v.key(p, Keybind.RIGHT_CLICK);
 			return;
 		}
-		if(p.getInventory().getItemInMainHand().getType().equals(Material.BUCKET)) {
+		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.skinItem)) {
 			skinInteract(p, v);
+			return;
+		}
+		if(p.getInventory().getItemInMainHand().getType().equals(Material.NAME_TAG)) {
+			naming.put(p, new NamingData(v));
+			p.sendTitle("", "§eType the §aName §ein chat", 10, 80, 10);
+			p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1f);
 			return;
 		}
 		seatInteract(p, v);
 		
+	}
+	@EventHandler
+	public void nameVehicle(AsyncPlayerChatEvent e) {
+		Player p = e.getPlayer();
+		if(!naming.containsKey(p)) return;
+		e.setCancelled(true);
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				ActiveVehicle v = naming.get(p).getVehicle();
+				if(get(v.getEntity()) == null) return;
+				v.setName(StringFormatter.formatHex(e.getMessage().replace("_", " ")));
+				naming.remove(p);
+				p.sendMessage("§aRenamed the vehicle to "+v.getName());
+				p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1f);
+			}
+		}.runTask(VehicleFramework.plugin);
 	}
 	@EventHandler
 	public void playerLeave(PlayerQuitEvent e) {

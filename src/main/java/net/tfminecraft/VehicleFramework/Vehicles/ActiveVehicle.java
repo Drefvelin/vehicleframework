@@ -214,6 +214,10 @@ public class ActiveVehicle {
 	public String getUUID() {
 		return uuid;
 	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 	
 	public String getName() {
 		return name;

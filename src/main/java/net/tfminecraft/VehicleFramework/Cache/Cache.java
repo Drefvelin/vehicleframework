@@ -20,6 +20,9 @@ public class Cache {
 	public static boolean blockDamage;
 	
 	public static Set<Location> lightLocations = new HashSet<>();
+
+	public static String skinItem;
+	public static String repairItem;
 	
 	
 	public static void removeLights() {

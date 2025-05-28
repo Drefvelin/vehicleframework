@@ -95,6 +95,11 @@ public class Engine extends VehicleComponent{
 		}
 	}
 
+	public void setStarted(boolean b) {
+		started = b;
+		starting = false;
+	}
+
 	public List<String> getParticleBones() {
 		return boneList;
 	}
@@ -134,7 +139,7 @@ public class Engine extends VehicleComponent{
 	
 	private void normalize() {
 		if(!v.getSeatHandler().hasPassengers() && v.getStateHandler().getCurrentState().getType() != State.FLYING) {
-			//throttle.normalize();
+			throttle.normalize();
     		if(throttle.getCurrent() == 0) {
     			stop();
     		}

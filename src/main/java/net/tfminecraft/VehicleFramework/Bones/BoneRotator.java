@@ -50,6 +50,11 @@ public class BoneRotator {
 	public SimpleManualAnimator getAnimator() {
 		return animator;
 	}
+
+	public void rawSet(float x, float y, float z, float w) {
+		animator.getRotation().set(x, y, z, w);
+		animator.animate(bone);
+	}
 	
 	public void rotateEntity(float yaw, float pitch) {
 		Location loc = e.getLocation().clone();

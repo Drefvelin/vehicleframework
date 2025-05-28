@@ -9,11 +9,13 @@ public class IncompleteWeapon {
 	private double damage;
 	
 	private Ammunition ammo; //TODO turn this back to ammunition class once ported
+	private int count = 0;
 
-	public IncompleteWeapon(String id, double damage, String ammo) {
+	public IncompleteWeapon(String id, double damage, String ammo, int count) {
 		this.id = id;
 		this.damage = damage;
 		this.ammo = AmmunitionLoader.getByString(ammo);
+		this.count = count;
 	}
 	
 	public String getId() {
@@ -26,6 +28,10 @@ public class IncompleteWeapon {
 	
 	public boolean hasAmmo() {
 		return ammo != null;
+	}
+
+	public int getCount() {
+		return count;
 	}
 	
 	public Ammunition getAmmo() {

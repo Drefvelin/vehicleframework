@@ -34,6 +34,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Input;
@@ -52,9 +53,10 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 
 public class VehicleManager implements Listener{
-	
+	private Database db = new Database();
 	private InventoryManager inv = new InventoryManager();
 	private RepairManager repairManager = new RepairManager(this);
+	private SpawnManager spawnManager = new SpawnManager(this);
 	
 	private HashMap<Player, Long> cooldown = new HashMap<>();
 	
@@ -73,6 +75,13 @@ public class VehicleManager implements Listener{
 	//Managers
 	public RepairManager getRepairManager() {
 		return repairManager;
+	}
+	public SpawnManager getSpawnManager() {
+		return spawnManager;
+	}
+
+	public HashMap<Entity, ActiveVehicle> get() {
+		return vehicles;
 	}
 	
 	public ActiveVehicle get(Entity e) {
@@ -114,6 +123,7 @@ public class VehicleManager implements Listener{
 	}
 	
 	public void start() {
+		spawnManager.start();
 		vehicleFastTickCycle();
 		vehicleSlowTickCycle();
 	}
@@ -123,7 +133,11 @@ public class VehicleManager implements Listener{
 	        public void run() {
 	            for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 	            	ActiveVehicle v = entry.getValue();
-	                v.slowTick();
+	                try {
+						v.slowTick();
+					} catch (Exception e) {
+						VFLogger.log(v.getId()+" has run into an issue");
+					}
 	            }
 	        }
 	    }.runTaskTimer(VehicleFramework.plugin, 0L, 20L);
@@ -135,7 +149,11 @@ public class VehicleManager implements Listener{
 				updateInventory();
 	            for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 	            	ActiveVehicle v = entry.getValue();
-	                v.tick();
+	                try {
+						v.tick();
+					} catch (Exception e) {
+						VFLogger.log(v.getId()+" has run into an issue");
+					}
 	            }
 	            Iterator<Map.Entry<Player, ActiveVehicle>> iterator = tow.entrySet().iterator();
 	            while (iterator.hasNext()) {
@@ -411,6 +429,19 @@ public class VehicleManager implements Listener{
 		if(a.equals(Action.LEFT_CLICK_AIR) || a.equals(Action.LEFT_CLICK_BLOCK)) v.key(p, Keybind.LEFT_CLICK);
 		
 	}
+
+	public void mount(Player p, String seat, ActiveVehicle v) {
+		Seat s = v.getSeatHandler().getSeat(seat);
+		if(s == null) return;
+		if(!v.isPassenger(p, true)) {
+	    	v.addPassenger(p, s);
+	    } else {
+	    	v.changeSeat(p, s);
+	    }
+	    if(tempVehicle.containsKey(p)) tempVehicle.remove(p);
+	    if(!activeVehicle.containsKey(p)) activeVehicle.put(p, v);
+	}
+
 	@EventHandler
 	public void seatSelect(InventoryClickEvent e) {
 		Player p = (Player) e.getWhoClicked();
@@ -490,5 +521,22 @@ public class VehicleManager implements Listener{
 	            }
 	        });
 	    }
+	}
+
+	//Database and persistence, unload vehicle safely and store them in on disk
+	//Chunks and stuff is managed in the spawnmanager
+
+	@SuppressWarnings("unchecked")
+	public void unloadAll() {
+		HashMap<Entity, ActiveVehicle> vc = (HashMap<Entity, ActiveVehicle>) vehicles.clone();
+		for(Map.Entry<Entity, ActiveVehicle> entry : vc.entrySet()) {
+			ActiveVehicle v = entry.getValue();
+			unload(v);
+		}
+	}
+
+	public void unload(ActiveVehicle v) {
+		if(!v.isDestroyed()) db.saveVehicle(v);
+		v.remove();
 	}
 }

@@ -23,6 +23,11 @@ public class HealthData {
 			}
 		}
 	}
+
+	public void setDamage(double d) {
+		damage = d;
+		if(damage > health) damage = health;
+	}
 	
 	public double getHealth() {
 		return health;

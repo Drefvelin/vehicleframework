@@ -49,6 +49,10 @@ public class SinkableHull extends Hull{
 		return sinkProgress > 0;
 	}
 
+	public void setSinkProgress(int i) {
+		sinkProgress = i;
+	}
+
 	public int getSinkProgress() {
 		return (int) Math.round(sinkProgress);
 	}

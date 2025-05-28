@@ -16,6 +16,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.joml.Quaternionf;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -34,6 +36,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
+import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 
 public class Database {
@@ -50,9 +53,12 @@ public class Database {
 			json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
 			String id = (String) json.get("id");
 			String name = (String) json.get("name");
+			String skin = (String) json.get("skin");
 
 			int throttle = 0;
 			int gear = 1;
+
+			float yaw = json.containsKey("yaw") ? ((Double) json.get("yaw")).floatValue() : 0f;
 			
 			JSONObject componentsObject = (JSONObject) json.get("components");
 	        List<IncompleteComponent> componentsList = new ArrayList<>();
@@ -110,20 +116,35 @@ public class Database {
 					// Extract properties
 					double damage = (Double) weaponData.get("damage");
 					String ammo = weaponData.containsKey("ammo") ? (String) weaponData.get("ammo") : null;
+					int count = weaponData.containsKey("count") ? ((Long) weaponData.get("count")).intValue() : 0;
 					IncompleteWeapon incompleteWeapon = new IncompleteWeapon(
 						weaponId,
 						damage, 
-						ammo
+						ammo,
+						count
 					);
 					weapons.add(incompleteWeapon);
 				}
 	        }	
 
 			List<PassengerData> passengers = new ArrayList<>();
+			if(json.containsKey("passengers")) {
+				JSONObject passengersObject = (JSONObject) json.get("passengers");
+
+				// Iterate over the components (key is the component type, value is the component data)
+				for (Object passengerKey : passengersObject.keySet()) {
+					String seatId = (String) passengerKey;
+					JSONObject passengerData = (JSONObject) passengersObject.get(seatId);
+
+					// Extract properties
+					String player = (String) passengerData.get("player");
+					passengers.add(new PassengerData(player, seatId));
+				}
+			}
 
 	        // Create and return IncompleteVehicle with loaded components
 	        file.delete();
-	        return new IncompleteVehicle(id, name, componentsList, weapons, rotations, passengers, throttle, gear);
+	        return new IncompleteVehicle(id, name, skin, componentsList, weapons, rotations, passengers, throttle, gear, yaw);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -194,8 +215,6 @@ public class Database {
         	defaults.put("xPos", loc.getX());
         	defaults.put("yPos", loc.getY());
         	defaults.put("zPos", loc.getZ());
-        	defaults.put("yaw", loc.getYaw());
-        	defaults.put("pitch", loc.getPitch());
         	defaults.put("file", sLoc.getFile());
         	save(file, defaults);
         } catch (Throwable ex) {
@@ -204,12 +223,6 @@ public class Database {
     }
 	private Location locFromFile(File file) {
 		Location loc = new Location(Bukkit.getServer().getWorld((String) json.get("world")), (Double) json.get("xPos"),(Double) json.get("yPos"),(Double) json.get("zPos"));
-		if(json.containsKey("yaw")) {
-			loc.setYaw(((Double) json.get("yaw")).floatValue());
-		}
-		if(json.containsKey("pitch")) {
-			loc.setPitch(((Double) json.get("pitch")).floatValue());
-		}
 		return loc;
 	}
 	private String getPath(Chunk c) {
@@ -235,6 +248,20 @@ public class Database {
 			JSONObject vehicleData = new JSONObject();
 			vehicleData.put("id", v.getId());
 			vehicleData.put("name", v.getName());
+			vehicleData.put("yaw", v.getEntity().getLocation().getYaw());
+			vehicleData.put("skin", v.getSkinHandler().getCurrentSkin().getId());
+			// --- PASSENGERS ---
+			JSONObject passengersObject = new JSONObject();
+			for (Entity e : v.getSeatHandler().getPassengers()) {
+				if(!(e instanceof Player)) continue;
+				Player p = (Player) e;
+				Seat seat = v.getSeat(p);
+				if(seat == null) continue;
+				JSONObject passengerData = new JSONObject();
+				passengerData.put("player", p.getName());
+				passengersObject.put(seat.getBone(), passengerData);
+			}
+			vehicleData.put("passengers", passengersObject);
 
 			// --- COMPONENTS ---
 			JSONObject componentsObject = new JSONObject();
@@ -291,7 +318,8 @@ public class Database {
 					weaponData.put("damage", w.getHealthData().getDamage());
 
 					if (w.getAmmunitionHandler().hasAmmo()) {
-						weaponData.put("ammo", w.getAmmunitionHandler().getAmmo().toString());
+						weaponData.put("ammo", w.getAmmunitionHandler().getAmmo().getId());
+						weaponData.put("count", w.getAmmunitionHandler().getCount());
 					}
 
 					weaponsObject.put(w.getId(), weaponData);
@@ -299,12 +327,7 @@ public class Database {
 
 				vehicleData.put("weapons", weaponsObject);
 			}
-
-			// --- SAVE TO FILE ---
-			try (PrintWriter pw = new PrintWriter(file, "UTF-8")) {
-				pw.write(vehicleData.toJSONString());
-				pw.flush();
-			}
+			save(file, vehicleData);
 
 		} catch (Throwable ex) {
 			ex.printStackTrace();

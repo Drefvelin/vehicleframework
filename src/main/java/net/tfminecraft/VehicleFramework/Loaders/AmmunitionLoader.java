@@ -25,7 +25,6 @@ public class AmmunitionLoader implements LoaderInterface{
 	
 	@Override
 	public void load(File configFile) {
-		
 		FileConfiguration config = new YamlConfiguration();
         try {
         	config.load(configFile);

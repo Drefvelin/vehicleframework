@@ -10,6 +10,7 @@ import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
 import net.tfminecraft.VehicleFramework.Loaders.ConfigLoader;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Managers.CommandManager;
+import net.tfminecraft.VehicleFramework.Managers.SpawnManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Protocol.VehiclePacketListener;
 import net.tfminecraft.VehicleFramework.Util.TabCompletion;
@@ -19,10 +20,7 @@ public class VehicleFramework extends JavaPlugin{
 	public static VehicleFramework plugin;
 	
 	private final CommandManager commandManager = new CommandManager();
-	
-	//private final SpawnManager spawnManager = new SpawnManager();
 	private final static VehicleManager vehicleManager = new VehicleManager();
-	//private final RepairManager repairManager = new RepairManager();
 	
 	private final ConfigLoader configLoader = new ConfigLoader();
 	private final AmmunitionLoader ammunitionLoader = new AmmunitionLoader();
@@ -31,22 +29,26 @@ public class VehicleFramework extends JavaPlugin{
 	@Override
 	public void onEnable() {
 		Bukkit.getLogger().info("Initializing VF");
+		printBanner();
 		plugin = this;
+		VFLogger.info("Running checks...");
 		createFolders();
 		createConfigs();
 		loadConfigs();
+		VFLogger.info("Starting systems...");
 		registerListeners();
 		startManagers();
+		VFLogger.info("Setup complete!");
 	}
 	@Override
 	public void onDisable() {
-		//vehicleManager.unloadAll();
+		vehicleManager.unloadAll();
 		Cache.removeLights();
 	}
 	public void registerListeners() {
 		getServer().getPluginManager().registerEvents(vehicleManager, this);
 		getServer().getPluginManager().registerEvents(vehicleManager.getRepairManager(), this);
-		//getServer().getPluginManager().registerEvents(spawnManager, this);
+		getServer().getPluginManager().registerEvents(vehicleManager.getSpawnManager(), this);
 		
 		getCommand(commandManager.cmd1).setExecutor(commandManager);
 		getCommand(commandManager.cmd1).setTabCompleter(new TabCompletion());
@@ -55,17 +57,13 @@ public class VehicleFramework extends JavaPlugin{
         packetListener.register();
 	}
 	public void startManagers() {
-		//weaponManager.start(repairManager);
 		vehicleManager.start();
-		//spawnManager.start(vehicleManager, weaponManager);
 	}
 	public void createFolders() {
 		if (!getDataFolder().exists()) getDataFolder().mkdir();
 		File subFolder = new File(getDataFolder(), "data");
 		if(!subFolder.exists()) subFolder.mkdir();
 		subFolder = new File(getDataFolder(), "data/vehicles");
-		if(!subFolder.exists()) subFolder.mkdir();
-		subFolder = new File(getDataFolder(), "data/weapons");
 		if(!subFolder.exists()) subFolder.mkdir();
 		subFolder = new File(getDataFolder(), "vehicles");
 		if(!subFolder.exists()) subFolder.mkdir();
@@ -77,21 +75,20 @@ public class VehicleFramework extends JavaPlugin{
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
 		File folder = new File(getDataFolder(), "vehicles");
+		VFLogger.info("Loading vehicles...");
     	for (final File file : folder.listFiles()) {
     		if(!file.isDirectory()) {
     			vehicleLoader.load(file);
     		}
     	}
+		
     	folder = new File(getDataFolder(), "ammunition");
+		VFLogger.info("Loading ammunition...");
     	for (final File file : folder.listFiles()) {
     		if(!file.isDirectory()) {
     			ammunitionLoader.load(file);
     		}
     	}
-		/*
-		weaponLoader.load(new File(getDataFolder(), "weapons.yml"));
-		
-    	*/
 	}
 	
 	public void createConfigs() {
@@ -110,5 +107,16 @@ public class VehicleFramework extends JavaPlugin{
 	//Access we dont need static variables all over the place:
 	public static VehicleManager getVehicleManager() {
 		return vehicleManager;
+	}
+
+	public void printBanner() {
+		Bukkit.getLogger().info("-------------------------------------------------------------------------------------------------------------------------------------------------");
+		Bukkit.getLogger().info(" __   __            _          _                 _                 ___                                                                     _     ");
+		Bukkit.getLogger().info(" \\ \\ / /    ___    | |_       (_)      __       | |      ___      | __|     _ _    __ _     _ __      ___    __ __ __    ___       _ _    | |__  ");
+		Bukkit.getLogger().info("  \\ V /    / -_)   | ' \\      | |     / _|      | |     / -_)     | _|     | '_|  / _` |   | '  \\    / -_)   \\ V  V /   / _ \\     | '_|   | / /  ");
+		Bukkit.getLogger().info("  _\\_/_    \\___|   |_||_|    _|_|_    \\__|_    _|_|_    \\___|    _|_|_    _|_|_   \\__,_|   |_|_|_|   \\___|    \\_/\\_/    \\___/    _|_|_    |_\\_\\  ");
+		Bukkit.getLogger().info("_| \"\"\"\"| _|\"\"\"\"\"| _|\"\"\"\"\"| _|\"\"\"\"\"| _|\"\"\"\"\"| _|\"\"\"\"\"| _|\"\"\"\"\"| _| \"\"\"\" | _|\"\"\"\"\"| _|\"\"\"\"\"| _|\"\"\"\"\"| _|\"\"\"\"\"| _|\"\"\"\"\"|  _|\"\"\"\"\"| _|\"\"\"\"\"| _|\"\"\"\"\"| ");
+		Bukkit.getLogger().info(" `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'  `-0-0-'   `-0-0-'  `-0-0-'  `-0-0-' ");
+		Bukkit.getLogger().info("------------------------------------------------------------------by drefvelin-------------------------------------------------------------------");
 	}
 }

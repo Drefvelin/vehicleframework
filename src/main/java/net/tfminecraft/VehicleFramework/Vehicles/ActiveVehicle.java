@@ -17,12 +17,16 @@ import com.ticxo.modelengine.api.model.ModeledEntity;
 
 import net.Indyuce.mmoitems.api.interaction.weapon.Weapon;
 import net.tfminecraft.VehicleFramework.VFLogger;
+import net.tfminecraft.VehicleFramework.Bones.BoneRotator;
 import net.tfminecraft.VehicleFramework.Bones.ConvertedAngle;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Data.DeathData;
 import net.tfminecraft.VehicleFramework.Data.DeathOverride;
+import net.tfminecraft.VehicleFramework.Database.IncompleteComponent;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Database.IncompleteWeapon;
+import net.tfminecraft.VehicleFramework.Database.PassengerData;
+import net.tfminecraft.VehicleFramework.Database.RotationData;
 import net.tfminecraft.VehicleFramework.Effects.CustomEffect;
 import net.tfminecraft.VehicleFramework.Enums.Animation;
 import net.tfminecraft.VehicleFramework.Enums.Component;
@@ -33,6 +37,7 @@ import net.tfminecraft.VehicleFramework.Enums.CustomAction;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Util.ConditionChecker;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
 import net.tfminecraft.VehicleFramework.Vehicles.Controller.ScoreboardController;
@@ -48,10 +53,12 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TrainHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.UtilityHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.WeaponHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Skins.VehicleSkin;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleState;
 import net.tfminecraft.VehicleFramework.Vehicles.Util.AccessPanel;
+import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 
 public class ActiveVehicle {
 	protected long spawnTime;
@@ -123,13 +130,8 @@ public class ActiveVehicle {
 		fixed = stored.isFixed();
 		towable = stored.isTowable();
 		id = stored.getId();
-		if(i != null) {
-			name = i.getName();
-			uuid = i.getId();
-		} else {
-			name = stored.getName();
-			uuid = UUID.randomUUID().toString();
-		}
+		name = stored.getName();
+		uuid = UUID.randomUUID().toString();
 		destroyed = false;
 		initialized = false;
 		
@@ -146,11 +148,7 @@ public class ActiveVehicle {
 		
 		deathData = stored.getDeathData();
 		sb = new ScoreboardController(this);
-		if(i != null) {
-			initialize(i.getWeapons());
-		} else {
-			initialize(null);
-		}
+		initialize(i);
 	}
 
 	//Getters and some Setters, low level stuff basically
@@ -275,7 +273,11 @@ public class ActiveVehicle {
 	
 	//Model
 	public boolean changeSkin(String id) {
-		if(!skinHandler.canChangeSkin(id)) return false;
+		return changeSkin(id, false);
+	}
+
+	private boolean changeSkin(String id, boolean override) {
+		if(!skinHandler.canChangeSkin(id, override)) return false;
 		String skinId = skinHandler.changeSkin(id);
 		ModeledEntity modeledEntity = ModelEngineAPI.getModeledEntity(entity);
 		model.destroy();
@@ -296,12 +298,80 @@ public class ActiveVehicle {
 	public boolean isInitialized() {
 		return initialized;
 	}
-	public void initialize(List<IncompleteWeapon> incWeapons) {
+	private void initialize(IncompleteVehicle i) {
 		stateHandler.tick();
 		updateNearby();
 		getAnimationHandler().animate(Animation.DEFAULT);
 		entity.setRotation(entity.getLocation().getYaw(), 0);
 		initialized = true;
+		if(i != null) loadIncomplete(i);
+	}
+
+	private void loadIncomplete(IncompleteVehicle inc) {
+		entity.setRotation(inc.getYaw(), 0);
+		initializeWeapons(inc.getWeapons());
+		initializeComponents(inc.getComponents());
+		initializeRotations(inc.getRotations());
+		initializePassengers(inc.getPassengers());
+		name = inc.getName();
+		uuid = inc.getId();
+		if(!changeSkin(inc.getSkin(), true)) {
+			VFLogger.log("could not apply skin "+inc.getSkin()+" to "+id);
+		}
+		if(hasComponent(Component.ENGINE)) {
+			Engine e = (Engine) getComponent(Component.ENGINE);
+			if(inc.getThrottle() != 0) e.setStarted(true);
+			e.getThrottle().setThrottle(inc.getThrottle());
+		} else if(hasComponent(Component.GEARED_ENGINE)) {
+			GearedEngine e = (GearedEngine) getComponent(Component.GEARED_ENGINE);
+			if(inc.getThrottle() != 0) e.setStarted(true);
+			e.setCurrentGear(inc.getGear());
+			e.getGear().getThrottle().setThrottle(inc.getThrottle());
+		}
+	}
+
+	private void initializePassengers(List<PassengerData> passengers) {
+		for(PassengerData passenger : passengers) {
+			Player p = Bukkit.getPlayerExact(passenger.getPassenger());
+			if(p == null || !p.isOnline()) continue;
+			vehicleManager.mount(p, passenger.getSeat(), this);
+		}
+	}
+
+	private void initializeRotations(List<RotationData> rotations) {
+		for(RotationData rotation : rotations) {
+			for(BoneRotator rotator : panel.getRotators()) {
+				if(rotator.getId().equalsIgnoreCase(rotation.getRotator())) {
+					rotator.rawSet(rotation.getX(), rotation.getY(), rotation.getZ(), rotation.getW());
+				}
+			}
+		}
+	}
+
+	private void initializeComponents(List<IncompleteComponent> components) {
+		for(IncompleteComponent i : components) {
+			for(VehicleComponent c : componentHandler.getComponents()) {
+				if(c.getType().equals(i.getType())) {
+					c.getHealthData().setDamage(i.getDamage());
+					if(i.isSinking()) ((SinkableHull) c).setSinkProgress(i.getSinkProgress());
+					if(i.hasFire()) {
+						c.startFire();
+						c.getFire().setProgress(i.getFireProgress());
+					}
+				}
+			}
+		}
+	}
+
+	private void initializeWeapons(List<IncompleteWeapon> incWeapons) {
+		for(IncompleteWeapon i : incWeapons) {
+			for(ActiveWeapon w : weaponHandler.getWeapons()) {
+				if(w.getId().equalsIgnoreCase(i.getId())) {
+					w.getHealthData().setDamage(i.getDamage());
+					w.getAmmunitionHandler().setAmmo(i.getAmmo(), i.getCount());
+				}
+			}
+		}
 	}
 	
 	//Death

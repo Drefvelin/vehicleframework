@@ -6,6 +6,8 @@ import java.util.List;
 public class IncompleteVehicle {
 	private String id;
 	private String name;
+
+	private String skin;
 	
 	private List<IncompleteComponent> components = new ArrayList<>();
 	private List<IncompleteWeapon> weapons = new ArrayList<>();
@@ -14,18 +16,29 @@ public class IncompleteVehicle {
 
 	private int throttle = 0;
 	private int gear = 1;
+	private float yaw = 0f;
 
 	private List<PassengerData> passengers = new ArrayList<>();
 
-	public IncompleteVehicle(String id, String name, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, int throttle, int gear) {
+	public IncompleteVehicle(String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, int throttle, int gear, float yaw) {
 		this.id = id;
 		this.name = name;
+		this.skin = skin;
 		this.components = components;
 		this.weapons = weapons;
 		rotators = rotations;
 		this.passengers = passengers;
 		this.throttle = throttle;
 		this.gear = gear;
+		this.yaw = yaw;
+	}
+
+	public String getSkin() {
+		return skin;
+	}
+
+	public float getYaw() {
+		return yaw;
 	}
 	
 	public String getId() {

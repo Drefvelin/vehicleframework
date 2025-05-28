@@ -87,6 +87,11 @@ public class AmmunitionHandler {
 			exitBones.add(new VectorBone(m.getBone(base).get(), m.getBone(alignment).get()));
 		}
 	}
+
+	public void setAmmo(Ammunition a, int i) {
+		ammo = a;
+		count = i;
+	}
 	
 	public void updateModel(ActiveModel m) {
 		for(VectorBone bone : exitBones) {

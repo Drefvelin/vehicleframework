@@ -106,6 +106,11 @@ public class GearedEngine extends VehicleComponent{
 			bone.updateModel(m);
 		}
 	}
+
+	public void setStarted(boolean b) {
+		started = b;
+		starting = false;
+	}
 	
 	public List<String> getParticleBones() {
 		return boneList;
@@ -128,6 +133,10 @@ public class GearedEngine extends VehicleComponent{
 	
 	public List<Gear> getGears(){
 		return gears;
+	}
+
+	public void setCurrentGear(int i) {
+		if(i >= 0 && gears.size() > i) currentGear = i;
 	}
 	
 	public int getCurrentGear() {

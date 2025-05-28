@@ -14,6 +14,7 @@ import net.tfminecraft.VehicleFramework.Cache.Cache;
 public class ConfigLoader {
 
 	public void load(File configFile) {
+		VFLogger.info("Loading config...");
 		FileConfiguration config = new YamlConfiguration();
         try {
         	config.load(configFile);

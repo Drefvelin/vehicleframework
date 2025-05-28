@@ -35,12 +35,12 @@ public class SkinHandler {
 		currentSkin = skins.get(skin);
 	}
 	
-	public boolean canChangeSkin(String id) {
-		if(currentSkin.getId().equalsIgnoreCase(id)) return false;
+	public boolean canChangeSkin(String id, boolean override) {
+		if(currentSkin.getId().equalsIgnoreCase(id) && !override) return false;
 		if(!skins.containsKey(id)) return false;
-		if(v.getSeatHandler().hasPassengers()) return false;
-		if(v.getStateHandler().getCurrentState().getType().equals(State.FLYING)) return false;
-		if(v.hasComponent(Component.ENGINE)) {
+		if(v.getSeatHandler().hasPassengers() && !override) return false;
+		if(v.getStateHandler().getCurrentState().getType().equals(State.FLYING) && !override) return false;
+		if(v.hasComponent(Component.ENGINE) && !override) {
 			Engine e = (Engine) v.getComponent(Component.ENGINE);
 			if(e.isStarted()) return false;
 			if(e.getThrottle().getCurrent() != 0) return false;

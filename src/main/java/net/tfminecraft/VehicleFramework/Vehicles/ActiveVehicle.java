@@ -6,12 +6,8 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 
@@ -19,26 +15,22 @@ import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 
+import net.Indyuce.mmoitems.api.interaction.weapon.Weapon;
 import net.tfminecraft.VehicleFramework.VFLogger;
-import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Bones.ConvertedAngle;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
-import net.tfminecraft.VehicleFramework.Data.DamageData;
 import net.tfminecraft.VehicleFramework.Data.DeathData;
 import net.tfminecraft.VehicleFramework.Data.DeathOverride;
-import net.tfminecraft.VehicleFramework.Data.SoundData;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Database.IncompleteWeapon;
 import net.tfminecraft.VehicleFramework.Effects.CustomEffect;
 import net.tfminecraft.VehicleFramework.Enums.Animation;
 import net.tfminecraft.VehicleFramework.Enums.Component;
-import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VehicleDeath;
 import net.tfminecraft.VehicleFramework.Enums.CustomAction;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
-import net.tfminecraft.VehicleFramework.Projectiles.HitChecker;
 import net.tfminecraft.VehicleFramework.Util.ConditionChecker;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
@@ -275,6 +267,10 @@ public class ActiveVehicle {
 	}
 	public UtilityHandler getUtilityHandler() {
 		return utilityHandler;
+	}
+
+	public WeaponHandler getWeaponHandler() {
+		return weaponHandler;
 	}
 	
 	//Model

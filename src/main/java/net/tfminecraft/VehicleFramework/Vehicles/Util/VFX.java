@@ -10,6 +10,8 @@ import org.bukkit.util.Vector;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
 
+import net.tfminecraft.VehicleFramework.VFLogger;
+
 public class VFX {
 	public List<String> boneList = new ArrayList<>();
 	
@@ -22,7 +24,11 @@ public class VFX {
 	public VFX(VFX another, ActiveModel m) {
 		boneList = another.getBoneList();
 		for(String s : boneList) {
-			modelBones.add(m.getBone(s).get());
+			try {
+				modelBones.add(m.getBone(s).get());
+			} catch (Exception e) {
+				VFLogger.log("Error: "+m.getBlueprint().getName()+" has no bone called "+s);
+			}
 		}
 	}
 	

@@ -54,6 +54,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 public class VehicleManager implements Listener{
 	
 	private InventoryManager inv = new InventoryManager();
+	private RepairManager repairManager = new RepairManager(this);
 	
 	private HashMap<Player, Long> cooldown = new HashMap<>();
 	
@@ -68,6 +69,11 @@ public class VehicleManager implements Listener{
 	private HashMap<Player, ActiveVehicle> tow = new HashMap<>();
 	
 	private HashMap<Entity, ActiveVehicle> vehicles = new HashMap<>();
+
+	//Managers
+	public RepairManager getRepairManager() {
+		return repairManager;
+	}
 	
 	public ActiveVehicle get(Entity e) {
 		if(vehicles.containsKey(e)) return vehicles.get(e);
@@ -159,6 +165,8 @@ public class VehicleManager implements Listener{
 				inv.seatSelection(i, p, v, false);
 			} else if(h.getType().equals(VFGUI.SKIN_SELECTION)) {
 				inv.skinSelection(i, p, v, false);
+			} else if(h.getType().equals(VFGUI.REPAIR)) {
+				inv.repairWindow(i, p, v, false, repairManager.getTool(p));
 			}
 		}
 	}
@@ -259,6 +267,10 @@ public class VehicleManager implements Listener{
 			}
 		}
 		cooldown.put(p, System.currentTimeMillis()+100);
+		if(p.getInventory().getItemInMainHand().getType().equals(Material.IRON_SHOVEL)) {
+			repairManager.repair(p, v);
+			return;
+		}
 		//all this is shit
 		if(p.isSneaking()) {
 			if(v.isTowable()) {

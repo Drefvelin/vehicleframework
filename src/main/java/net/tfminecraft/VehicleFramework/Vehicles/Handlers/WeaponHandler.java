@@ -42,6 +42,13 @@ public class WeaponHandler {
 	public List<ActiveWeapon> getWeapons(){
 		return weapons;
 	}
+
+	public ActiveWeapon getWeapon(String id) {
+		for(ActiveWeapon w : weapons) {
+			if(w.getId().equalsIgnoreCase(id)) return w;
+		}
+		return null;
+	}
 	
 	public void input(List<Player> nearby, Keybind key, Player p) {
 		for(ActiveWeapon w : weapons) {

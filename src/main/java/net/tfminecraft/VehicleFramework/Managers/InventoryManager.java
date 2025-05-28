@@ -1,12 +1,15 @@
 package net.tfminecraft.VehicleFramework.Managers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -16,8 +19,16 @@ import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Hull;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Pump;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Wings;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Skins.VehicleSkin;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
+import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 
 public class InventoryManager {
 	//Seat Selector
@@ -73,16 +84,11 @@ public class InventoryManager {
 		i.setItemMeta(m);
 		return i;
 	}
-	/*
+	
 	//Repair Window
-	public void repairWindow(Inventory i, Player p, Vehicle v, SiegeWeapon w, boolean open, String tool) {
+	public void repairWindow(Inventory i, Player p, ActiveVehicle v, boolean open, String tool) {
 		if(open) {
-			if(v != null) {
-				i = WarMachines.plugin.getServer().createInventory(null, 27, "§7Repair Vehicle");
-			}
-			if(w != null) {
-				i = WarMachines.plugin.getServer().createInventory(null, 27, "§7Repair Weapon");
-			}
+			i = VehicleFramework.plugin.getServer().createInventory(new VFInventoryHolder(v.getUUID(), VFGUI.REPAIR), 27, "§7Repair Vehicle");
 		}
 		if(v != null) {
 			List<Integer> locked = Arrays.asList(8, 17);
@@ -92,14 +98,11 @@ public class InventoryManager {
 				i.setItem(x, getComponentItem(c));
 				x++;
 			}
-			for(WeaponSlot weapon : v.getWeapons()) {
+			for(ActiveWeapon weapon : v.getWeaponHandler().getWeapons()) {
 				while(locked.contains(x)) x++;
-				i.setItem(x, getWeaponItem(weapon.getWeapon()));
+				i.setItem(x, getWeaponItem(weapon));
 				x++;
 			}
-		}
-		if(w != null) {
-			i.setItem(0, getWeaponItem(w));
 		}
 		i.setItem(8, getRepairItem(tool));
 		i.setItem(17, getWaterItem(tool));
@@ -122,7 +125,7 @@ public class InventoryManager {
 		ItemStack i = new ItemStack(Material.IRON_SHOVEL, 1);
 		ItemMeta m = i.getItemMeta();
 		m.setDisplayName("§7Repair Tool");
-		NamespacedKey key = new NamespacedKey(WarMachines.plugin, "wm_tool_type");
+		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "wm_tool_type");
 		m.getPersistentDataContainer().set(key, PersistentDataType.STRING, "repair");
 		List<String> lore = new ArrayList<>();
 		if(tool.equalsIgnoreCase("repair")) {
@@ -145,7 +148,7 @@ public class InventoryManager {
 		ItemStack i = new ItemStack(Material.WATER_BUCKET, 1);
 		ItemMeta m = i.getItemMeta();
 		m.setDisplayName("§7Water Bucket");
-		NamespacedKey key = new NamespacedKey(WarMachines.plugin, "wm_tool_type");
+		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_tool_type");
 		m.getPersistentDataContainer().set(key, PersistentDataType.STRING, "water");
 		List<String> lore = new ArrayList<>();
 		if(tool.equalsIgnoreCase("water")) {
@@ -173,13 +176,22 @@ public class InventoryManager {
 		} else if(c instanceof Engine) {
 			i.setType(Material.BLAST_FURNACE);
 			type = "engine";
+		} else if(c instanceof GearedEngine) {
+			i.setType(Material.FURNACE);
+			type = "engine";
 		} else if(c instanceof Pump) {
 			i.setType(Material.BREWING_STAND);
+			type = "pump";
+		} else if(c instanceof Wings) {
+			i.setType(Material.WHITE_WOOL);
+			type = "pump";
+		} else if(c instanceof Harness) {
+			i.setType(Material.LEAD);
 			type = "pump";
 		}
 		ItemMeta m = i.getItemMeta();
 		m.setDisplayName("§7"+WordUtils.capitalize(new String(type)));
-		NamespacedKey key = new NamespacedKey(WarMachines.plugin, "wm_component_type");
+		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_component_type");
 		m.getPersistentDataContainer().set(key, PersistentDataType.STRING, type);
 		List<String> lore = new ArrayList<>();
 		lore.add(c.getHealthData().getHealthPercentageString());
@@ -195,15 +207,12 @@ public class InventoryManager {
 		i.setItemMeta(m);
 		return i;
 	}
-	private ItemStack getWeaponItem(SiegeWeapon w) {
-		ItemStack i = new ItemStack(Material.GREEN_CONCRETE, 1);
-		if(w instanceof Cannon) {
-			i.setType(Material.IRON_BLOCK);
-		}
+	private ItemStack getWeaponItem(ActiveWeapon w) {
+		ItemStack i = new ItemStack(Material.IRON_BLOCK, 1);
 		ItemMeta m = i.getItemMeta();
 		m.setDisplayName(w.getName());
-		NamespacedKey key = new NamespacedKey(WarMachines.plugin, "wm_weapon_repair_type");
-		m.getPersistentDataContainer().set(key, PersistentDataType.STRING, w.getEntity().getUniqueId().toString());
+		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_weapon_repair_type");
+		m.getPersistentDataContainer().set(key, PersistentDataType.STRING, w.getId());
 		List<String> lore = new ArrayList<>();
 		lore.add(w.getHealthData().getHealthPercentageString());
 		if(w.getHealthData().isUnderRepair()) {
@@ -214,7 +223,7 @@ public class InventoryManager {
 		i.setItemMeta(m);
 		return i;
 	}
-	*/
+	
 	//Skin Selector
 	public void skinSelection(Inventory i, Player p, ActiveVehicle v, boolean open) {
 		if(open) {

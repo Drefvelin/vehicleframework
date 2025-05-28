@@ -49,11 +49,21 @@ public class VectorBone {
 	
 	public Vector getVector() {
 		Location spawnLocation = base.getLocation();
-        Location alignmentLocation = align.getLocation();
+		Location alignmentLocation = align.getLocation();
 
-        Vector direction = alignmentLocation.toVector().subtract(spawnLocation.toVector());
-        direction.normalize();
-        
-        return direction;
+		// Check if both locations are the same (by comparing coordinates)
+		if (spawnLocation.getX() == alignmentLocation.getX() &&
+			spawnLocation.getY() == alignmentLocation.getY() &&
+			spawnLocation.getZ() == alignmentLocation.getZ()) {
+			return new Vector(1, 0, 0); // Default direction
+		}
+
+
+		Vector direction = alignmentLocation.toVector().subtract(spawnLocation.toVector());
+
+		
+
+		direction.normalize();
+		return direction;
 	}
 }

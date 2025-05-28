@@ -1,24 +1,19 @@
 package net.tfminecraft.VehicleFramework.Database;
 
-import org.bukkit.Location;
+import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
+import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 
 public class IncompleteWeapon {
 	private String id;
 	
 	private double damage;
 	
-	private String bone;
-	
-	private Location loc;
-	
-	private String ammo; //TODO turn this back to ammunition class once ported
+	private Ammunition ammo; //TODO turn this back to ammunition class once ported
 
-	public IncompleteWeapon(String id, double damage, String bone, Location loc, String ammo) {
+	public IncompleteWeapon(String id, double damage, String ammo) {
 		this.id = id;
 		this.damage = damage;
-		this.bone = bone;
-		this.loc = loc;
-		this.ammo = ammo;
+		this.ammo = AmmunitionLoader.getByString(ammo);
 	}
 	
 	public String getId() {
@@ -29,22 +24,11 @@ public class IncompleteWeapon {
 		return damage;
 	}
 	
-	public boolean hasBone() {
-		return bone != null;
-	}
-	public String getBone() {
-		return bone;
-	}
-
-	public Location getLoc() {
-		return loc;
-	}
-	
 	public boolean hasAmmo() {
 		return ammo != null;
 	}
 	
-	public String getAmmo() {
+	public Ammunition getAmmo() {
 		return ammo;
 	}
 }

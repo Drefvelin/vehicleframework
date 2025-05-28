@@ -6,7 +6,7 @@
 
     <groupId>net.tfminecraft</groupId>
     <artifactId>vehicleframework</artifactId>
-    <version>0.7.8-ALPHA</version>
+    <version>0.7.9-ALPHA</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

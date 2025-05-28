@@ -45,7 +45,7 @@ public class VehicleFramework extends JavaPlugin{
 	}
 	public void registerListeners() {
 		getServer().getPluginManager().registerEvents(vehicleManager, this);
-		//getServer().getPluginManager().registerEvents(repairManager, this);
+		getServer().getPluginManager().registerEvents(vehicleManager.getRepairManager(), this);
 		//getServer().getPluginManager().registerEvents(spawnManager, this);
 		
 		getCommand(commandManager.cmd1).setExecutor(commandManager);

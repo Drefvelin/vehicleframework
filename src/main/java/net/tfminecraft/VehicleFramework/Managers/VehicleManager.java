@@ -304,13 +304,13 @@ public class VehicleManager implements Listener{
 		}
 		cooldown.put(p, System.currentTimeMillis()+100);
 		//Repair
-		if(v.usesFuel() && api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.repairItem)) {
+		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.repairItem)) {
 			repairManager.repair(p, v);
 			return;
 		}
 		//Fuel check
 		String path = api.getChecker().getAsStringPath(p.getInventory().getItemInMainHand());
-		if(FuelLoader.itemIsFuel(path)) {
+		if(v.usesFuel() && FuelLoader.itemIsFuel(path)) {
 			v.refuel(p, path);
 			return;
 		}

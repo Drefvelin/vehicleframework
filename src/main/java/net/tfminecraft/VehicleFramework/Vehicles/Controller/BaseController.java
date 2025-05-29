@@ -59,8 +59,12 @@ public class BaseController {
 	private Vector engineVector(ActiveVehicle v, VectorBone vector, Entity e, Vector velocity) {
 		if (e != null && e.isValid() && e instanceof LivingEntity) {
         	Vector direction = vector.getVector().clone().normalize();
-
-        	velocity = direction.multiply(v.getAccessPanel().getSpeed()); // Forward velocity  
+			if(v.getCurrentState().getType().equals(State.FLYING) && !v.hasFuel()) {
+				//So you dont just stop mid air
+				velocity = direction.multiply(0.65); // Forward velocity 
+			} else{
+				velocity = direction.multiply(v.getAccessPanel().getSpeed()); // Forward velocity 
+			}
         }
 		return velocity;
 	}

@@ -65,7 +65,6 @@ public class SpawnManager implements Listener {
 	        	for(int i = 0; i<spawns.size(); i++) {
 	        		SpawnLocation loc = spawns.get(i);
 	        		if(!loc.hasNearby()) continue;
-					VFLogger.creatorLog("Loading vehicle...");
 	        		loadVehicle(loc, db.loadVehicle(loc));
 					if(i > 0) i--;
 	        	}
@@ -76,8 +75,7 @@ public class SpawnManager implements Listener {
 	private void loadVehicle(SpawnLocation loc, IncompleteVehicle i) {
 		Vehicle v = VehicleLoader.getByString(i.getId());
 		if(v == null) return;
-		ActiveVehicle av = vehicleManager.spawn(loc.getLoc(), v, i);
-		VFLogger.creatorLog("spawned "+av.getId()+" with entity "+av.getEntity().getUniqueId().toString());
+		vehicleManager.spawn(loc.getLoc(), v, i);
 	}
 	
 	@EventHandler

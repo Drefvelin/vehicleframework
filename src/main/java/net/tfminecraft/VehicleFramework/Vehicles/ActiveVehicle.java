@@ -558,6 +558,18 @@ public class ActiveVehicle {
 		}
 		tank.refuel(p, this, fuel.getAmount());
 	}
+	public boolean hasFuel() {
+		FuelTank tank = null;
+		if(hasComponent(Component.ENGINE)) {
+			Engine engine = (Engine) getComponent(Component.ENGINE);
+			tank = engine.getFuelTank();
+		} else if(hasComponent(Component.GEARED_ENGINE)) {
+			GearedEngine engine = (GearedEngine) getComponent(Component.GEARED_ENGINE);
+			tank = engine.getFuelTank();
+		}
+		if(tank == null) return false;
+		return tank.getCurrent() > 0;
+	}
 	public List<VehicleComponent> getComponents(){
 		return componentHandler.getComponents();
 	}

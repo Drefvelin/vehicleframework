@@ -97,6 +97,7 @@ public class FuelTank {
         if(current > capacity) current = capacity;
         p.getWorld().playSound(v.getEntity().getLocation(), Sound.ITEM_BUCKET_FILL, 1f, 0.8f);
         p.sendMessage("§aFuel: §e"+Math.round(current)+"/"+Math.round(capacity));
+        p.getInventory().getItemInMainHand().setAmount(p.getInventory().getItemInMainHand().getAmount()-1);
     }
 
     public void tick(Throttle throttle) {

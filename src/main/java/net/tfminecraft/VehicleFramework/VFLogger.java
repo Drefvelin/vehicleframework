@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class VFLogger {
 	/**
@@ -18,6 +19,14 @@ public class VFLogger {
 
 	public static void info(String info) {
 		Bukkit.getLogger().info("[VehicleFramework] " + info);
+	}
+
+	public static void log(JavaPlugin plugin, String error) {
+		Bukkit.getLogger().warning("["+plugin.getName()+"] Error! " + error);
+	}
+
+	public static void info(JavaPlugin plugin, String info) {
+		Bukkit.getLogger().info("["+plugin.getName()+"] " + info);
 	}
 
 	private static List<String> creators = new ArrayList<>(Arrays.asList("drefvelin"));

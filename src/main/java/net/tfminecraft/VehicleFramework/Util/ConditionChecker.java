@@ -45,6 +45,10 @@ public class ConditionChecker {
 			boolean passenger = vehicle.hasParent();
 			if(value.equalsIgnoreCase("true") && !passenger) return false;
 			if(value.equalsIgnoreCase("false") && passenger) return false;
+		} else if(type.equalsIgnoreCase("has_fuel")) {
+			boolean hasFuel = vehicle.hasFuel();
+			if(value.equalsIgnoreCase("true") && !hasFuel) return false;
+			if(value.equalsIgnoreCase("false") && hasFuel) return false;
 		} else if(type.equalsIgnoreCase("OR")) {
 			if(!orStatement(vehicle, value)) return false;
 		} else if(type.equalsIgnoreCase("AND")) {

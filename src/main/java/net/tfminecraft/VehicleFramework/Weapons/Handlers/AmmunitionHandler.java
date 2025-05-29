@@ -194,7 +194,7 @@ public class AmmunitionHandler {
 			return;
 		}
 		if(!acceptedAmmunition.contains(a.getId())) {
-			p.sendMessage("§eCannot use this ammunition for this weapon");
+			p.sendMessage("§eCannot use "+a.getName()+" for this weapon");
 			return;
 		}
 		int count = getAmmoAmount();

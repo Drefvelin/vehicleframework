@@ -57,6 +57,7 @@ public class Database {
 
 			int throttle = 0;
 			int gear = 1;
+			double fuel = 0;
 
 			float yaw = json.containsKey("yaw") ? ((Double) json.get("yaw")).floatValue() : 0f;
 			
@@ -77,10 +78,12 @@ public class Database {
 					switch (c) {
 						case ENGINE:
 							if(componentData.containsKey("throttle")) throttle = ((Long) componentData.get("throttle")).intValue();
+							if(componentData.containsKey("fuel")) fuel = (Double) componentData.get("fuel");
 							break;
 						case GEARED_ENGINE:
 							if(componentData.containsKey("gear")) gear = ((Long) componentData.get("gear")).intValue();
 							if(componentData.containsKey("throttle")) throttle = ((Long) componentData.get("throttle")).intValue();
+							if(componentData.containsKey("fuel")) fuel = (Double) componentData.get("fuel");
 							break;
 						default:
 							break;
@@ -144,7 +147,7 @@ public class Database {
 
 	        // Create and return IncompleteVehicle with loaded components
 	        file.delete();
-	        return new IncompleteVehicle(id, name, skin, componentsList, weapons, rotations, passengers, throttle, gear, yaw);
+	        return new IncompleteVehicle(id, name, skin, componentsList, weapons, rotations, passengers, throttle, gear, yaw, fuel);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -283,10 +286,12 @@ public class Database {
 				switch (type) {
 					case ENGINE:
 						componentData.put("throttle", ((Engine) component).getThrottle().getCurrent());
+						componentData.put("fuel", ((Engine) component).getFuelTank().getCurrent());
 						break;
 					case GEARED_ENGINE:
 						componentData.put("gear", ((GearedEngine) component).getCurrentGear());
 						componentData.put("throttle", ((GearedEngine) component).getGear().getThrottle().getCurrent());
+						componentData.put("fuel", ((GearedEngine) component).getFuelTank().getCurrent());
 						break;
 					default:
 						break;

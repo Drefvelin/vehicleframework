@@ -27,6 +27,7 @@ import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Util.ParticleLoader;
 import net.tfminecraft.VehicleFramework.Util.SoundLoader;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Gear.Gear;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Utility.DirectionalLight;
@@ -54,6 +55,8 @@ public class GearedEngine extends VehicleComponent{
 
 	private List<ParticleData> particles = new ArrayList<>();
 	private List<String> boneList = new ArrayList<>();
+
+	private FuelTank tank;
 	
 	@SuppressWarnings("unchecked")
 	public GearedEngine(ConfigurationSection config) {
@@ -75,6 +78,7 @@ public class GearedEngine extends VehicleComponent{
 		currentGear = config.getInt("start-gear", 0);
 		defaultGear = currentGear;
 		boneList = (List<String>) config.getList("particle-bones", new ArrayList<String>());
+		tank = new FuelTank(config);
 	}
 
 	public GearedEngine(ActiveVehicle v, GearedEngine another, Entity e, ActiveModel m, IncompleteComponent ic) {
@@ -96,7 +100,7 @@ public class GearedEngine extends VehicleComponent{
 		for(Gear g : another.getGears()) {
 			gears.add(new Gear(this, g));
 		}
-		
+		tank = new FuelTank(another.getFuelTank());
 	}	
 	
 	@Override
@@ -110,6 +114,10 @@ public class GearedEngine extends VehicleComponent{
 	public void setStarted(boolean b) {
 		started = b;
 		starting = false;
+	}
+
+	public FuelTank getFuelTank() {
+		return tank;
 	}
 	
 	public List<String> getParticleBones() {
@@ -242,6 +250,7 @@ public class GearedEngine extends VehicleComponent{
 	@Override
 	public void slowTick(List<Player> nearby) {
 		super.slowTick(nearby);
+		tank.tick(getGear().getThrottle());
 		playSound(nearby);
 	}
 	
@@ -278,6 +287,9 @@ public class GearedEngine extends VehicleComponent{
 			}
 		}
 		if(healthData.getHealthPercentage() < 1 && started) stop();
+		if(tank.getCurrent() == 0 && started) {
+			stop();
+		}
 	}
 	
 	public void start(Player p) {
@@ -287,6 +299,10 @@ public class GearedEngine extends VehicleComponent{
 		}
 		currentGear = defaultGear;
 		cooldown.put(p, System.currentTimeMillis()+1000);
+		if(tank.getCurrent() == 0) {
+			p.sendMessage("§e["+alias+"] §cNo fuel!");
+			return;
+		}
 		starting = true;
 		p.sendMessage("§e["+alias+"] starting...");
 		if(Math.random()*100 > healthData.getHealthPercentage()) {

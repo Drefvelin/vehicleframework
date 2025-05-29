@@ -17,10 +17,11 @@ public class IncompleteVehicle {
 	private int throttle = 0;
 	private int gear = 1;
 	private float yaw = 0f;
+	private double fuel = 0.0;
 
 	private List<PassengerData> passengers = new ArrayList<>();
 
-	public IncompleteVehicle(String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, int throttle, int gear, float yaw) {
+	public IncompleteVehicle(String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, int throttle, int gear, float yaw, double fuel) {
 		this.id = id;
 		this.name = name;
 		this.skin = skin;
@@ -31,6 +32,11 @@ public class IncompleteVehicle {
 		this.throttle = throttle;
 		this.gear = gear;
 		this.yaw = yaw;
+		this.fuel = fuel;
+	}
+
+	public double getFuel() {
+		return fuel;
 	}
 
 	public String getSkin() {

@@ -15,7 +15,6 @@ import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 
-import net.Indyuce.mmoitems.api.interaction.weapon.Weapon;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Bones.BoneRotator;
 import net.tfminecraft.VehicleFramework.Bones.ConvertedAngle;
@@ -33,6 +32,7 @@ import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VehicleDeath;
+import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
 import net.tfminecraft.VehicleFramework.Enums.CustomAction;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Util.ConditionChecker;
@@ -40,8 +40,10 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
 import net.tfminecraft.VehicleFramework.Vehicles.Controller.ScoreboardController;
 import net.tfminecraft.VehicleFramework.Vehicles.Controller.VehicleMovementController;
+import net.tfminecraft.VehicleFramework.Vehicles.Fuel.Fuel;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.BehaviourHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.ComponentHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.DeathHandler;
@@ -53,7 +55,6 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TrainHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.UtilityHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.WeaponHandler;
-import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Skins.VehicleSkin;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleState;
@@ -319,6 +320,7 @@ public class ActiveVehicle {
 		initializePassengers(inc.getPassengers());
 		name = inc.getName();
 		uuid = inc.getId();
+		setFuel(inc.getFuel());
 		if(!changeSkin(inc.getSkin(), true)) {
 			VFLogger.log("could not apply skin "+inc.getSkin()+" to "+id);
 		}
@@ -511,6 +513,51 @@ public class ActiveVehicle {
 	
 	//Lower Level Getters (to avoid long lines of code)
 	//Components
+	public void setFuel(double amount) {
+		if(!usesFuel()) return;
+		FuelTank tank = null;
+		if(hasComponent(Component.ENGINE)) {
+			Engine engine = (Engine) getComponent(Component.ENGINE);
+			tank = engine.getFuelTank();
+		} else if(hasComponent(Component.GEARED_ENGINE)) {
+			GearedEngine engine = (GearedEngine) getComponent(Component.GEARED_ENGINE);
+			tank = engine.getFuelTank();
+		}
+		if(tank == null) return;
+		tank.setFuel(amount);
+	}
+	public boolean usesFuel() {
+		FuelTank tank = null;
+		if(hasComponent(Component.ENGINE)) {
+			Engine engine = (Engine) getComponent(Component.ENGINE);
+			tank = engine.getFuelTank();
+		} else if(hasComponent(Component.GEARED_ENGINE)) {
+			GearedEngine engine = (GearedEngine) getComponent(Component.GEARED_ENGINE);
+			tank = engine.getFuelTank();
+		}
+		if(tank == null) return false;
+		if(tank.hasInput()) return true;
+		return false;
+	}
+	public void refuel(Player p, String path) {
+		Fuel fuel = FuelLoader.getByInput(path);
+		if(fuel == null) return;
+		FuelTank tank = null;
+		if(hasComponent(Component.ENGINE)) {
+			Engine engine = (Engine) getComponent(Component.ENGINE);
+			tank = engine.getFuelTank();
+		} else if(hasComponent(Component.GEARED_ENGINE)) {
+			GearedEngine engine = (GearedEngine) getComponent(Component.GEARED_ENGINE);
+			tank = engine.getFuelTank();
+		}
+		if(tank == null) return;
+		if(!tank.hasInput()) return;
+		if(!tank.getInput().getId().equalsIgnoreCase(fuel.getId())) {
+			p.sendMessage("§cThis vehicle only accepts "+tank.getInput().getName()+" §cas fuel");
+			return;
+		}
+		tank.refuel(p, this, fuel.getAmount());
+	}
 	public List<VehicleComponent> getComponents(){
 		return componentHandler.getComponents();
 	}

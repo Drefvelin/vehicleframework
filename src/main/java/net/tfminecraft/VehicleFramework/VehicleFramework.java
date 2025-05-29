@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
 import net.tfminecraft.VehicleFramework.Loaders.ConfigLoader;
+import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Managers.CommandManager;
 import net.tfminecraft.VehicleFramework.Managers.SpawnManager;
@@ -25,6 +26,7 @@ public class VehicleFramework extends JavaPlugin{
 	private final ConfigLoader configLoader = new ConfigLoader();
 	private final AmmunitionLoader ammunitionLoader = new AmmunitionLoader();
 	private final VehicleLoader vehicleLoader = new VehicleLoader();
+	private final FuelLoader fuelLoader = new FuelLoader();
 	
 	@Override
 	public void onEnable() {
@@ -74,6 +76,8 @@ public class VehicleFramework extends JavaPlugin{
 	}
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
+		VFLogger.info("Loading fuel...");
+		fuelLoader.load(new File(getDataFolder(), "fuel.yml"));
 		File folder = new File(getDataFolder(), "vehicles");
 		VFLogger.info("Loading vehicles...");
     	for (final File file : folder.listFiles()) {
@@ -94,6 +98,7 @@ public class VehicleFramework extends JavaPlugin{
 	public void createConfigs() {
 		String[] files = {
 				"config.yml",
+				"fuel.yml"
 				};
 		for(String s : files) {
 			File newConfigFile = new File(getDataFolder(), s);

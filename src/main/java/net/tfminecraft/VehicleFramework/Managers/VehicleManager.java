@@ -50,6 +50,7 @@ import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Events.VFEntityDamageEvent;
+import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
 import net.tfminecraft.VehicleFramework.Managers.Spawner.VehicleSpawner;
@@ -302,8 +303,15 @@ public class VehicleManager implements Listener{
 			}
 		}
 		cooldown.put(p, System.currentTimeMillis()+100);
-		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.repairItem)) {
+		//Repair
+		if(v.usesFuel() && api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.repairItem)) {
 			repairManager.repair(p, v);
+			return;
+		}
+		//Fuel check
+		String path = api.getChecker().getAsStringPath(p.getInventory().getItemInMainHand());
+		if(FuelLoader.itemIsFuel(path)) {
+			v.refuel(p, path);
 			return;
 		}
 		//all this is shit

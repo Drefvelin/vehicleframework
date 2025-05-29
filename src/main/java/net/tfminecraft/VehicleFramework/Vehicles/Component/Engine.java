@@ -25,6 +25,7 @@ import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Util.ParticleLoader;
 import net.tfminecraft.VehicleFramework.Util.SoundLoader;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
 import net.tfminecraft.VehicleFramework.Vehicles.Util.AccessPanel;
 
@@ -48,6 +49,8 @@ public class Engine extends VehicleComponent{
 	private List<SoundData> sounds = new ArrayList<>();
 	private List<ParticleData> particles = new ArrayList<>();
 	private List<String> boneList = new ArrayList<>();
+
+	private FuelTank tank;
 	
 	@SuppressWarnings("unchecked")
 	public Engine(ConfigurationSection config) {
@@ -65,6 +68,7 @@ public class Engine extends VehicleComponent{
 			particles = ParticleLoader.getParticlesFromConfig(particleConfig);
 		}
 		boneList = (List<String>) config.getList("particle-bones", new ArrayList<String>());
+		tank = new FuelTank(config);
 	}
 
 	public Engine(ActiveVehicle v, Engine another, Entity e, ActiveModel m, IncompleteComponent ic) {
@@ -84,7 +88,7 @@ public class Engine extends VehicleComponent{
 			String align = bone.split("\\.")[1];
 			bones.add(new VectorBone(m.getBone(base).get(), m.getBone(align).get()));
 		}
-		
+		tank = new FuelTank(another.getFuelTank());
 	}	
 	
 	@Override
@@ -98,6 +102,10 @@ public class Engine extends VehicleComponent{
 	public void setStarted(boolean b) {
 		started = b;
 		starting = false;
+	}
+
+	public FuelTank getFuelTank() {
+		return tank;
 	}
 
 	public List<String> getParticleBones() {
@@ -175,6 +183,7 @@ public class Engine extends VehicleComponent{
 	@Override
 	public void slowTick(List<Player> nearby) {
 		super.slowTick(nearby);
+		tank.tick(throttle);
 		playSound(nearby);
 	}
 	
@@ -210,6 +219,9 @@ public class Engine extends VehicleComponent{
 			}
 		}
 		if(healthData.getHealthPercentage() < 1 && started) stop();
+		if(tank.getCurrent() == 0 && started) {
+			stop();
+		}
 	}
 	
 	public void start(Player p) {
@@ -218,6 +230,10 @@ public class Engine extends VehicleComponent{
 			if(cooldown.get(p) > System.currentTimeMillis()) return;
 		}
 		cooldown.put(p, System.currentTimeMillis()+1000);
+		if(tank.getCurrent() == 0) {
+			p.sendMessage("§e["+alias+"] §cNo fuel!");
+			return;
+		}
 		starting = true;
 		p.sendMessage("§e["+alias+"] starting...");
 		if(Math.random()*100 > healthData.getHealthPercentage()) {

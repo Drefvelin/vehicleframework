@@ -18,6 +18,7 @@ import org.bukkit.util.Vector;
 import me.Plugins.TLibs.Enums.NSEW;
 import me.Plugins.TLibs.Utils.LocationUtil;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Permissions.Permissions;
 import net.tfminecraft.VehicleFramework.Util.LocationChecker;
 
 public class CommandManager implements Listener, CommandExecutor{
@@ -26,12 +27,10 @@ public class CommandManager implements Listener, CommandExecutor{
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if(cmd.getName().equalsIgnoreCase(cmd1)) {
-			/*
 			if(Permissions.canSpawn(sender) == false) {
 				sender.sendMessage("§cYou do not have access to this command!");
 				return true;
 			}
-			*/
 			if(args[0].equalsIgnoreCase("spawn") && args.length == 2) {
 				if(!(sender instanceof Player)) return true;
 				Player p = (Player) sender;

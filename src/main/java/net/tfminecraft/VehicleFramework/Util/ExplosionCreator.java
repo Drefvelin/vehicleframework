@@ -137,8 +137,7 @@ public class ExplosionCreator {
 	            }
 	        }
 	    }
-	    if(Cache.blockDamage) explosionCenter.getWorld().createExplosion(explosionCenter, (float) yield, false, true);
-		else explosionCenter.getWorld().playSound(explosionCenter, Sound.ENTITY_GENERIC_EXPLODE, 6f, 1f);
+	    explosionCenter.getWorld().createExplosion(explosionCenter, (float) yield, false, Cache.blockDamage);
 	}
 	
 	public static void applyDamage(Entity e, double damage, String cause) {

@@ -99,6 +99,13 @@ public class VehicleManager implements Listener{
 		if(vehicles.containsKey(e)) return vehicles.get(e);
 		return null;
 	}
+	public ActiveVehicle getByPassenger(Entity e) {
+		for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
+        	ActiveVehicle v = entry.getValue();
+            if(v.isPassenger(e, true)) return v;
+        }
+		return null;
+	}
 	public ActiveVehicle get(String id) {
 		for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
         	ActiveVehicle v = entry.getValue();
@@ -504,7 +511,7 @@ public class VehicleManager implements Listener{
 		ItemStack i = e.getCurrentItem();
 		if(i == null) return;
 		if(i.getType().equals(Material.GRAY_STAINED_GLASS_PANE)) return;
-	    if(v.isDestroyed()) {
+		if(v.isDestroyed()) {
 	    	p.sendMessage("Vehicle is destroyed");
 	    	return;
 	    }
@@ -513,7 +520,9 @@ public class VehicleManager implements Listener{
 			return;
 		}
 		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_seat_id");
-		Seat seat = v.getSeat(i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING));
+		String id = i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+		if(id == null) return;
+		Seat seat = v.getSeat(id);
 		
 		if(i.getType().equals(Material.YELLOW_CONCRETE)) {
 			p.sendMessage("§cSeat is occupied");

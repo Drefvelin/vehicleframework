@@ -9,6 +9,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
+import net.tfminecraft.VehicleFramework.Permissions.Permissions;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
 
 public class TabCompletion implements TabCompleter{
@@ -17,12 +18,18 @@ public class TabCompletion implements TabCompleter{
         if(cmd.getName().equalsIgnoreCase("vf") && args.length >= 0 && args.length < 2){
             if(sender instanceof Player){
                 List<String> completions = new ArrayList<>();
-                completions.add("spawn");
+                completions.add("keybinds");
+                if(Permissions.canSpawn(sender) == true) {
+                    completions.add("spawn");
+			    }
                 return completions;
             }
         } else if(cmd.getName().equalsIgnoreCase("vf") && args.length >= 0 && args[0].equalsIgnoreCase("spawn")){
             if(sender instanceof Player){
             	List<String> completions = new ArrayList<String>();
+                if(Permissions.canSpawn(sender) == false) {
+                    return completions;
+			    }
 				for(Vehicle v : VehicleLoader.get().values()) {
 					completions.add(v.getId());
 				}

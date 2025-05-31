@@ -2,17 +2,13 @@ package net.tfminecraft.VehicleFramework.Vehicles.Controller;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Bones.VectorBone;
-import net.tfminecraft.VehicleFramework.Enums.Animation;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Direction;
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
-import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleState;
 
@@ -59,9 +55,10 @@ public class BaseController {
 	private Vector engineVector(ActiveVehicle v, VectorBone vector, Entity e, Vector velocity) {
 		if (e != null && e.isValid() && e instanceof LivingEntity) {
         	Vector direction = vector.getVector().clone().normalize();
-			if(v.getCurrentState().getType().equals(State.FLYING) && !v.hasFuel()) {
+			if(v.getCurrentState().getType().equals(State.FLYING) && (v.getThrottle() != null && v.getThrottle().getCurrent() <= 10)) {
+				double scale = (20-v.getThrottle().getCurrent())/20.0;
 				//So you dont just stop mid air
-				velocity = direction.multiply(0.65); // Forward velocity 
+				velocity = direction.multiply(0.65*scale); // Forward velocity 
 			} else{
 				velocity = direction.multiply(v.getAccessPanel().getSpeed()); // Forward velocity 
 			}

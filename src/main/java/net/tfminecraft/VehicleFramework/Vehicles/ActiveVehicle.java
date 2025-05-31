@@ -41,6 +41,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
 import net.tfminecraft.VehicleFramework.Vehicles.Controller.ScoreboardController;
 import net.tfminecraft.VehicleFramework.Vehicles.Controller.VehicleMovementController;
 import net.tfminecraft.VehicleFramework.Vehicles.Fuel.Fuel;
@@ -569,6 +570,17 @@ public class ActiveVehicle {
 		}
 		if(tank == null) return false;
 		return tank.getCurrent() > 0;
+	}
+	public Throttle getThrottle() {
+		Throttle t = null;
+		if(hasComponent(Component.ENGINE)) {
+			Engine engine = (Engine) getComponent(Component.ENGINE);
+			t = engine.getThrottle();
+		} else if(hasComponent(Component.GEARED_ENGINE)) {
+			GearedEngine engine = (GearedEngine) getComponent(Component.GEARED_ENGINE);
+			t = engine.getGear().getThrottle();
+		}
+		return t;
 	}
 	public List<VehicleComponent> getComponents(){
 		return componentHandler.getComponents();

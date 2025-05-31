@@ -39,8 +39,8 @@ public class ItemModel implements ProjectileModel{
 	}
 	
 	@Override
-	public Entity spawn(Location loc) {
-		loc = loc.clone().add(0, -1, 0);
+	public Entity spawn(Location oldLoc) {
+		Location loc = oldLoc.clone().add(0, -1.5, 0);
 		if(small) {
 			loc = loc.clone().add(0, 0.5, 0);
 		}

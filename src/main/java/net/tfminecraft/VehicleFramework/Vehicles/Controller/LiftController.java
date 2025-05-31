@@ -1,8 +1,6 @@
 package net.tfminecraft.VehicleFramework.Vehicles.Controller;
 
-import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.joml.AxisAngle4d;
@@ -10,7 +8,6 @@ import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
 import net.tfminecraft.VehicleFramework.Bones.BoneRotator;
-import net.tfminecraft.VehicleFramework.Bones.ConvertedAngle;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Enums.VehicleDeath;
@@ -26,6 +23,7 @@ public class LiftController {
 	        Engine engine = (Engine) v.getComponent(Component.ENGINE);
 	        
 	        if (v.getStateHandler().getCurrentState().getType().equals(State.FLYING) || engine.getThrottle().getCurrent() != 0) {
+				
 	            AxisAngle4d angles = rotator.getAngles(); // Pitch (x), Yaw (y), Roll (z)
 	            double y = velocity.getY();
 	            /*
@@ -40,6 +38,10 @@ public class LiftController {
 	            }
 	            */
 	            y -= 0.49;
+				if(engine.getThrottle().getCurrent() < 10) {
+					y -= 0.98;
+					return velocity;
+				}
 	            velocity.setY(y); // Update vertical velocity
 
 	            // Calculate lift based on velocity magnitude instead of engine speed
@@ -59,7 +61,6 @@ public class LiftController {
 
 	            // Apply the lift vector to velocity
 	            velocity.add(liftVector);
-	            if(velocity.getY() < -0.98) velocity.setY(-0.98);
 	        }
 	    }
 	    return velocity;
@@ -85,7 +86,8 @@ public class LiftController {
     public void checkHitWall(ActiveVehicle vehicle) {
     	if(vehicle.isDestroyed()) return;
     	if(!vehicle.hasComponent(Component.WINGS)) return;
-    	BoundingBox boundingBox = vehicle.getEntity().getBoundingBox().clone().expand(1, -1, 1);
+		if(vehicle.getAccessPanel().getSpeed() < 0.3) return;
+    	BoundingBox boundingBox = vehicle.getEntity().getBoundingBox().clone().expand(0.5, -1, 0.5);
 
         // Iterate through all blocks within the expanded bounding box
         boolean hitSomething = false;
@@ -103,7 +105,7 @@ public class LiftController {
             if (hitSomething) break;
         }
         
-        if (hitSomething && vehicle.getStateHandler().getCurrentState().getType().equals(State.FLYING)) {
+        if (hitSomething /*&& vehicle.getStateHandler().getCurrentState().getType().equals(State.FLYING)*/) {
         	vehicle.kill(VehicleDeath.EXPLODE);
         }
     }

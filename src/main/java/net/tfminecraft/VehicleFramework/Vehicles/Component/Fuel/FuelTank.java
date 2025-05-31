@@ -92,6 +92,11 @@ public class FuelTank {
             if(p != null) p.sendMessage("§cFuel tank is full");
             return;
         }
+        Throttle t = v.getThrottle();
+        if(t != null && t.getCurrent() != 0) {
+            if(p != null) p.sendMessage("§cCannot refuel while the engine is on");
+            return;
+        }
         if(amount < 0) return;
         current+=amount;
         if(current > capacity) current = capacity;

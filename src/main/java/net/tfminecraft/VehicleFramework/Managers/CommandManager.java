@@ -1,6 +1,7 @@
 package net.tfminecraft.VehicleFramework.Managers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -15,11 +16,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import io.lumine.mythic.bukkit.utils.lib.lang3.text.WordUtils;
 import me.Plugins.TLibs.Enums.NSEW;
 import me.Plugins.TLibs.Utils.LocationUtil;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Enums.Input;
+import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Permissions.Permissions;
+import net.tfminecraft.VehicleFramework.Util.EnumDisplayConverter;
 import net.tfminecraft.VehicleFramework.Util.LocationChecker;
+import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 
 public class CommandManager implements Listener, CommandExecutor{
 	public String cmd1 = "vf";
@@ -27,6 +33,27 @@ public class CommandManager implements Listener, CommandExecutor{
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if(cmd.getName().equalsIgnoreCase(cmd1)) {
+			if(args[0].equalsIgnoreCase("keybinds") && args.length == 1) {
+				if(!(sender instanceof Player)) return true;
+				Player p = (Player) sender;
+				ActiveVehicle v = VehicleFramework.getVehicleManager().getByPassenger(p);
+				if(v == null) {
+					p.sendMessage("§cYou are not in a vehicle");
+					return false;
+				}
+				p.sendMessage("§c======================================");
+				p.sendMessage("§bKeybinds for state: §a" + WordUtils.capitalize(v.getCurrentState().getType().toString().toLowerCase()));
+				for (Map.Entry<Keybind, Input> entry : v.getCurrentState().getInputHandler().getMappings().entrySet()) {
+					if (entry.getValue().equals(Input.NONE)) continue;
+					
+					String keybindName = EnumDisplayConverter.getKeybindDisplayName(entry.getKey());
+					String inputName = EnumDisplayConverter.getInputDisplayName(entry.getValue());
+
+					p.sendMessage("§e" + keybindName + " §f-> §a" + inputName);
+				}
+				p.sendMessage("§c======================================");
+				return true;
+			}
 			if(Permissions.canSpawn(sender) == false) {
 				sender.sendMessage("§cYou do not have access to this command!");
 				return true;
@@ -36,6 +63,7 @@ public class CommandManager implements Listener, CommandExecutor{
 				Player p = (Player) sender;
 				String vehicle = args[1];
 				VehicleFramework.getVehicleManager().spawn(p.getLocation(), vehicle);
+				return true;
 			}
 			if(args[0].equalsIgnoreCase("tracktest") && args.length == 1) {
 				if(!(sender instanceof Player)) return true;

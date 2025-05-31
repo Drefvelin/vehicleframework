@@ -27,13 +27,17 @@ public class InputHandler {
 		for (Keybind keybind : Keybind.values()) {
 			keybinds.put(keybind, Input.NONE);
 	    }
-		keybinds.put(Keybind.SHIFT_LEFT_CLICK, Input.SEAT_SELECTION);
+		keybinds.put(Keybind.SHIFT, Input.SEAT_SELECTION);
 	}
 	
 	public InputHandler(InputHandler another) {
 		for (Keybind keybind : another.keybinds.keySet()) {
 	        keybinds.put(keybind, another.keybinds.get(keybind));
 	    }
+	}
+
+	public HashMap<Keybind, Input> getMappings() {
+		return keybinds;
 	}
 	
 	public Input getInput(Keybind key) {

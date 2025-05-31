@@ -9,6 +9,7 @@ import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Wings;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
 
 public class ConditionChecker {
 	public static boolean checkConditions(ActiveVehicle vehicle, List<String> conditions) {
@@ -49,6 +50,18 @@ public class ConditionChecker {
 			boolean hasFuel = vehicle.hasFuel();
 			if(value.equalsIgnoreCase("true") && !hasFuel) return false;
 			if(value.equalsIgnoreCase("false") && hasFuel) return false;
+		} else if(type.equalsIgnoreCase("throttle_less_than")) {
+			Throttle throttle = vehicle.getThrottle();
+			if(throttle == null) return false;
+			int amount = throttle.getCurrent();
+			if(amount > Integer.parseInt(value)) return false;
+			return true;
+		} else if(type.equalsIgnoreCase("throttle_more_than")) {
+			Throttle throttle = vehicle.getThrottle();
+			if(throttle == null) return false;
+			int amount = throttle.getCurrent();
+			if(amount < Integer.parseInt(value)) return false;
+			return true;
 		} else if(type.equalsIgnoreCase("OR")) {
 			if(!orStatement(vehicle, value)) return false;
 		} else if(type.equalsIgnoreCase("AND")) {

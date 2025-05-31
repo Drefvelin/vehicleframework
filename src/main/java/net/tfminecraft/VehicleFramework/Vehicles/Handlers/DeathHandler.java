@@ -40,6 +40,8 @@ public class DeathHandler {
 		
 		HitChecker checker = new HitChecker();
 		vehicle.getAnimationHandler().animate(Animation.EXPLODE);
+		BoundingBox boundingBox = vehicle.getEntity().getBoundingBox();
+		ExplosionCreator.triggerExplosion(vehicle.getEntity().getLocation(), Math.min(5.0, boundingBox.getWidthX()), Math.min(16, boundingBox.getWidthX()*3), Math.min(20, boundingBox.getWidthX()*5), "ENTITY_EXPLOSION");
 		for(int i = 0; i<50; i++) {
         	Vector velocity = new Vector(
         	        (Math.random() - 0.5) * 1, // Small random X movement
@@ -123,7 +125,6 @@ public class DeathHandler {
 	            }
 
 	            if (hitSomething) {
-	                ExplosionCreator.triggerExplosion(vehicle.getEntity().getLocation(), 3.0, 10, 15, "ENTITY_EXPLOSION");
 	                explode(false);
 	                vehicle.remove();
 	                this.cancel();

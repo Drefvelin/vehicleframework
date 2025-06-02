@@ -105,7 +105,7 @@ public class ExplosionCreator {
 	    List<Entity> noKnockback = new ArrayList<>();
 	    for(Entity entity : nearby) {
 	    	if(VehicleFramework.getVehicleManager().get(entity) != null) {
-	    		noKnockback = new ArrayList<>(VehicleFramework.getVehicleManager().get(entity).getSeatHandler().getPassengers());
+	    		noKnockback.addAll(VehicleFramework.getVehicleManager().get(entity).getSeatHandler().getPassengers());
 	    		noKnockback.add(entity);
 	    	}
 	    }

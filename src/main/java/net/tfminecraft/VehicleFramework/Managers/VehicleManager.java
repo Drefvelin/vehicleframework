@@ -17,6 +17,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mule;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -425,7 +426,7 @@ public class VehicleManager implements Listener{
             }
         }
 	}
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void damagePassenger(EntityDamageEvent e) {
 		Entity entity = e.getEntity();
 		for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
@@ -439,6 +440,7 @@ public class VehicleManager implements Listener{
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
         	if(e.getEntity() instanceof LivingEntity) {
+				if(e.getEntity() instanceof Player && e.isCancelled()) return; 
         		LivingEntity l = (LivingEntity) e.getEntity();
         		l.setHealth(Math.max(0, l.getHealth() - event.getDamage()));
         	}

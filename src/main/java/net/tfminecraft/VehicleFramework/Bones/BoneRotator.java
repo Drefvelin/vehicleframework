@@ -1,7 +1,9 @@
 package net.tfminecraft.VehicleFramework.Bones;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.joml.AxisAngle4d;
 import org.joml.Quaternionf;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -169,7 +171,6 @@ public class BoneRotator {
 			Quaternionf check = new Quaternionf(currentRotation).mul(incrementalRotation);
 
 			ConvertedAngle currentAngles = new ConvertedAngle(check);
-
 			/*
 			Player p = Bukkit.getPlayerExact("drefvelin");
 
@@ -185,7 +186,7 @@ public class BoneRotator {
 			);
 			*/
 
-			if(limits.withinAll(currentAngles.getYaw(), currentAngles.getPitch(), currentAngles.getPitch())) {
+			if(limits.withinAll(currentAngles.getYaw(), currentAngles.getPitch(), currentAngles.getRoll())) {
 				// Combine the current rotation with the incremental rotation
 				currentRotation.mul(incrementalRotation);
 				

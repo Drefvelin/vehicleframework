@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -442,6 +443,7 @@ public class VehicleManager implements Listener{
         if (!event.isCancelled()) {
         	if(e.getEntity() instanceof LivingEntity) {
 				if(e.isCancelled()) return; 
+				e.setCancelled(true);
         		LivingEntity l = (LivingEntity) e.getEntity();
         		l.setHealth(Math.max(0, l.getHealth() - event.getDamage()));
         	}
@@ -458,6 +460,7 @@ public class VehicleManager implements Listener{
 		}
 		if(entity instanceof Player) {
 			Player p = (Player) entity;
+			if(p.getGameMode().equals(GameMode.SPECTATOR) || p.getGameMode().equals(GameMode.CREATIVE)) return;
 			for(Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 				if(entry.getValue().isPassenger(p, false)) {
 					e.setDamage(e.getDamage()/2);

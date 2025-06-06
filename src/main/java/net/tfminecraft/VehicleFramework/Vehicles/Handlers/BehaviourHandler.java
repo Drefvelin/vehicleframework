@@ -12,6 +12,7 @@ import com.ticxo.modelengine.api.model.ActiveModel;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Bones.BoneRotator;
+import net.tfminecraft.VehicleFramework.Bones.RotationLimits;
 import net.tfminecraft.VehicleFramework.Bones.RotationTarget;
 import net.tfminecraft.VehicleFramework.Bones.VectorBone;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
@@ -67,10 +68,10 @@ public class BehaviourHandler {
 		floatsIn = new ArrayList<>(another.getFloatsIn());
 		rotatorString = another.getRotatorString();
 		vectorString = another.getVectorString();
-		rotator = new BoneRotator(v, e, m.getBone(rotatorString).get());
+		rotator = new BoneRotator(v, e, m.getBone(rotatorString).get(), new RotationLimits());
 		vector = new VectorBone(m.getBone(vectorString.split("\\.")[0]).get(), m.getBone(vectorString.split("\\.")[1]).get());
 		for(String s : another.getSecondaryRotatorStrings()) {
-			secondaryRotators.add(new BoneRotator(v, e, m.getBone(s).get()));
+			secondaryRotators.add(new BoneRotator(v, e, m.getBone(s).get(), new RotationLimits()));
 		}
 		for(RotationTarget r : another.getRotationTargets()) {
 			rotationTargets.add(new RotationTarget(v, r, rotator));

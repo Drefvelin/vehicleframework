@@ -219,7 +219,7 @@ public class Engine extends VehicleComponent{
 			}
 		}
 		if(healthData.getHealthPercentage() < 1 && started) stop();
-		if(tank.getCurrent() == 0 && started) {
+		if(tank.getCurrent() == 0 && started && tank.useFuel()) {
 			stop();
 		}
 	}
@@ -230,7 +230,7 @@ public class Engine extends VehicleComponent{
 			if(cooldown.get(p) > System.currentTimeMillis()) return;
 		}
 		cooldown.put(p, System.currentTimeMillis()+1000);
-		if(tank.getCurrent() == 0) {
+		if(tank.getCurrent() == 0 && tank.useFuel()) {
 			p.sendMessage("§e["+alias+"] §cNo fuel!");
 			return;
 		}

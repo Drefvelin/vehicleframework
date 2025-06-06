@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import com.ticxo.modelengine.api.model.ActiveModel;
 
+import net.tfminecraft.VehicleFramework.Bones.RotationLimits;
 import net.tfminecraft.VehicleFramework.Data.DamageData;
 import net.tfminecraft.VehicleFramework.Data.HealthData;
 import net.tfminecraft.VehicleFramework.Database.IncompleteWeapon;
@@ -47,7 +48,7 @@ public class ActiveWeapon {
 		ammunitionHandler = new AmmunitionHandler(m, vehicle, this, stored.getAmmunitionHandler(), stored.getBones());
 		animationHandler = new AnimationHandler(m, stored.getAnimationHandler());
 		inputHandler = new InputHandler(stored.getInputHandler());
-		moveControls = new WeaponMovementController(vehicle, m, this, stored);
+		moveControls = new WeaponMovementController(vehicle, m, this, stored, stored.getLimits());
 		seat = stored.getSeat();
 		
 	}

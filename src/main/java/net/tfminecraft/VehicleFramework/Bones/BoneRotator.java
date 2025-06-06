@@ -1,7 +1,9 @@
 package net.tfminecraft.VehicleFramework.Bones;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.joml.AxisAngle4d;
 import org.joml.Quaternionf;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -19,14 +21,17 @@ public class BoneRotator {
 	private double smoothX = 0f;
 	private double smoothY = 0f;
 	private double smoothZ = 0f;
+
+	private RotationLimits limits;
 	
-	public BoneRotator(ActiveVehicle v, Entity e, ModelBone bone) {
+	public BoneRotator(ActiveVehicle v, Entity e, ModelBone bone, RotationLimits limits) {
 		this.e = e;
 		id = bone.getBoneId();
 		this.bone = bone;
 		animator = new SimpleManualAnimator(bone);
 		bone.setManualAnimator(animator);
 		v.getAccessPanel().addRotator(this);
+		this.limits = limits;
 	}
 	
 	public void updateModel(ActiveModel m) {
@@ -157,24 +162,41 @@ public class BoneRotator {
 	private void rotateNoAdd(double x, double y, double z) {
 	    // Get the current rotation as a quaternion
 	    Quaternionf currentRotation = animator.getRotation();
-
+		
 	    // Apply the incremental rotation only to the axes that need to change
 	    if (x != 0.0 || y != 0.0 || z != 0.0) {
 	        // Create a new incremental quaternion based on the given Euler angles
 	        Quaternionf incrementalRotation = new Quaternionf()
 	            .rotateXYZ((float) x, (float) y, (float) z);
+			Quaternionf check = new Quaternionf(currentRotation).mul(incrementalRotation);
 
-	        // Combine the current rotation with the incremental rotation
-	        currentRotation.mul(incrementalRotation);
-	        
-	        // Normalize to avoid floating-point precision errors
-	        currentRotation.normalize();
+			ConvertedAngle currentAngles = new ConvertedAngle(check);
+			/*
+			Player p = Bukkit.getPlayerExact("drefvelin");
 
-	        // Apply the new rotation back to the animator
-	        animator.getRotation().set(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
-	        
+			p.sendTitle(
+				" ",
+				String.format(
+					"yaw %.2f (%.2f/%.2f); pitch %.2f (%.2f/%.2f); roll %.2f (%.2f/%.2f)", 
+					currentAngles.getYaw(), limits.getMinYaw(), limits.getMaxYaw(),
+					currentAngles.getPitch(), limits.getMinPitch(), limits.getMaxPitch(),
+					currentAngles.getRoll(), limits.getMinRoll(), limits.getMaxRoll()
+				),
+				0, 30, 0
+			);
+			*/
+
+			if(limits.withinAll(currentAngles.getYaw(), currentAngles.getPitch(), currentAngles.getRoll())) {
+				// Combine the current rotation with the incremental rotation
+				currentRotation.mul(incrementalRotation);
+				
+				// Normalize to avoid floating-point precision errors
+				currentRotation.normalize();
+
+				// Apply the new rotation back to the animator
+				animator.getRotation().set(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
+			}
 	    }
-
 	    // Trigger the animation (update the model with the new rotation)
 	    animator.animate(bone);
 	}

@@ -223,9 +223,6 @@ public class TrainHandler {
 	    cached = finalVelocity;
 	    
 	    v.getBehaviourHandler().getRotator().rotateToTarget(0f, (float) pitch, 0f, 1f, false, true, false);
-	    for(Player p : Bukkit.getOnlinePlayers()) {
-	    	p.sendTitle(" ", "markers: "+markers.size(), 0, 20, 0);
-	    }
 	}
 	public void propagate(ActiveVehicle target, double speed, List<Location> parentMarkers, boolean forward) {
 		if(!markerMove(target, parentMarkers, speed, forward)) {
@@ -250,10 +247,6 @@ public class TrainHandler {
 			childOffset = v.getBehaviourHandler().getTrainHandler().getFront().getOffset();
 			parentOffset = target.getBehaviourHandler().getTrainHandler().getBack().getOffset();
 		} else {
-			for(Player p : Bukkit.getOnlinePlayers()) {
-				p.sendMessage("active" + v.getName());
-				p.sendMessage("target" + target.getName());
-			}
 			childOffset = v.getBehaviourHandler().getTrainHandler().getBack().getOffset();
 			parentOffset = target.getBehaviourHandler().getTrainHandler().getFront().getOffset();
 		}

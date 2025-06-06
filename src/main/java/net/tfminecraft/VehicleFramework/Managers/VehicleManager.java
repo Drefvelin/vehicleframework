@@ -436,11 +436,12 @@ public class VehicleManager implements Listener{
             	return;
             }
         }
+		if(!(vehicles.containsKey(entity) || getByPassenger(entity) != null)) return;
 		VFEntityDamageEvent event = new VFEntityDamageEvent(e.getEntity(), null, e.getCause().toString(), e.getDamage());
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
         	if(e.getEntity() instanceof LivingEntity) {
-				if(e.getEntity() instanceof Player && e.isCancelled()) return; 
+				if(e.isCancelled()) return; 
         		LivingEntity l = (LivingEntity) e.getEntity();
         		l.setHealth(Math.max(0, l.getHealth() - event.getDamage()));
         	}

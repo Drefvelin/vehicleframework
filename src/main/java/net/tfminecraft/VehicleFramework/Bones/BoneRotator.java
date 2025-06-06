@@ -19,14 +19,17 @@ public class BoneRotator {
 	private double smoothX = 0f;
 	private double smoothY = 0f;
 	private double smoothZ = 0f;
+
+	private RotationLimits limits;
 	
-	public BoneRotator(ActiveVehicle v, Entity e, ModelBone bone) {
+	public BoneRotator(ActiveVehicle v, Entity e, ModelBone bone, RotationLimits limits) {
 		this.e = e;
 		id = bone.getBoneId();
 		this.bone = bone;
 		animator = new SimpleManualAnimator(bone);
 		bone.setManualAnimator(animator);
 		v.getAccessPanel().addRotator(this);
+		this.limits = limits;
 	}
 	
 	public void updateModel(ActiveModel m) {
@@ -155,29 +158,34 @@ public class BoneRotator {
 		}
 
 	private void rotateNoAdd(double x, double y, double z) {
-	    // Get the current rotation as a quaternion
-	    Quaternionf currentRotation = animator.getRotation();
+		// Step 1: Read current rotation as angles
+		ConvertedAngle currentAngles = new ConvertedAngle(animator.getRotation());
+		float currentYaw = currentAngles.getYaw();
+		float currentPitch = currentAngles.getPitch();
+		float currentRoll = currentAngles.getRoll();
 
-	    // Apply the incremental rotation only to the axes that need to change
-	    if (x != 0.0 || y != 0.0 || z != 0.0) {
-	        // Create a new incremental quaternion based on the given Euler angles
-	        Quaternionf incrementalRotation = new Quaternionf()
-	            .rotateXYZ((float) x, (float) y, (float) z);
+		// Step 2: Apply deltas (in degrees)
+		float newYaw = currentYaw + (float) Math.toDegrees(y);   // Y is yaw (assuming YXZ order)
+		float newPitch = currentPitch + (float) Math.toDegrees(x);
+		float newRoll = currentRoll + (float) Math.toDegrees(z);
 
-	        // Combine the current rotation with the incremental rotation
-	        currentRotation.mul(incrementalRotation);
-	        
-	        // Normalize to avoid floating-point precision errors
-	        currentRotation.normalize();
+		// Step 3: Apply limits
+		newYaw = limits.clampYaw(newYaw);
+		newPitch = limits.clampPitch(newPitch);
+		newRoll = limits.clampRoll(newRoll);
 
-	        // Apply the new rotation back to the animator
-	        animator.getRotation().set(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
-	        
-	    }
+		// Step 4: Build new quaternion from clamped angles
+		Quaternionf newRotation = new Quaternionf().rotateYXZ(
+			(float) Math.toRadians(newYaw),
+			(float) Math.toRadians(newPitch),
+			(float) Math.toRadians(newRoll)
+		);
 
-	    // Trigger the animation (update the model with the new rotation)
-	    animator.animate(bone);
+		// Step 5: Apply and animate
+		animator.getRotation().set(newRotation.x, newRotation.y, newRotation.z, newRotation.w);
+		animator.animate(bone);
 	}
+
 	
 	public void normalize(boolean nx, boolean ny, boolean nz) {
 		rotateToTarget(0f, 0f, 0f, 2f, true, true, true);

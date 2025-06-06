@@ -158,34 +158,47 @@ public class BoneRotator {
 		}
 
 	private void rotateNoAdd(double x, double y, double z) {
-		// Step 1: Read current rotation as angles
-		ConvertedAngle currentAngles = new ConvertedAngle(animator.getRotation());
-		float currentYaw = currentAngles.getYaw();
-		float currentPitch = currentAngles.getPitch();
-		float currentRoll = currentAngles.getRoll();
+	    // Get the current rotation as a quaternion
+	    Quaternionf currentRotation = animator.getRotation();
+		
+	    // Apply the incremental rotation only to the axes that need to change
+	    if (x != 0.0 || y != 0.0 || z != 0.0) {
+	        // Create a new incremental quaternion based on the given Euler angles
+	        Quaternionf incrementalRotation = new Quaternionf()
+	            .rotateXYZ((float) x, (float) y, (float) z);
+			Quaternionf check = new Quaternionf(currentRotation).mul(incrementalRotation);
 
-		// Step 2: Apply deltas (in degrees)
-		float newYaw = currentYaw + (float) Math.toDegrees(y);   // Y is yaw (assuming YXZ order)
-		float newPitch = currentPitch + (float) Math.toDegrees(x);
-		float newRoll = currentRoll + (float) Math.toDegrees(z);
+			ConvertedAngle currentAngles = new ConvertedAngle(check);
 
-		// Step 3: Apply limits
-		newYaw = limits.clampYaw(newYaw);
-		newPitch = limits.clampPitch(newPitch);
-		newRoll = limits.clampRoll(newRoll);
+			/*
+			Player p = Bukkit.getPlayerExact("drefvelin");
 
-		// Step 4: Build new quaternion from clamped angles
-		Quaternionf newRotation = new Quaternionf().rotateYXZ(
-			(float) Math.toRadians(newYaw),
-			(float) Math.toRadians(newPitch),
-			(float) Math.toRadians(newRoll)
-		);
+			p.sendTitle(
+				" ",
+				String.format(
+					"yaw %.2f (%.2f/%.2f); pitch %.2f (%.2f/%.2f); roll %.2f (%.2f/%.2f)", 
+					currentAngles.getYaw(), limits.getMinYaw(), limits.getMaxYaw(),
+					currentAngles.getPitch(), limits.getMinPitch(), limits.getMaxPitch(),
+					currentAngles.getRoll(), limits.getMinRoll(), limits.getMaxRoll()
+				),
+				0, 30, 0
+			);
+			*/
 
-		// Step 5: Apply and animate
-		animator.getRotation().set(newRotation.x, newRotation.y, newRotation.z, newRotation.w);
-		animator.animate(bone);
+			if(limits.withinAll(currentAngles.getYaw(), currentAngles.getPitch(), currentAngles.getPitch())) {
+				// Combine the current rotation with the incremental rotation
+				currentRotation.mul(incrementalRotation);
+				
+				// Normalize to avoid floating-point precision errors
+				currentRotation.normalize();
+
+				// Apply the new rotation back to the animator
+				animator.getRotation().set(currentRotation.x, currentRotation.y, currentRotation.z, currentRotation.w);
+			}
+	    }
+	    // Trigger the animation (update the model with the new rotation)
+	    animator.animate(bone);
 	}
-
 	
 	public void normalize(boolean nx, boolean ny, boolean nz) {
 		rotateToTarget(0f, 0f, 0f, 2f, true, true, true);

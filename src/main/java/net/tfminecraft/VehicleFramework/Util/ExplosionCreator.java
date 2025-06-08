@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -104,6 +105,11 @@ public class ExplosionCreator {
 	    Collection<Entity> nearby = explosionCenter.getWorld().getNearbyEntities(explosionCenter, blastRadius, blastRadius, blastRadius);
 	    List<Entity> noKnockback = new ArrayList<>();
 	    for(Entity entity : nearby) {
+			if(entity instanceof Player) {
+				Player p = (Player) entity;
+				if(p.getGameMode().equals(GameMode.SPECTATOR) || p.getGameMode().equals(GameMode.CREATIVE)) noKnockback.add(entity);
+				continue;
+			}
 	    	if(VehicleFramework.getVehicleManager().get(entity) != null) {
 	    		noKnockback.addAll(VehicleFramework.getVehicleManager().get(entity).getSeatHandler().getPassengers());
 	    		noKnockback.add(entity);

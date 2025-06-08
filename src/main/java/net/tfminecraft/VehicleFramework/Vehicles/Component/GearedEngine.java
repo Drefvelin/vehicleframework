@@ -16,7 +16,6 @@ import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Bones.VectorBone;
 import net.tfminecraft.VehicleFramework.Data.ParticleData;
-import net.tfminecraft.VehicleFramework.Data.SoundData;
 import net.tfminecraft.VehicleFramework.Database.IncompleteComponent;
 import net.tfminecraft.VehicleFramework.Effects.CustomEffect;
 import net.tfminecraft.VehicleFramework.Enums.Animation;
@@ -25,12 +24,10 @@ import net.tfminecraft.VehicleFramework.Enums.CustomAction;
 import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Util.ParticleLoader;
-import net.tfminecraft.VehicleFramework.Util.SoundLoader;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Gear.Gear;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
-import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Utility.DirectionalLight;
 import net.tfminecraft.VehicleFramework.Vehicles.Util.AccessPanel;
 
 public class GearedEngine extends VehicleComponent{
@@ -287,7 +284,7 @@ public class GearedEngine extends VehicleComponent{
 			}
 		}
 		if(healthData.getHealthPercentage() < 1 && started) stop();
-		if(tank.getCurrent() == 0 && started) {
+		if(tank.getCurrent() == 0 && started && tank.useFuel()) {
 			stop();
 		}
 	}
@@ -299,7 +296,7 @@ public class GearedEngine extends VehicleComponent{
 		}
 		currentGear = defaultGear;
 		cooldown.put(p, System.currentTimeMillis()+1000);
-		if(tank.getCurrent() == 0) {
+		if(tank.getCurrent() == 0 && tank.useFuel()) {
 			p.sendMessage("§e["+alias+"] §cNo fuel!");
 			return;
 		}
@@ -349,6 +346,8 @@ public class GearedEngine extends VehicleComponent{
 	public void stop() {
 		if(!requireStart) return;
 		started = false;
+		getGear().getThrottle().setThrottle(0);
+		setCurrentGear(defaultGear);
 		getGear().getThrottle().setThrottle(0);
 		v.stopAnimation(Animation.ENGINE_ACTIVE);
 	}

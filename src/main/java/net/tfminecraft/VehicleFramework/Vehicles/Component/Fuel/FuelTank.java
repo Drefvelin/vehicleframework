@@ -6,6 +6,7 @@ import java.util.List;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.joml.Math;
 
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
@@ -18,6 +19,8 @@ public class FuelTank {
     private double capacity;
     private double rate;
     private Fuel input;
+
+    private boolean useFuel = true;
 
     private List<State> states = new ArrayList<>();
 
@@ -35,6 +38,7 @@ public class FuelTank {
 		        }
 			}
 		}
+        if(input == null) useFuel = false;
     }
 
     public FuelTank(double c, double cap, double r, List<State> s, Fuel fuel) {
@@ -43,6 +47,7 @@ public class FuelTank {
         rate = r;
         states = s;
         input = fuel;
+        useFuel = input != null ? true : false;
     }
 
     public FuelTank(FuelTank another) {
@@ -51,6 +56,11 @@ public class FuelTank {
         rate = another.getRate();
         states = another.getStates();
         input = another.getInput();
+        useFuel = input != null ? true : false;
+    }
+
+    public boolean useFuel() {
+        return useFuel;
     }
 
     public boolean hasInput() {
@@ -106,10 +116,15 @@ public class FuelTank {
     }
 
     public void tick(Throttle throttle) {
-        double percentage = (double) throttle.getCurrent()/throttle.getMax();
-        if(percentage < 0) percentage *=-1;
-        if(current == 0) return;
-        double amount = rate*percentage;
+        double amount = 1;
+        if(throttle.getMax() == 0) amount = 1;
+        else {
+            double percentage = (double) throttle.getCurrent()/throttle.getMax();
+            if(percentage < 0) percentage *=-1;
+            percentage = Math.max(1, percentage);
+            if(current == 0) return;
+            amount = rate*percentage;
+        }
         current-=amount;
         if(current < 0) current = 0;
     }

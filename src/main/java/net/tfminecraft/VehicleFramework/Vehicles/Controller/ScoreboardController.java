@@ -51,7 +51,7 @@ public class ScoreboardController {
 			if(c instanceof Engine) {
 				Engine engine = (Engine) vehicle.getComponent(Component.ENGINE);
 				scores.add("§f- Throttle: §e"+engine.getThrottle().getCurrent()+"%");
-				scores.add("§f- Fuel: §e"+engine.getFuelTank().getPercentage()+"%");
+				if(engine.getFuelTank().useFuel()) scores.add("§f- Fuel: §e"+engine.getFuelTank().getPercentage()+"%");
 			} else if(c instanceof Pump) {
 				Pump pump = (Pump) vehicle.getComponent(Component.PUMP);
 				scores.add("§f- Power: §e"+pump.getPower());

@@ -6,6 +6,7 @@ import java.util.List;
 import org.bukkit.configuration.ConfigurationSection;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
+import net.tfminecraft.VehicleFramework.Bones.RotationLimits;
 import net.tfminecraft.VehicleFramework.Data.DamageData;
 import net.tfminecraft.VehicleFramework.Data.HealthData;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
@@ -33,6 +34,8 @@ public class Weapon {
 	
 	protected AmmunitionHandler ammunitionHandler;
 	protected List<String> bones;
+
+	protected RotationLimits limits;
 	
 	@SuppressWarnings("unchecked")
 	public Weapon(String key, ConfigurationSection config) {
@@ -55,10 +58,19 @@ public class Weapon {
 			bodyBone = config.getString("body-bone", "weapon_body");
 			headBone = config.getString("head-bone", "cannon_controller");
 			axis = config.getString("head-axis", "x");
+			if(config.isConfigurationSection("rotation-limits")) {
+				limits = new RotationLimits(config.getConfigurationSection("rotation-limits"));
+			} else {
+				limits = new RotationLimits();
+			}
 		}
 		ammunitionHandler = new AmmunitionHandler(config);
 		if(!config.contains("bones")) VFLogger.log(key+ " has no exit bones");
 		bones = config.getStringList("bones");
+	}
+
+	public RotationLimits getLimits() {
+		return limits;
 	}
 
 	public String getId() {

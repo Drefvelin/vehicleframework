@@ -688,9 +688,6 @@ public class ActiveVehicle {
 	
 	public void honk() {
 		if(!hasUtilityHandler()) return;
-		for(Player p : nearby) {
-			p.sendMessage("honk");
-		}
 		utilityHandler.honk(entity.getLocation());
 	}
 	

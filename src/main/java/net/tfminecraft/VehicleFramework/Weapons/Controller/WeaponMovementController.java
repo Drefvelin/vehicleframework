@@ -9,6 +9,7 @@ import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Bones.BoneRotator;
+import net.tfminecraft.VehicleFramework.Bones.RotationLimits;
 import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
@@ -31,14 +32,14 @@ public class WeaponMovementController{
 	
 	protected String axis;
 	
-	public WeaponMovementController(ActiveVehicle v, ActiveModel m, ActiveWeapon w, Weapon another) {
+	public WeaponMovementController(ActiveVehicle v, ActiveModel m, ActiveWeapon w, Weapon another, RotationLimits limits) {
 		this.v = v;
 		this.w = w;
 		this.fixed = another.isFixed();
-		if(!fixed) initiateBones(m, another.getBodyBone(), another.getHeadBone(), another.getAxis());
+		if(!fixed) initiateBones(m, another.getBodyBone(), another.getHeadBone(), another.getAxis(), limits);
 	}
 	
-	private void initiateBones(ActiveModel m, String body, String head, String axis) {
+	private void initiateBones(ActiveModel m, String body, String head, String axis, RotationLimits limits) {
 		if(m.getBone(body).isEmpty()) {
 			VFLogger.log("No bone detected for value: "+body);
 			return;
@@ -46,7 +47,7 @@ public class WeaponMovementController{
 		if(v.getAccessPanel().getRotator(body) != null) {
 			bodyRotator = v.getAccessPanel().getRotator(body);
 		} else {
-			bodyRotator = new BoneRotator(v, v.getEntity(), m.getBone(body).get());
+			bodyRotator = new BoneRotator(v, v.getEntity(), m.getBone(body).get(), limits);
 		}
 		
 		
@@ -57,7 +58,7 @@ public class WeaponMovementController{
 		if(v.getAccessPanel().getRotator(head) != null) {
 			headRotator = v.getAccessPanel().getRotator(head);
 		} else {
-			headRotator = new BoneRotator(v, v.getEntity(), m.getBone(head).get());
+			headRotator = new BoneRotator(v, v.getEntity(), m.getBone(head).get(), limits);
 		}
 		if(axis == null) {
 			VFLogger.log("weapon has no axis");

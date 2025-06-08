@@ -6,12 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.tfminecraft.VehicleFramework.Cache.Cache;
+import net.tfminecraft.VehicleFramework.Database.LogWriter;
 import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
 import net.tfminecraft.VehicleFramework.Loaders.ConfigLoader;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Managers.CommandManager;
-import net.tfminecraft.VehicleFramework.Managers.SpawnManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Protocol.VehiclePacketListener;
 import net.tfminecraft.VehicleFramework.Util.TabCompletion;
@@ -20,6 +20,7 @@ public class VehicleFramework extends JavaPlugin{
 	
 	public static VehicleFramework plugin;
 	
+	private static LogWriter log;
 	private final CommandManager commandManager = new CommandManager();
 	private final static VehicleManager vehicleManager = new VehicleManager();
 	
@@ -33,6 +34,7 @@ public class VehicleFramework extends JavaPlugin{
 		Bukkit.getLogger().info("Initializing VF");
 		printBanner();
 		plugin = this;
+		log = new LogWriter(getDataFolder());
 		VFLogger.info("Running checks...");
 		createFolders();
 		createConfigs();
@@ -112,6 +114,10 @@ public class VehicleFramework extends JavaPlugin{
 	//Access we dont need static variables all over the place:
 	public static VehicleManager getVehicleManager() {
 		return vehicleManager;
+	}
+
+	public static LogWriter getLog() {
+		return log;
 	}
 
 	public void printBanner() {

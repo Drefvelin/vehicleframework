@@ -12,6 +12,8 @@ import com.ticxo.modelengine.api.model.bone.manager.MountManager;
 import com.ticxo.modelengine.api.mount.controller.MountControllerTypes;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
+import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
@@ -65,6 +67,9 @@ public class SeatHandler {
 	}
 	public void addPassenger(Entity e, Seat seat) {
 		manager.mountPassenger(seat.getBone(), e, MountControllerTypes.WALKING);
+		if(seat.getType().equals(SeatType.CAPTAIN) && e instanceof Player) {
+			VehicleFramework.getLog().logEntry(((Player) e).getName()+" entered captain seat of "+v.getName()+" at "+e.getLocation().getX()+"x, "+e.getLocation().getZ()+"z");
+		}
 	    seat.mount(e);
 		if(!isPassenger(e)) passengers.add(e);
 	}

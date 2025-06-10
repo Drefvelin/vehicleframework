@@ -320,7 +320,7 @@ public class ActiveVehicle {
 		initializeRotations(inc.getRotations());
 		initializePassengers(inc.getPassengers());
 		name = inc.getName();
-		uuid = inc.getId();
+		uuid = inc.getUUID();
 		setFuel(inc.getFuel());
 		if(!changeSkin(inc.getSkin(), true)) {
 			VFLogger.log("could not apply skin "+inc.getSkin()+" to "+id);

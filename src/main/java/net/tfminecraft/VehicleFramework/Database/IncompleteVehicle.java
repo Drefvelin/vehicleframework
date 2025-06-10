@@ -2,9 +2,11 @@ package net.tfminecraft.VehicleFramework.Database;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class IncompleteVehicle {
 	private String id;
+	private String uuid;
 	private String name;
 
 	private String skin;
@@ -21,7 +23,8 @@ public class IncompleteVehicle {
 
 	private List<PassengerData> passengers = new ArrayList<>();
 
-	public IncompleteVehicle(String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, int throttle, int gear, float yaw, double fuel) {
+	public IncompleteVehicle(String uuid, String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, int throttle, int gear, float yaw, double fuel) {
+		this.uuid = uuid;
 		this.id = id;
 		this.name = name;
 		this.skin = skin;
@@ -45,6 +48,10 @@ public class IncompleteVehicle {
 
 	public float getYaw() {
 		return yaw;
+	}
+
+	public String getUUID() {
+		return uuid;
 	}
 	
 	public String getId() {

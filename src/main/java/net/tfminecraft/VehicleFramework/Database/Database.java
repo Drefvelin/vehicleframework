@@ -51,6 +51,7 @@ public class Database {
     	}
     	try {
 			json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+			String uuid = new String(sLoc.getFile()).replace(".json", "");
 			String id = (String) json.get("id");
 			String name = (String) json.get("name");
 			String skin = (String) json.get("skin");
@@ -147,7 +148,7 @@ public class Database {
 
 	        // Create and return IncompleteVehicle with loaded components
 	        file.delete();
-	        return new IncompleteVehicle(id, name, skin, componentsList, weapons, rotations, passengers, throttle, gear, yaw, fuel);
+	        return new IncompleteVehicle(uuid, id, name, skin, componentsList, weapons, rotations, passengers, throttle, gear, yaw, fuel);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

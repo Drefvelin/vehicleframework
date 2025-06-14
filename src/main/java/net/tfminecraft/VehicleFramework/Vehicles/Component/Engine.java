@@ -183,7 +183,7 @@ public class Engine extends VehicleComponent{
 	@Override
 	public void slowTick(List<Player> nearby) {
 		super.slowTick(nearby);
-		tank.tick(throttle);
+		if(started) tank.tick(throttle);
 		playSound(nearby);
 	}
 	

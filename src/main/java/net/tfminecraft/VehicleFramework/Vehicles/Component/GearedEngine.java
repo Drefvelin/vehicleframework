@@ -247,7 +247,7 @@ public class GearedEngine extends VehicleComponent{
 	@Override
 	public void slowTick(List<Player> nearby) {
 		super.slowTick(nearby);
-		tank.tick(getGear().getThrottle());
+		if(started) tank.tick(getGear().getThrottle());
 		playSound(nearby);
 	}
 	

@@ -3,8 +3,11 @@ package net.tfminecraft.VehicleFramework;
 import java.io.File;
 
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import net.coreprotect.CoreProtect;
+import net.coreprotect.CoreProtectAPI;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Database.LogWriter;
 import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
@@ -42,6 +45,7 @@ public class VehicleFramework extends JavaPlugin{
 		VFLogger.info("Starting systems...");
 		registerListeners();
 		startManagers();
+		setPlugins();
 		VFLogger.info("Setup complete!");
 	}
 	@Override
@@ -109,6 +113,37 @@ public class VehicleFramework extends JavaPlugin{
 	            saveResource(s, false);
 	        }
 		}
+	}
+
+	public void setPlugins() {
+		Plugin plugin = getServer().getPluginManager().getPlugin("CoreProtect");
+
+		if (plugin != null && plugin.isEnabled() && plugin instanceof CoreProtect) {
+			Cache.coreProtect = true;
+			VFLogger.info("Detected CoreProtect, hooking on");
+		}
+	}
+
+	public static CoreProtectAPI getCoreProtect() {
+        Plugin coreProtect = plugin.getServer().getPluginManager().getPlugin("CoreProtect");
+
+        // Check that CoreProtect is loaded
+        if (coreProtect == null || !(coreProtect instanceof CoreProtect)) {
+            return null;
+        }
+
+        // Check that the API is enabled
+        CoreProtectAPI CoreProtect = ((CoreProtect) coreProtect).getAPI();
+        if (CoreProtect.isEnabled() == false) {
+            return null;
+        }
+
+        // Check that a compatible version of the API is loaded
+        if (CoreProtect.APIVersion() < 10) {
+            return null;
+        }
+
+        return CoreProtect;
 	}
 	
 	//Access we dont need static variables all over the place:

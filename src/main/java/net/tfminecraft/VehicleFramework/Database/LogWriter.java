@@ -5,12 +5,45 @@ import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+
+import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Cache.Cache;
+import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+
 public class LogWriter {
 
     private final File logDir;
     private final File olderDir;
     private final File logFile;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+
+    public static void logEnter(Player p, ActiveVehicle v) {
+        if(Cache.coreProtect) {
+            VehicleFramework.getCoreProtect().logInteraction(p.getName(), v.getEntity().getLocation());
+            VehicleFramework.getCoreProtect().logChat(p, "+"+v.getId());
+        }
+    }
+
+    public static void logExit(Player p, ActiveVehicle v) {
+        if(Cache.coreProtect) {
+            VehicleFramework.getCoreProtect().logInteraction(p.getName(), v.getEntity().getLocation());
+            VehicleFramework.getCoreProtect().logChat(p, "-"+v.getId());
+        }
+    }
+
+    public static void logPlace(String id, Block b) {
+        if(Cache.coreProtect) {
+            VehicleFramework.getCoreProtect().logPlacement(id, b.getLocation(), b.getType(), null);
+        }
+    }
+
+    public static void logBreak(String id, Block b) {
+        if(Cache.coreProtect) {
+            VehicleFramework.getCoreProtect().logRemoval(id, b.getLocation(), b.getType(), null);
+        }
+    }
 
     public LogWriter(File pluginFolder) {
         this.logDir = new File(pluginFolder, "logs");

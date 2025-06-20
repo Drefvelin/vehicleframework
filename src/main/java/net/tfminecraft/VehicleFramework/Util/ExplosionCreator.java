@@ -10,7 +10,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -19,14 +18,13 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
+import net.tfminecraft.VehicleFramework.Database.LogWriter;
 import net.tfminecraft.VehicleFramework.Events.VFEntityDamageEvent;
-import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
 
 public class ExplosionCreator {
 	public static void triggerExplosion(Location explosionCenter, double yield, double blastRadius, double damage, String cause) {
@@ -82,7 +80,31 @@ public class ExplosionCreator {
 	                        if (Cache.ignoreLands.contains(blockType)) {
 	                            fallingBlock.setCancelDrop(true);
 	                        }
+							// Particle trail + landing tracker
+							new BukkitRunnable() {
+								@Override
+								public void run() {
+									if (fallingBlock.isDead() || fallingBlock.isOnGround()) {
+										if(fallingBlock.isOnGround()) {
+											// Log block placement at final position
+											Block landedBlock = fallingBlock.getLocation().getBlock();
+											LogWriter.logPlace(cause, landedBlock);
+										}
+										this.cancel();
+										return;
+									}
 
+									// Spawn particle trail
+									fallingBlock.getWorld().spawnParticle(
+										Particle.SMOKE_NORMAL,
+										fallingBlock.getLocation().add(0.5, 0.5, 0.5),
+										2,
+										0, 0, 0,
+										0
+									);
+								}
+							}.runTaskTimer(VehicleFramework.plugin, 0L, 2L); // Adjust delay (2 ticks = 0.1s) as needed
+							LogWriter.logBreak(cause, block);
 	                        block.setType(Material.AIR); // Clear the block
 	                    }
 	                }

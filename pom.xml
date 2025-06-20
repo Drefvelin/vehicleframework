@@ -6,12 +6,19 @@
 
     <groupId>net.tfminecraft</groupId>
     <artifactId>vehicleframework</artifactId>
-    <version>0.8.6-BETA</version>
+    <version>0.8.8-BETA</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>playpro-repo</id>
+            <url>https://maven.playpro.com</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -90,6 +97,12 @@
             <version>1.0</version>
             <scope>system</scope>
             <systemPath>D:/Dokumenter/My Plugins/TFMC/TLibs/TLibs.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>net.coreprotect</groupId>
+            <artifactId>coreprotect</artifactId>
+            <version>22.4</version> <!-- or latest -->
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

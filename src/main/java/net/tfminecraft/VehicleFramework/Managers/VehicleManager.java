@@ -35,6 +35,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import io.lumine.mythic.bukkit.events.MythicMobDespawnEvent;
 import me.Plugins.TLibs.TLibs;
 import me.Plugins.TLibs.Enums.APIType;
 import me.Plugins.TLibs.Objects.API.ItemAPI;
@@ -588,6 +589,14 @@ public class VehicleManager implements Listener{
 
 	//Database and persistence, unload vehicle safely and store them in on disk
 	//Chunks and stuff is managed in the spawnmanager
+
+	@EventHandler
+	public void despawnEvent(MythicMobDespawnEvent e) {
+		ActiveVehicle v = get(e.getEntity());
+		if(get(e.getEntity()) != null) {
+			unload(v);
+		}
+	}
 
 	@SuppressWarnings("unchecked")
 	public void unloadAll() {

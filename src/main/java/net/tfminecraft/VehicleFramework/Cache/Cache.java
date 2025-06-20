@@ -23,6 +23,9 @@ public class Cache {
 
 	public static String skinItem;
 	public static String repairItem;
+
+	//Plugins
+	public static boolean coreProtect = false;
 	
 	
 	public static void removeLights() {

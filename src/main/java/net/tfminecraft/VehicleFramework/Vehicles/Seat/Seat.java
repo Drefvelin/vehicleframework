@@ -8,6 +8,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
+import net.tfminecraft.VehicleFramework.Database.LogWriter;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
@@ -19,6 +20,7 @@ public class Seat {
 	private int currentWeapon = 0;
 	private List<ActiveWeapon> weapons = new ArrayList<>();
 	
+	private ActiveVehicle vehicle;
 	private ActiveVehicle mountedVehicle;
 	
 	//Set by config
@@ -47,6 +49,7 @@ public class Seat {
 	public Seat(ActiveVehicle v, Seat another) {
 		type = another.getType();
 		bone = another.getBone();
+		vehicle = v;
 		v.getAccessPanel().addSeat(this);
 	}
 	
@@ -66,6 +69,11 @@ public class Seat {
 	public void mount(Entity entity) {
 		if(e != null) return;
 		e = entity;
+		/*
+		if(e instanceof Player) {
+			LogWriter.logEnter((Player) e, vehicle);
+		}
+		*/
 		if(hasWeapon() && e instanceof Player) {
 			Player p = (Player) e;
 			currentWeapon = 0;
@@ -74,6 +82,11 @@ public class Seat {
 	}
 	
 	public void dismount() {
+		/*
+		if(e != null && e instanceof Player) {
+			LogWriter.logExit((Player) e, vehicle);
+		}
+		*/
 		e = null;
 		if(hasWeapon()) {
 			getWeapon().disconnect();

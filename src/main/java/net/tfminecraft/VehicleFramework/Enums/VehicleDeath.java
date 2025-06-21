@@ -4,4 +4,5 @@ public enum VehicleDeath {
 	EXPLODE,
 	SINK,
 	CRASH,
+	DIE,
 }

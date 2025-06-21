@@ -24,6 +24,7 @@ import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
+import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
@@ -113,6 +114,7 @@ public class RepairManager implements Listener{
 		Player p = (Player) e.getWhoClicked();
 		if(!(e.getView().getTopInventory().getHolder() instanceof VFInventoryHolder)) return;
 		VFInventoryHolder h = (VFInventoryHolder) e.getView().getTopInventory().getHolder();
+		if(!h.getType().equals(VFGUI.REPAIR)) return;
 		ActiveVehicle v = manager.get(h.getId());
 		e.setCancelled(true);
 		ItemStack i = e.getCurrentItem();

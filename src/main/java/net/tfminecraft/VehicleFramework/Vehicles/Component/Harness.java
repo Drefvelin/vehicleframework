@@ -5,12 +5,14 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -86,6 +88,7 @@ public class Harness extends VehicleComponent{
 	public void dismount(Seat s) {
 		Entity e = s.getEntity();
 		s.dismount();
+		e.getWorld().dropItem(e.getLocation(), new ItemStack(Material.LEAD, 1));
 		if (e instanceof AbstractHorse) {
             AbstractHorse horse = (AbstractHorse) e;
             double horseSpeed = horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getBaseValue();

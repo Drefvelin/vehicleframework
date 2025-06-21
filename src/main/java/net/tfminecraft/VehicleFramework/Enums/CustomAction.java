@@ -8,4 +8,5 @@ public enum CustomAction {
 	CRASH,
 	EXPLODE,
 	SINK,
+	DIE,
 }

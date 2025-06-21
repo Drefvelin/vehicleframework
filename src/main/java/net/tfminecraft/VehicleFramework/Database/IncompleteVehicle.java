@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.gson.JsonObject;
+
 public class IncompleteVehicle {
 	private String id;
 	private String uuid;
@@ -23,7 +25,9 @@ public class IncompleteVehicle {
 
 	private List<PassengerData> passengers = new ArrayList<>();
 
-	public IncompleteVehicle(String uuid, String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, int throttle, int gear, float yaw, double fuel) {
+	private List<JsonObject> containers = new ArrayList<>();
+
+	public IncompleteVehicle(String uuid, String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, List<JsonObject> containers, int throttle, int gear, float yaw, double fuel) {
 		this.uuid = uuid;
 		this.id = id;
 		this.name = name;
@@ -36,6 +40,7 @@ public class IncompleteVehicle {
 		this.gear = gear;
 		this.yaw = yaw;
 		this.fuel = fuel;
+		this.containers = containers;
 	}
 
 	public double getFuel() {
@@ -83,5 +88,9 @@ public class IncompleteVehicle {
 
 	public List<PassengerData> getPassengers() {
 		return passengers;
+	}
+
+	public List<JsonObject> getContainers() {
+		return containers;
 	}
 }

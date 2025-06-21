@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -11,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
+import org.bukkit.entity.Boat;
 import org.bukkit.entity.Donkey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
@@ -30,10 +32,12 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import io.lumine.mythic.bukkit.events.MythicMobDespawnEvent;
 import me.Plugins.TLibs.TLibs;
@@ -62,6 +66,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 
 public class VehicleManager implements Listener{
@@ -313,6 +318,12 @@ public class VehicleManager implements Listener{
 			}
 		}
 		cooldown.put(p, System.currentTimeMillis()+100);
+		//Containers
+		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), "v.CHEST")) {
+			if(!v.hasContainers()) return;
+			v.getContainerHandler().open(p);
+			return;
+		}
 		//Repair
 		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.repairItem)) {
 			repairManager.repair(p, v);
@@ -571,6 +582,56 @@ public class VehicleManager implements Listener{
 		v.changeSkin(i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING));
 		inv.skinSelection(p.getOpenInventory().getTopInventory(), p, v, false);
 	}
+
+	@EventHandler
+	public void containerSelect(InventoryClickEvent e) {
+		Player p = (Player) e.getWhoClicked();
+		if(!(e.getView().getTopInventory().getHolder() instanceof VFInventoryHolder)) return;
+		VFInventoryHolder h = (VFInventoryHolder) e.getView().getTopInventory().getHolder();
+		if(!h.getType().equals(VFGUI.CONTAINER_SELECT)) return;
+		e.setCancelled(true);
+		ActiveVehicle v = null;
+		if(tempVehicle.containsKey(p)) v = tempVehicle.get(p);
+		if(activeVehicle.containsKey(p)) v = activeVehicle.get(p);
+		if(v == null) return;
+		ItemStack i = e.getCurrentItem();
+		if(i == null) return;
+		if(i.getType().equals(Material.GRAY_STAINED_GLASS_PANE)) return;
+	    if(v.isDestroyed()) {
+	    	p.sendMessage("Vehicle is destroyed");
+	    	return;
+	    }
+		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_container_id");
+		String id = i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+		if(id == null) return;
+		v.getContainerHandler().open(p, id);
+	}
+
+	@EventHandler
+	public void saveContainer(InventoryCloseEvent e) {
+		if(e.getView().getTopInventory().getHolder() == null) return;
+		if(!(e.getView().getTopInventory().getHolder() instanceof VFInventoryHolder)) return;
+		VFInventoryHolder h = (VFInventoryHolder) e.getView().getTopInventory().getHolder();
+		if(!h.getType().equals(VFGUI.CONTAINER)) return;
+		Optional<ActiveVehicle> opt = h.getVehicle();
+		if(opt.isEmpty()) return;
+		Container c = opt.get().getContainerHandler().get(h.getId());
+		if(c == null) return;
+		c.close(e.getView().getTopInventory());
+	}
+
+	@EventHandler
+    public void onBoatMove(VehicleMoveEvent event) {
+        if (!(event.getVehicle() instanceof Boat boat)) return;
+
+        Vector velocity = boat.getVelocity();
+        double speed = velocity.length();
+
+        if (speed > 0.1) {
+            Vector capped = velocity.clone().normalize().multiply(0.1);
+            boat.setVelocity(capped);
+        }
+    }
 	
 	public void inputPacket(Player p, float sideways, float forward, boolean space, boolean sneak) {
 	    ActiveVehicle vehicle = activeVehicle.get(p);
@@ -608,7 +669,11 @@ public class VehicleManager implements Listener{
 	}
 
 	public void unload(ActiveVehicle v) {
-		if(!v.isDestroyed()) db.saveVehicle(v);
-		v.remove();
+		if(!v.isDestroyed()) {
+			db.saveVehicle(v);
+			v.remove();
+		} else {
+			v.getEntity().remove();
+		}
 	}
 }

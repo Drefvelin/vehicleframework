@@ -152,4 +152,23 @@ public class DeathHandler {
 	        }
 	    }.runTaskLater(VehicleFramework.plugin, sink.getDuration()*1L);
 	}
+
+	public void die() {
+		if(vehicle.hasEffect(CustomAction.DIE)) vehicle.playEffect(CustomAction.DIE);
+	    vehicle.getAnimationHandler().animate(Animation.DIE);
+	    DeathData data = vehicle.getDeathData(VehicleDeath.DIE);
+	    if(data == null) {
+	    	vehicle.remove();
+	    	return;
+	    }
+	    for(SoundData sfx : data.getSfx()) {
+			sfx.playSound(vehicle.getNearbyPlayers(), vehicle.getEntity().getLocation(), 1f);
+		}
+	    new BukkitRunnable() {
+	        @Override
+	        public void run() {
+	        	vehicle.remove();
+	        }
+	    }.runTaskLater(VehicleFramework.plugin, data.getDuration()*1L);
+	}
 }

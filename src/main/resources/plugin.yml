@@ -4,7 +4,7 @@ name: VehicleFramework
 version: 1.0
 author: Drefvelin
 
-depend: [MythicMobs, MythicLib, ModelEngine, ProtocolLib]
+depend: [NBTAPI, MythicMobs, MythicLib, ModelEngine, ProtocolLib]
 
 commands:
   vf:

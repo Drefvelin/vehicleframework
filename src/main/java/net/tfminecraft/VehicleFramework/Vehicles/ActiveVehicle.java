@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 
+import com.google.gson.JsonObject;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
@@ -56,6 +57,8 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TrainHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.UtilityHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.WeaponHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.ContainerHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleState;
@@ -120,6 +123,9 @@ public class ActiveVehicle {
 	
 	//Utilities
 	protected UtilityHandler utilityHandler;
+
+	//Containers
+	protected ContainerHandler containerHandler;
 	
 	protected List<Player> nearby = new ArrayList<>();
 	
@@ -145,6 +151,7 @@ public class ActiveVehicle {
 		weaponHandler = new WeaponHandler(model, this, stored.getWeapons(), seatHandler);
 		effectHandler = new EffectHandler(stored.getEffectHandler());
 		deathHandler = new DeathHandler(this);
+		if(stored.getContainerHandler() != null) containerHandler = new ContainerHandler(this, m, stored.getContainerHandler());
 		if(stored.getTowHandler() != null) towHandler = new TowHandler(this, stored.getTowHandler());
 		if(stored.getUtilityHandler() != null) utilityHandler = new UtilityHandler(m, stored.getUtilityHandler());
 		
@@ -276,6 +283,14 @@ public class ActiveVehicle {
 	public WeaponHandler getWeaponHandler() {
 		return weaponHandler;
 	}
+
+	public boolean hasContainers() {
+		return containerHandler != null;
+	}
+
+	public ContainerHandler getContainerHandler() {
+		return containerHandler;
+	}
 	
 	//Model
 	public boolean changeSkin(String id) {
@@ -319,6 +334,7 @@ public class ActiveVehicle {
 		initializeComponents(inc.getComponents());
 		initializeRotations(inc.getRotations());
 		initializePassengers(inc.getPassengers());
+		initializeContainers(inc.getContainers());
 		name = inc.getName();
 		uuid = inc.getUUID();
 		setFuel(inc.getFuel());
@@ -334,6 +350,17 @@ public class ActiveVehicle {
 			if(inc.getThrottle() != 0) e.setStarted(true);
 			e.setCurrentGear(inc.getGear());
 			e.getGear().getThrottle().setThrottle(inc.getThrottle());
+		}
+	}
+
+	private void initializeContainers(List<JsonObject> containers) {
+		if(!hasContainers()) return;
+		for(JsonObject json : containers) {
+			String id = json.get("id").getAsString();
+			Container c = containerHandler.get(id);
+			if(c != null) {
+				c.loadFromJson(json);
+			}
 		}
 	}
 
@@ -412,6 +439,9 @@ public class ActiveVehicle {
 			break;
 		case SINK:
 			deathHandler.sink();
+			break;
+		case DIE:
+			deathHandler.die();
 			break;
 		default:
 			break;

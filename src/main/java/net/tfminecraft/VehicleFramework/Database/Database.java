@@ -25,6 +25,8 @@ import org.json.simple.parser.JSONParser;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Bones.BoneRotator;
@@ -36,6 +38,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 
@@ -145,15 +148,56 @@ public class Database {
 					passengers.add(new PassengerData(player, seatId));
 				}
 			}
-
+			List<JsonObject> containers = loadContainers(json);
 	        // Create and return IncompleteVehicle with loaded components
 	        file.delete();
-	        return new IncompleteVehicle(uuid, id, name, skin, componentsList, weapons, rotations, passengers, throttle, gear, yaw, fuel);
+	        return new IncompleteVehicle(uuid, id, name, skin, componentsList, weapons, rotations, passengers, containers, throttle, gear, yaw, fuel);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
     	return null;
 	}
+
+	public List<JsonObject> loadContainers(JSONObject vehicleJson) {
+		List<JsonObject> containerList = new ArrayList<>();
+
+		if (!vehicleJson.containsKey("containers")) return containerList;
+
+		JSONObject containersSection = (JSONObject) vehicleJson.get("containers");
+
+		for (Object key : containersSection.keySet()) {
+			Object rawContainer = containersSection.get(key);
+			if (rawContainer == null) continue;
+
+			// Convert JSON.simple object -> JSON string -> Gson JsonObject
+			String containerString = rawContainer.toString();
+			JsonObject containerJson = JsonParser.parseString(containerString).getAsJsonObject();
+			containerList.add(containerJson);
+		}
+
+		return containerList;
+	}
+
+	@SuppressWarnings("unchecked")
+	public JSONObject saveContainers(List<Container> containers, JSONObject vehicleJson) {
+		JSONObject containersSection = new JSONObject();
+
+		for (Container container : containers) {
+			// Get the container JSON (Gson)
+			JsonObject gsonJson = container.getAsJson();
+
+			// Convert Gson JsonObject to JSON.simple JSONObject via string roundtrip
+			Object parsed = org.json.simple.JSONValue.parse(gsonJson.toString());
+			if (parsed instanceof JSONObject simpleJson) {
+				containersSection.put(container.getId(), simpleJson);
+			}
+		}
+
+		vehicleJson.put("containers", containersSection);
+		return vehicleJson;
+	}
+
+
     public void loadActiveSpawnLocations() {
     	for (World world : Bukkit.getWorlds()) {
             for (Chunk chunk : world.getLoadedChunks()) {
@@ -254,6 +298,7 @@ public class Database {
 			vehicleData.put("name", v.getName());
 			vehicleData.put("yaw", v.getEntity().getLocation().getYaw());
 			vehicleData.put("skin", v.getSkinHandler().getCurrentSkin().getId());
+			if(v.hasContainers()) saveContainers(v.getContainerHandler().getContainers(), vehicleData);
 			// --- PASSENGERS ---
 			JSONObject passengersObject = new JSONObject();
 			for (Entity e : v.getSeatHandler().getPassengers()) {

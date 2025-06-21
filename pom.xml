@@ -6,7 +6,7 @@
 
     <groupId>net.tfminecraft</groupId>
     <artifactId>vehicleframework</artifactId>
-    <version>0.8.8-BETA</version>
+    <version>0.8.92-BETA</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -17,6 +17,12 @@
         <repository>
             <id>playpro-repo</id>
             <url>https://maven.playpro.com</url>
+        </repository>
+        <!-- CodeMC -->
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.io/repository/maven-public/</url>
+            <layout>default</layout>
         </repository>
     </repositories>
 
@@ -104,6 +110,12 @@
             <version>22.4</version> <!-- or latest -->
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>de.tr7zw</groupId>
+            <artifactId>item-nbt-api-plugin</artifactId>
+            <version>2.15.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -126,5 +138,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

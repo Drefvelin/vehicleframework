@@ -14,4 +14,5 @@ public enum Animation {
 	RELOAD,
 	SHOOT,
 	ENGINE_ACTIVE,
+	DIE,
 }

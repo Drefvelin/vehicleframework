@@ -8,7 +8,6 @@ import java.util.Set;
 import org.bukkit.configuration.ConfigurationSection;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
-import net.tfminecraft.VehicleFramework.Data.DamageData;
 import net.tfminecraft.VehicleFramework.Data.DeathData;
 import net.tfminecraft.VehicleFramework.Enums.VehicleDeath;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.BehaviourHandler;
@@ -19,8 +18,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SkinHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.StateHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.UtilityHandler;
-import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
-import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.InputHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.ContainerHandler;
 import net.tfminecraft.VehicleFramework.Weapons.Weapon;
 
 public class Vehicle {
@@ -65,6 +63,9 @@ public class Vehicle {
 	
 	//Data
 	protected List<DeathData> deathData = new ArrayList<>();
+
+	//Containers
+	protected ContainerHandler containerHandler;
 	
 	
 	public Vehicle(String key, ConfigurationSection config) {
@@ -110,6 +111,9 @@ public class Vehicle {
 		
 		if(config.isConfigurationSection("towing")) {
 			towHandler = new TowHandler(config.getConfigurationSection("towing"));
+		}
+		if(config.isConfigurationSection("containers")) {
+			containerHandler = new ContainerHandler(config.getConfigurationSection("containers"));
 		}
 		if(config.isConfigurationSection("utilities")) {
 			utilityHandler = new UtilityHandler(config.getConfigurationSection("utilities"));
@@ -194,6 +198,10 @@ public class Vehicle {
 
 	public List<DeathData> getDeathData() {
 		return deathData;
+	}
+
+	public ContainerHandler getContainerHandler() {
+		return containerHandler;
 	}
 	
 	

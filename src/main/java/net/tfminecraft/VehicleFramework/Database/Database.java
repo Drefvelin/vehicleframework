@@ -298,7 +298,7 @@ public class Database {
 			vehicleData.put("name", v.getName());
 			vehicleData.put("yaw", v.getEntity().getLocation().getYaw());
 			vehicleData.put("skin", v.getSkinHandler().getCurrentSkin().getId());
-			if(v.hasContainers()) saveContainers(v.getContainerHandler().getContainers(), vehicleData);
+			if(v.hasContainers()) saveContainers(new ArrayList<>(v.getContainerHandler().getContainers().values()), vehicleData);
 			// --- PASSENGERS ---
 			JSONObject passengersObject = new JSONObject();
 			for (Entity e : v.getSeatHandler().getPassengers()) {

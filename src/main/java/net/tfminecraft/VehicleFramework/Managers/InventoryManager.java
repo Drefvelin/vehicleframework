@@ -14,6 +14,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import com.comphenix.net.bytebuddy.dynamic.TypeResolutionStrategy.Active;
+
 import io.lumine.mythic.bukkit.utils.lib.lang3.text.WordUtils;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
@@ -26,6 +28,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.Hull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Pump;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Wings;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Skins.VehicleSkin;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
@@ -38,7 +41,7 @@ public class InventoryManager {
 		}
 		int x = 0;
 		for(Seat seat : v.getSeatHandler().getSeats()) {
-			i.setItem(x, getSeatItem(seat));
+			i.setItem(x, getSeatItem(v, seat));
 			x++;
 		}
 		if(v.isPassenger(p, false)) i.setItem(26, createDismountButton());
@@ -58,7 +61,7 @@ public class InventoryManager {
 		}
 	}
 	
-	private ItemStack getSeatItem(Seat s) {
+	private ItemStack getSeatItem(ActiveVehicle v, Seat s) {
 		ItemStack i = new ItemStack(Material.GREEN_CONCRETE, 1);
 		if(s.isOccupied()) {
 			i = new ItemStack(Material.YELLOW_CONCRETE, 1);
@@ -73,6 +76,13 @@ public class InventoryManager {
 		m.getPersistentDataContainer().set(key, PersistentDataType.STRING, s.getBone());
 		List<String> lore = new ArrayList<>();
 		lore.add("§7Type: §e"+WordUtils.capitalize(s.getType().toString().toLowerCase()));
+		if(v.hasContainers()) {
+			Container c = v.getContainerHandler().getBySeat(s.getBone());
+			if(c != null) {
+				lore.add("");
+				lore.add("§7Container: §f"+c.getName());
+			}
+		}
 		m.setLore(lore);
 		i.setItemMeta(m);
 		return i;

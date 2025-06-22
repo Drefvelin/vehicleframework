@@ -1,5 +1,6 @@
 package net.tfminecraft.VehicleFramework.Vehicles.Controller;
 
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -12,12 +13,23 @@ import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Enums.VehicleDeath;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Balloon;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Wings;
 
 public class LiftController {
 
 	public Vector calculateLift(BoneRotator rotator, ActiveVehicle v, Vector velocity) {
+		if(v.hasComponent(Component.BALLOON)) {
+			Balloon balloon = (Balloon) v.getComponent(Component.BALLOON);
+			double lift = balloon.getLift();
+			if(lift >= 0) {
+				if(v.getEntity().getLocation().clone().add(0, -1.3, 0).getBlock().getType().equals(Material.AIR)) velocity.setY(0);
+				return velocity;
+			}
+			velocity.setY(lift);
+			return velocity;
+		}
 	    if (v.hasComponent(Component.WINGS) && v.hasComponent(Component.ENGINE)) {
 	        Wings wings = (Wings) v.getComponent(Component.WINGS);
 	        Engine engine = (Engine) v.getComponent(Component.ENGINE);
@@ -85,7 +97,7 @@ public class LiftController {
     
     public void checkHitWall(ActiveVehicle vehicle) {
     	if(vehicle.isDestroyed()) return;
-    	if(!vehicle.hasComponent(Component.WINGS)) return;
+    	if(!(vehicle.hasComponent(Component.WINGS) || vehicle.hasComponent(Component.BALLOON))) return;
 		if(vehicle.getAccessPanel().getSpeed() < 0.3) return;
     	BoundingBox boundingBox = vehicle.getEntity().getBoundingBox().clone().expand(0.5, -1, 0.5);
 

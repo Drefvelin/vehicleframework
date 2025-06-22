@@ -11,6 +11,8 @@ public enum Input {
 	MOVE,
 	FORWARD,
 	BACKWARD,
+	UP,
+	DOWN,
 	PITCH_DOWN,
 	PITCH_UP,
 	ROLL_LEFT,

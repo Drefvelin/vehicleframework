@@ -9,12 +9,20 @@ import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Direction;
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Balloon;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleState;
 
 public class BaseController {
 	
 	public Vector climbVector(ActiveVehicle v, Vector velocity) {
+		if(v.hasComponent(Component.BALLOON)) {
+			Balloon balloon = (Balloon) v.getComponent(Component.BALLOON);
+			double delta = balloon.getDelta();
+			if(delta == 0) return velocity;
+			velocity.setY(delta);
+			return velocity;
+		}
 		VehicleState state = v.getCurrentState();
 		if(state.getClimbHandler().canClimb()) {
 			if(state.getClimbHandler().shouldClimb(v)) velocity.setY(0.3);
@@ -55,7 +63,7 @@ public class BaseController {
 	private Vector engineVector(ActiveVehicle v, VectorBone vector, Entity e, Vector velocity) {
 		if (e != null && e.isValid() && e instanceof LivingEntity) {
         	Vector direction = vector.getVector().clone().normalize();
-			if(v.getCurrentState().getType().equals(State.FLYING) && (v.getThrottle() != null && v.getThrottle().getCurrent() <= 10)) {
+			if(v.getCurrentState().getType().equals(State.FLYING) && v.hasComponent(Component.WINGS) && (v.getThrottle() != null && v.getThrottle().getCurrent() <= 10)) {
 				double scale = (20-v.getThrottle().getCurrent())/20.0;
 				//So you dont just stop mid air
 				velocity = direction.multiply(0.65*scale); // Forward velocity 

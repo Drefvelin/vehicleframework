@@ -16,6 +16,7 @@ import net.tfminecraft.VehicleFramework.Interface.MovementInterface;
 import net.tfminecraft.VehicleFramework.Managers.InventoryManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Balloon;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Wings;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
@@ -98,6 +99,12 @@ public class VehicleMovementController implements MovementInterface{
 				break;
 			case HORN:
 				v.honk();
+				break;
+			case UP:
+				up(p);
+				break;
+			case DOWN:
+				down(p);
 				break;
 			default:
 				break;
@@ -185,9 +192,34 @@ public class VehicleMovementController implements MovementInterface{
 		liftController.checkHitWall(v);
 		Vector velocity = getSimpleMovements(Direction.STILL);
 		if(v.shouldFloat()) velocity = floatController.calculateFloat(v, velocity);
-		if(v.hasComponent(Component.WINGS)) velocity= liftController.calculateLift(rotator, v, velocity);
+		if(v.hasComponent(Component.WINGS) || v.hasComponent(Component.BALLOON)) velocity= liftController.calculateLift(rotator, v, velocity);
 		apply(velocity, baseController.getDirection(v));
 		rotator.rotateSmoothed(0, 0, 0);
+	}
+
+	private void up(Player p) {
+		if(!v.getSeat(p).getType().equals(SeatType.CAPTAIN)) return;
+		if (!v.hasComponent(Component.BALLOON)) return;
+		Balloon balloon = (Balloon) v.getComponent(Component.BALLOON);
+		double lift = balloon.getLift();
+		if (lift < 0) return;
+		Vector velocity = v.getEntity().getVelocity();
+		velocity.setY(lift);
+		v.getEntity().setVelocity(velocity);
+		balloon.setDelta(lift); // Set delta instead of directly setting velocity
+	}
+
+	private void down(Player p) {
+		if(!v.getSeat(p).getType().equals(SeatType.CAPTAIN)) return;
+		if (!v.hasComponent(Component.BALLOON)) return;
+		Balloon balloon = (Balloon) v.getComponent(Component.BALLOON);
+		double lift = balloon.getBaseLift();
+		if (lift < 0) return;
+		Vector velocity = v.getEntity().getVelocity();
+		if(velocity.getY() < -lift) return;
+		velocity.setY(-lift);
+		v.getEntity().setVelocity(velocity);
+		balloon.setDelta(-lift); // Set delta to negative for downward force
 	}
 	
 	private Vector getSimpleMovements(Direction dir) {

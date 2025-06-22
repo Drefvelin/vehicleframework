@@ -319,10 +319,8 @@ public class VehicleManager implements Listener{
 		}
 		cooldown.put(p, System.currentTimeMillis()+100);
 		//Containers
-		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), "v.CHEST")) {
-			if(!v.hasContainers()) return;
-			v.getContainerHandler().open(p);
-			return;
+		if(v.hasContainers()) {
+			if(v.getContainerHandler().open(p)) return;
 		}
 		//Repair
 		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.repairItem)) {
@@ -581,30 +579,6 @@ public class VehicleManager implements Listener{
 		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_skin_id");
 		v.changeSkin(i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING));
 		inv.skinSelection(p.getOpenInventory().getTopInventory(), p, v, false);
-	}
-
-	@EventHandler
-	public void containerSelect(InventoryClickEvent e) {
-		Player p = (Player) e.getWhoClicked();
-		if(!(e.getView().getTopInventory().getHolder() instanceof VFInventoryHolder)) return;
-		VFInventoryHolder h = (VFInventoryHolder) e.getView().getTopInventory().getHolder();
-		if(!h.getType().equals(VFGUI.CONTAINER_SELECT)) return;
-		e.setCancelled(true);
-		ActiveVehicle v = null;
-		if(tempVehicle.containsKey(p)) v = tempVehicle.get(p);
-		if(activeVehicle.containsKey(p)) v = activeVehicle.get(p);
-		if(v == null) return;
-		ItemStack i = e.getCurrentItem();
-		if(i == null) return;
-		if(i.getType().equals(Material.GRAY_STAINED_GLASS_PANE)) return;
-	    if(v.isDestroyed()) {
-	    	p.sendMessage("Vehicle is destroyed");
-	    	return;
-	    }
-		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_container_id");
-		String id = i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-		if(id == null) return;
-		v.getContainerHandler().open(p, id);
 	}
 
 	@EventHandler

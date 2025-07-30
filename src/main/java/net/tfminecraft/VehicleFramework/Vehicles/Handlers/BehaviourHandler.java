@@ -21,6 +21,7 @@ public class BehaviourHandler {
 	
 	private boolean shouldFloat;
 	private List<Material> floatsIn = new ArrayList<>();
+	private boolean turnScaling;
 	private String vectorString;
 	private String rotatorString;
 	
@@ -36,6 +37,7 @@ public class BehaviourHandler {
 	
 	public BehaviourHandler(ConfigurationSection config) {
 		getFloat(config);
+		turnScaling = config.getBoolean("turn-scaling", true);
 		if(config.isConfigurationSection("train")) {
 			trainHandler = new TrainHandler(config.getConfigurationSection("train"));
 		}
@@ -102,6 +104,10 @@ public class BehaviourHandler {
 		} else {
 			floatsIn.add(Material.WATER);
 		}
+	}
+
+	public boolean turnScale() {
+		return turnScaling;
 	}
 	
 	public boolean isTrain() {

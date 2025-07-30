@@ -198,6 +198,8 @@ public class InventoryManager {
 		} else if(c instanceof Harness) {
 			i.setType(Material.LEAD);
 			type = "pump";
+		} else {
+			type = c.getType().toString().toLowerCase();
 		}
 		ItemMeta m = i.getItemMeta();
 		m.setDisplayName("§7"+WordUtils.capitalize(new String(type)));

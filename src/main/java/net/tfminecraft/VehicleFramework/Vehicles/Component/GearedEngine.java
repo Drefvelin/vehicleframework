@@ -133,7 +133,8 @@ public class GearedEngine extends VehicleComponent{
 	}
 	
 	public double getTurnRate() {
-		return turnrate;
+		if(v == null) return turnrate;
+		return v.getBehaviourHandler().turnScale() ? turnrate*(getGear().getThrottle().getCurrent()/100.0) : turnrate;
 	}
 	
 	public List<Gear> getGears(){

@@ -241,12 +241,16 @@ public class Database {
             }
         }
     }
+	public void saveSpawnLocations(List<SpawnLocation> sLocs) {
+		for(SpawnLocation s : sLocs) saveSpawnLocation(s);
+	}
+
 	public void saveSpawnLocation(SpawnLocation sLoc) {
 		try {
 			String path = getPath(sLoc.getChunk());
 			File folder = new File(path);
 			if(!folder.exists()) folder.mkdirs();
-			File file = new File(path, UUID.randomUUID().toString()+".json");
+			File file = new File(path, sLoc.getFile());
 			if(file.exists() == true) {
 				file.delete();
 			}

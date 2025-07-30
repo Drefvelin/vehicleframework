@@ -57,6 +57,10 @@ public class SpawnManager implements Listener {
 		db.loadActiveSpawnLocations();
 		startTickCycle();
 	}
+
+	public void save() {
+		db.saveSpawnLocations(spawns);
+	}
 	
 	private void startTickCycle() {
 		new BukkitRunnable() {

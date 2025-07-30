@@ -225,6 +225,14 @@ public class VehicleMovementController implements MovementInterface{
 	private Vector getSimpleMovements(Direction dir) {
 		Vector velocity = baseController.calculateMoveVector(v, vector, dir);
 		velocity = baseController.climbVector(v, velocity);
+		velocity = flatten(velocity);
+		return velocity;
+	}
+
+	private Vector flatten(Vector velocity) {
+		if(!v.hasComponent(Component.WINGS)) return velocity;
+		if(!v.hasComponent(Component.ENGINE)) return velocity;
+		if(v.getThrottle().getCurrent() < 20) velocity.setY(0);
 		return velocity;
 	}
 	

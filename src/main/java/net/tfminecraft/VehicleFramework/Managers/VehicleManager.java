@@ -102,6 +102,14 @@ public class VehicleManager implements Listener{
 	public HashMap<Entity, ActiveVehicle> get() {
 		return vehicles;
 	}
+
+	public ActiveVehicle getByUUID(String UUID) {
+		for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
+        	ActiveVehicle v = entry.getValue();
+            if(v.getUUID().equalsIgnoreCase(UUID)) return v;
+        }
+		return null;
+	}
 	
 	public ActiveVehicle get(Entity e) {
 		if(vehicles.containsKey(e)) return vehicles.get(e);
@@ -322,6 +330,12 @@ public class VehicleManager implements Listener{
 		if(v.hasContainers()) {
 			if(v.getContainerHandler().open(p)) return;
 		}
+		//Destroy
+		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.destroyItem)) {
+			v.remove();
+			p.sendMessage("§cRemoved");
+			return;
+		}
 		//Repair
 		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.repairItem)) {
 			repairManager.repair(p, v);
@@ -396,7 +410,6 @@ public class VehicleManager implements Listener{
 			return;
 		}
 		seatInteract(p, v);
-		
 	}
 	@EventHandler
 	public void nameVehicle(AsyncPlayerChatEvent e) {

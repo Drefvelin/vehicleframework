@@ -51,6 +51,7 @@ public class VehicleFramework extends JavaPlugin{
 	@Override
 	public void onDisable() {
 		vehicleManager.unloadAll();
+		vehicleManager.getSpawnManager().save();
 		Cache.removeLights();
 	}
 	public void registerListeners() {

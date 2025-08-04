@@ -13,7 +13,8 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
 public class ThrottleController {
 	public void throttle(ActiveVehicle v, Player p,  boolean down) {
 		if(v.getSeat(p).getType().equals(SeatType.CAPTAIN)) {
-			if(v.hasComponent(Component.ENGINE)) {
+			if(v.usesFuel() && !v.hasFuel()) return;
+ 			if(v.hasComponent(Component.ENGINE)) {
 				Engine engine = (Engine) v.getComponent(Component.ENGINE);
 				if(engine.requiresStart() && !engine.isStarted()) {
 					engine.start(p);

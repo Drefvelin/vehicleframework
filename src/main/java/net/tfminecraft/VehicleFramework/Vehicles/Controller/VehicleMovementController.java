@@ -98,7 +98,7 @@ public class VehicleMovementController implements MovementInterface{
 				v.toggleLights(p);
 				break;
 			case HORN:
-				v.honk();
+				if(v.getSeat(p).getType().equals(SeatType.CAPTAIN)) v.honk(p);
 				break;
 			case UP:
 				up(p);

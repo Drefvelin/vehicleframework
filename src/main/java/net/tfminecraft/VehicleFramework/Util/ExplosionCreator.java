@@ -25,16 +25,23 @@ import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Database.LogWriter;
 import net.tfminecraft.VehicleFramework.Events.VFEntityDamageEvent;
+import net.tfminecraft.VehicleFramework.Events.VFExplosionEvent;
 
 public class ExplosionCreator {
 	public static void triggerExplosion(Location explosionCenter, double yield, double blastRadius, double damage, String cause) {
+		VFExplosionEvent event = new VFExplosionEvent(explosionCenter);
+        Bukkit.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return;
+        }
 	    int radius = (int) Math.round(yield);
 	    int particles = (int) Math.round(yield*15);
 	    Random random = new Random();
 
 	    //Fallin Block Effect
 	    for (int x = -radius; x <= radius; x++) {
-			if(!Cache.blockDamage) break;
+			if(!event.doesBlockDamage()) break;
 	        for (int y = -radius; y <= radius; y++) {
 	            for (int z = -radius; z <= radius; z++) {
 	                Location loc = explosionCenter.clone().add(x, y, z);
@@ -165,7 +172,7 @@ public class ExplosionCreator {
 	            }
 	        }
 	    }
-	    explosionCenter.getWorld().createExplosion(explosionCenter, (float) yield, false, Cache.blockDamage);
+	    explosionCenter.getWorld().createExplosion(explosionCenter, (float) yield, false, event.doesBlockDamage());
 	}
 	
 	public static void applyDamage(Entity e, double damage, String cause) {

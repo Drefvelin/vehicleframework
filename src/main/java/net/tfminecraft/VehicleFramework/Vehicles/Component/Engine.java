@@ -11,6 +11,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.ticxo.modelengine.api.model.ActiveModel;
 
+import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Bones.VectorBone;
 import net.tfminecraft.VehicleFramework.Data.ParticleData;
@@ -142,7 +143,8 @@ public class Engine extends VehicleComponent{
 	}
 	
 	public double getTurnRate() {
-		return turnrate*(throttle.getCurrent()/100.0);
+		if(v == null) return turnrate;
+		return v.getBehaviourHandler().turnScale() ? turnrate*(throttle.getCurrent()/100.0) : turnrate;
 	}
 	
 	private void normalize() {

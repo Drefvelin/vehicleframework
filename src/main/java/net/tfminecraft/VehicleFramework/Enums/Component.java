@@ -8,4 +8,5 @@ public enum Component {
 	STEERING,
 	WINGS,
 	HARNESS,
+	BALLOON,
 }

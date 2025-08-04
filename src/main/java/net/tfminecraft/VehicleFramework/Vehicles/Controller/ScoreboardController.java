@@ -94,6 +94,6 @@ public class ScoreboardController {
 	public void removeScoreboard(Player p) {
 		Scoreboard board = p.getScoreboard();
 		Objective obj = board.getObjective("vehicleDummy");
-		obj.unregister();
+		if(obj != null) obj.unregister();
 	}
 }

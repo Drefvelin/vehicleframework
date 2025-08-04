@@ -14,6 +14,7 @@ import net.tfminecraft.VehicleFramework.Database.IncompleteComponent;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Balloon;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
@@ -56,6 +57,9 @@ public class ComponentHandler {
 					break;
 				case GEARED_ENGINE:
 					components.add(new GearedEngine(compSection));
+					break;
+				case BALLOON:
+					components.add(new Balloon(compSection));
 					break;
 				default:
 					break;
@@ -125,6 +129,9 @@ public class ComponentHandler {
 					break;
 				case GEARED_ENGINE:
 					components.add(new GearedEngine(v, (GearedEngine) component, e, m, ic));
+					break;
+				case BALLOON:
+					components.add(new Balloon((Balloon) component, v, m, ic));
 					break;
 				default:
 					break;

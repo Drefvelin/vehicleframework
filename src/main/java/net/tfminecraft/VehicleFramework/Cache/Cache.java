@@ -23,6 +23,7 @@ public class Cache {
 
 	public static String skinItem;
 	public static String repairItem;
+	public static String destroyItem;
 
 	//Plugins
 	public static boolean coreProtect = false;

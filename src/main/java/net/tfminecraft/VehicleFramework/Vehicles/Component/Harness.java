@@ -121,6 +121,7 @@ public class Harness extends VehicleComponent{
 	
 	public double getTurnRate() {
 		if(v == null) return turnRate;
+		if(!v.getBehaviourHandler().turnScale()) return turnRate;
 		Entity e = v.getEntity();
 		if(e.getVelocity().length() < 0.08) return 0;
 		double calculatedTurnRate = turnRate*e.getVelocity().length();

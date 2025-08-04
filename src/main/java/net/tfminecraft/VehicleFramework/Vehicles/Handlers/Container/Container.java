@@ -15,14 +15,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.bone.ModelBone;
-import com.ticxo.modelengine.api.model.bone.behavior.BoneBehaviorType;
-import com.ticxo.modelengine.core.mythic.mechanics.bone.PartVisibilityMechanic;
 
 import de.tr7zw.nbtapi.NBT;
 import de.tr7zw.nbtapi.iface.ReadWriteNBT;
-import io.lumine.mythic.api.mobs.entities.MythicEntity;
 import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
@@ -34,6 +30,7 @@ public class Container {
     private String id;
     private String name;
     private int size;
+    private String seat;
 
     //Visual stuff
     private List<String> boneList = new ArrayList<>();
@@ -46,6 +43,7 @@ public class Container {
         id = key;
         name = StringFormatter.formatHex(config.getString("name", "Container"));
         size = config.getInt("size", 27);
+        seat = config.getString("seat", "none");
         if(config.contains("bones")) {
             for(String s : config.getStringList("bones")) {
                 boneList.add(s);
@@ -53,14 +51,15 @@ public class Container {
         }
     }
 
-    public Container(ActiveModel m, Container stored) {
+    public Container(ActiveVehicle v, Container stored) {
         id = stored.getId();
         name = stored.getName();
         size = stored.getSize();
+        seat = stored.getSeat();
         for(String bone : stored.getBoneList()) {
-            Optional<ModelBone> opt = m.getBone(bone);
+            Optional<ModelBone> opt = v.getModel().getBone(bone);
             if(opt.isEmpty()) {
-                VFLogger.log(m.getBlueprint().getName()+" has no bone called "+bone);
+                VFLogger.log(v.getModel().getBlueprint().getName()+" has no bone called "+bone);
                 continue;
             }
             bones.add(opt.get());
@@ -77,6 +76,10 @@ public class Container {
 
     public int getSize() {
         return size;
+    }
+
+    public String getSeat() {
+        return seat;
     }
 
     public List<String> getBoneList() {
@@ -172,6 +175,7 @@ public class Container {
     }
 
     public void updateBoneVisibility() {
+        /*
         if (bones.isEmpty()) {
             VFLogger.creatorLog("No bones to update for container " + id);
             return;
@@ -202,6 +206,7 @@ public class Container {
             bone.setVisible(visible);
             VFLogger.creatorLog("Bone " + i + " (" + bones.get(i).getBoneId() + "): " + (visible ? "VISIBLE" : "HIDDEN"));
         }
+        */
     }
 
 }

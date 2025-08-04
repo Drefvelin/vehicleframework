@@ -241,12 +241,16 @@ public class Database {
             }
         }
     }
+	public void saveSpawnLocations(List<SpawnLocation> sLocs) {
+		for(SpawnLocation s : sLocs) saveSpawnLocation(s);
+	}
+
 	public void saveSpawnLocation(SpawnLocation sLoc) {
 		try {
 			String path = getPath(sLoc.getChunk());
 			File folder = new File(path);
 			if(!folder.exists()) folder.mkdirs();
-			File file = new File(path, UUID.randomUUID().toString()+".json");
+			File file = new File(path, sLoc.getFile());
 			if(file.exists() == true) {
 				file.delete();
 			}
@@ -298,7 +302,7 @@ public class Database {
 			vehicleData.put("name", v.getName());
 			vehicleData.put("yaw", v.getEntity().getLocation().getYaw());
 			vehicleData.put("skin", v.getSkinHandler().getCurrentSkin().getId());
-			if(v.hasContainers()) saveContainers(v.getContainerHandler().getContainers(), vehicleData);
+			if(v.hasContainers()) saveContainers(new ArrayList<>(v.getContainerHandler().getContainers().values()), vehicleData);
 			// --- PASSENGERS ---
 			JSONObject passengersObject = new JSONObject();
 			for (Entity e : v.getSeatHandler().getPassengers()) {

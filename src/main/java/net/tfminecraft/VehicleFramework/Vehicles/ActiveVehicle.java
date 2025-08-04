@@ -716,9 +716,9 @@ public class ActiveVehicle {
 		utilityHandler.toggleLights(p);
 	}
 	
-	public void honk() {
+	public void honk(Player p) {
 		if(!hasUtilityHandler()) return;
-		utilityHandler.honk(entity.getLocation());
+		utilityHandler.honk(p, entity.getLocation());
 	}
 	
 	//Parameters

@@ -42,7 +42,7 @@ public class SkinHandler {
 		if(v.getStateHandler().getCurrentState().getType().equals(State.FLYING) && !override) return false;
 		if(v.hasComponent(Component.ENGINE) && !override) {
 			Engine e = (Engine) v.getComponent(Component.ENGINE);
-			if(e.isStarted()) return false;
+			if(e.requiresStart() && e.isStarted()) return false;
 			if(e.getThrottle().getCurrent() != 0) return false;
 		}
 		return true;

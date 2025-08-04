@@ -67,8 +67,12 @@ public class UtilityHandler {
 		}
 	}
 	
-	public void honk(Location loc) {
+	public void honk(Player p, Location loc) {
 		if(horn == null) return;
+		if(cooldown.containsKey(p)) {
+			if(cooldown.get(p) > System.currentTimeMillis()) return;
+		}
+		cooldown.put(p, System.currentTimeMillis()+5000);
 		horn.playSound(loc);
 	}
 }

@@ -53,6 +53,7 @@ public class VehicleFramework extends JavaPlugin{
 		vehicleManager.unloadAll();
 		vehicleManager.getSpawnManager().save();
 		Cache.removeLights();
+		Cache.removeProjectiles();
 	}
 	public void registerListeners() {
 		getServer().getPluginManager().registerEvents(vehicleManager, this);

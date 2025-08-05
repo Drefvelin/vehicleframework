@@ -11,6 +11,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Interface.Shooter;
 import net.tfminecraft.VehicleFramework.Projectiles.HitChecker;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
@@ -36,8 +37,7 @@ public class DefaultShooter implements Shooter {
 	    shooter.lightEffect(loc);
 	    
 	    Entity e = ammoData.spawn(loc);
-
-	    
+		Cache.projectiles.add(e);
 	    
 	    Vector velocity = vector.clone().multiply(w.getWeaponData().getVelocity());
 	    new BukkitRunnable() {
@@ -64,6 +64,7 @@ public class DefaultShooter implements Shooter {
 	                shooter.triggerExplosion(e.getLocation(), a.getData());
 	                e.remove();
 	                projectiles.remove(e);
+					Cache.projectiles.remove(e);
 	                cancel(); 
 	            }
 
@@ -88,6 +89,7 @@ public class DefaultShooter implements Shooter {
 	            		sendCluster(e.getLocation(), c, players, projectiles);
 	            		e.remove();
 		                projectiles.remove(e);
+						Cache.projectiles.remove(e);
 		                cancel(); 
 	            	}
 	            }
@@ -101,6 +103,7 @@ public class DefaultShooter implements Shooter {
 	    for (int i = 0; i < a.getAmount(); i++) {
 	        Entity armorStand = a.getClusterData().spawn(original);
 	        projectiles.add(armorStand);
+			Cache.projectiles.add(armorStand);
 
 	        Vector velocity = new Vector(
 	            (Math.random() - 0.5) * a.getSpread(),
@@ -116,6 +119,7 @@ public class DefaultShooter implements Shooter {
 	                if (i > 5 && checker.hasHit(armorStand, projectiles) || armorStand.isOnGround() || armorStand.isDead()) {
 	                    shooter.triggerExplosion(armorStand.getLocation(), a.getClusterData()); // Adjust ammunition if needed
 	                    armorStand.remove();
+						Cache.projectiles.remove(armorStand);
 	                    cancel();
 	                }
 	                a.getData().fx(players, armorStand.getLocation(), 1f, i);

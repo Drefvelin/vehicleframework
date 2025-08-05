@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Interface.Shooter;
 import net.tfminecraft.VehicleFramework.Projectiles.HitChecker;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
@@ -34,6 +35,7 @@ public class TorpedoShooter implements Shooter {
 	    List<Entity> projectiles = new ArrayList<>();
 		final Entity torpedo = a.getData().spawn(loc);
         projectiles.add(torpedo);
+		Cache.projectiles.add(torpedo);
 	    
         shooter.lightEffect(loc);
 
@@ -47,6 +49,7 @@ public class TorpedoShooter implements Shooter {
 	        		shooter.triggerExplosion(torpedo.getLocation(), a.getData());
 	        		torpedo.remove();
 	                projectiles.remove(torpedo);
+					Cache.projectiles.remove(torpedo);
 	                cancel(); 
 	            }
 	        	Location currentLocation = torpedo.getLocation();

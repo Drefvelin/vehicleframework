@@ -12,15 +12,15 @@ public class VFExplosionEvent extends Event implements Cancellable {
 
     /*
     private ActiveVehicle vehicle;
-    private Location location;
     private Ammunition ammo;
     */
+    private Location location;
     private boolean blockDamage;
     private boolean cancelled;
 
     public VFExplosionEvent(Location location) {
         //this.vehicle = vehicle;
-        //this.location = location;
+        this.location = location;
         //this.ammo = ammo;
         this.blockDamage = Cache.blockDamage; // Default value from Cache
         this.cancelled = false;
@@ -31,14 +31,14 @@ public class VFExplosionEvent extends Event implements Cancellable {
         return vehicle;
     }
 
-    public Location getLocation() {
-        return location;
-    }
-
     public Ammunition getAmmo() {
         return ammo;
     }
     */
+
+    public Location getLocation() {
+        return location;
+    }
 
     public boolean doesBlockDamage() {
         return blockDamage;

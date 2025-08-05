@@ -8,10 +8,13 @@ import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 
 public class Cache {
 	public static List<Material> ignoreExplode = new ArrayList<Material>();
 	public static List<Material> ignoreLands = new ArrayList<Material>();
+
+	public static Set<Entity> projectiles = new HashSet<>();
 	
 	public static HashMap<Material, Material> convertExplode = new HashMap<>();
 	
@@ -28,6 +31,12 @@ public class Cache {
 	//Plugins
 	public static boolean coreProtect = false;
 	
+	public static void removeProjectiles() {
+		for(Entity e : projectiles) {
+			if(e == null) continue;
+			e.remove();
+		}
+	}
 	
 	public static void removeLights() {
 		for(Location loc : lightLocations) {

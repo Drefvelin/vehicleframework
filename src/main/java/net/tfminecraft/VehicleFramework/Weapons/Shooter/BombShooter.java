@@ -10,6 +10,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Interface.Shooter;
 import net.tfminecraft.VehicleFramework.Projectiles.HitChecker;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
@@ -33,6 +34,7 @@ public class BombShooter implements Shooter {
 	    List<Entity> projectiles = new ArrayList<>();
 		final Entity e = a.getData().spawn(loc);
         projectiles.add(e);
+		Cache.projectiles.add(e);
 
         Vector velocity = o.getVelocity().clone();
         new BukkitRunnable() {
@@ -59,6 +61,7 @@ public class BombShooter implements Shooter {
 	                shooter.triggerExplosion(e.getLocation(), a.getData());
 	                e.remove();
 	                projectiles.remove(e);
+					Cache.projectiles.remove(e);
 	                cancel(); 
 	            }
 

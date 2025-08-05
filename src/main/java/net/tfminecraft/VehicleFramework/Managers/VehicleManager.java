@@ -486,7 +486,7 @@ public class VehicleManager implements Listener{
 			if(p.getGameMode().equals(GameMode.SPECTATOR) || p.getGameMode().equals(GameMode.CREATIVE)) return;
 			for(Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 				if(entry.getValue().isPassenger(p, false)) {
-					e.setDamage(e.getDamage()/2);
+					e.setDamage(e.getDamage()/6);
 				}
 			}
 		}

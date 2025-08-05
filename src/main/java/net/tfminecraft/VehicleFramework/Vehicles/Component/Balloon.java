@@ -54,7 +54,9 @@ public class Balloon extends VehicleComponent {
     }
 
     public double getLift() {
+        
         double healthPercent = healthData.getHealthPercentage();
+        if(v.isDestroyed()) healthPercent = 0;
         double h = healthPercent / 100.0; // normalize to [0, 1]
 
         double liftFactor = -6 * h * h + 11 * h - 4;

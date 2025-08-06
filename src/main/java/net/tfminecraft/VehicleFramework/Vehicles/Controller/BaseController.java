@@ -4,6 +4,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
+import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Bones.VectorBone;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Direction;
@@ -25,7 +26,9 @@ public class BaseController {
 		}
 		VehicleState state = v.getCurrentState();
 		if(state.getClimbHandler().canClimb()) {
-			if(state.getClimbHandler().shouldClimb(v)) velocity.setY(0.3);
+			if(state.getClimbHandler().shouldClimb(v)) {
+				velocity.setY(0.3);
+			}
 		}
 		return velocity;
 	}

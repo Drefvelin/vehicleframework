@@ -52,6 +52,7 @@ public class ConfigLoader {
 			}
         }
 
+		Cache.enableLogging = config.getBoolean("enable-logging");
 		Cache.blockDamage = config.getBoolean("block-damage", true);
 		
 		Cache.despawnDistance = (int) Math.round(Math.pow(config.getInt("despawn-distance", 64), 2));
@@ -59,5 +60,7 @@ public class ConfigLoader {
 		Cache.skinItem = config.getString("skin-item", "v.bucket");
 		Cache.repairItem = config.getString("repair-item", "v.iron_shovel");
 		Cache.destroyItem = config.getString("destroy-item", "v.stone_axe");
+
+		Cache.mythicMob = config.getString("mythicmob", "none");
 	}
 }

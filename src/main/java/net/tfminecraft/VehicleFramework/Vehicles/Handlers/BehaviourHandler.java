@@ -66,6 +66,7 @@ public class BehaviourHandler {
 	
 	public BehaviourHandler(ActiveVehicle v, Entity e, ActiveModel m, BehaviourHandler another) {
 		if(another.isTrain()) trainHandler = new TrainHandler(v, another.getTrainHandler());
+		turnScaling = another.turnScale();
 		shouldFloat = another.shouldFloat();
 		floatsIn = new ArrayList<>(another.getFloatsIn());
 		rotatorString = another.getRotatorString();

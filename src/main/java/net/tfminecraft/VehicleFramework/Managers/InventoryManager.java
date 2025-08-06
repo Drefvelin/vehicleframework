@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -16,7 +17,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 import com.comphenix.net.bytebuddy.dynamic.TypeResolutionStrategy.Active;
 
-import io.lumine.mythic.bukkit.utils.lib.lang3.text.WordUtils;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
@@ -61,6 +61,7 @@ public class InventoryManager {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	private ItemStack getSeatItem(ActiveVehicle v, Seat s) {
 		ItemStack i = new ItemStack(Material.GREEN_CONCRETE, 1);
 		if(s.isOccupied()) {
@@ -177,6 +178,7 @@ public class InventoryManager {
 		i.setItemMeta(m);
 		return i;
 	}
+	@SuppressWarnings("deprecation")
 	private ItemStack getComponentItem(VehicleComponent c) {
 		ItemStack i = new ItemStack(Material.GREEN_CONCRETE, 1);
 		String type = "none";
@@ -194,10 +196,10 @@ public class InventoryManager {
 			type = "pump";
 		} else if(c instanceof Wings) {
 			i.setType(Material.WHITE_WOOL);
-			type = "pump";
+			type = "wings";
 		} else if(c instanceof Harness) {
 			i.setType(Material.LEAD);
-			type = "pump";
+			type = "harness";
 		} else {
 			type = c.getType().toString().toLowerCase();
 		}

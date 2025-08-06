@@ -12,7 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
-import org.bukkit.entity.Boat;
+import org.bukkit.World;
 import org.bukkit.entity.Donkey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
@@ -32,19 +32,14 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.vehicle.VehicleMoveEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
-
-import io.lumine.mythic.bukkit.events.MythicMobDespawnEvent;
 import me.Plugins.TLibs.TLibs;
-import me.Plugins.TLibs.Enums.APIType;
 import me.Plugins.TLibs.Objects.API.ItemAPI;
 import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
-import net.Indyuce.mmoitems.stat.type.NameData;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
@@ -52,7 +47,6 @@ import net.tfminecraft.VehicleFramework.Data.NamingData;
 import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Enums.Component;
-import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
@@ -70,7 +64,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 
 public class VehicleManager implements Listener{
-	private ItemAPI api = (ItemAPI) TLibs.getApiInstance(APIType.ITEM_API);
+	private ItemAPI api = TLibs.getItemAPI();
 	private Database db = new Database();
 	private InventoryManager inv = new InventoryManager();
 	private RepairManager repairManager = new RepairManager(this);
@@ -136,6 +130,20 @@ public class VehicleManager implements Listener{
 	private void register(ActiveVehicle v) {
 		vehicles.put(v.getEntity(), v);
 	}
+
+	public int kill(Player p, Location loc, int radius) {
+		World world = loc.getWorld();
+		if (world == null) return 0;
+		int count = 0;
+		for (Entity entity : world.getNearbyEntities(loc, radius, radius, radius)) {
+			if(get(entity) == null) continue;
+			ActiveVehicle v = get(entity);
+			v.remove();
+			count++;
+			if(p != null) VFLogger.message(p, "§cKilled "+v.getName());
+		}
+		return count;
+	}
 	
 	public ActiveVehicle spawn(Location loc, String s) {
 		Vehicle v = VehicleLoader.getByString(s);
@@ -160,6 +168,10 @@ public class VehicleManager implements Listener{
 		spawnManager.start();
 		vehicleFastTickCycle();
 		vehicleSlowTickCycle();
+	}
+
+	public void reload() {
+		spawnManager.start();
 	}
 	private void vehicleSlowTickCycle() {
 		new BukkitRunnable() {
@@ -307,6 +319,14 @@ public class VehicleManager implements Listener{
 	
 	
 	//Events
+	@EventHandler
+	public void swap(PlayerSwapHandItemsEvent e) {
+		Player p = e.getPlayer();
+		if(get(p) == null) return;
+		p.sendMessage("eeeee");
+		ActiveVehicle v = get(p);
+		v.key(p, Keybind.SWAP);
+	}
 	@EventHandler 
 	public void vehicleInteract(PlayerInteractEntityEvent e){
 		Entity entity = e.getRightClicked();
@@ -483,10 +503,14 @@ public class VehicleManager implements Listener{
 		}
 		if(entity instanceof Player) {
 			Player p = (Player) entity;
-			if(p.getGameMode().equals(GameMode.SPECTATOR) || p.getGameMode().equals(GameMode.CREATIVE)) return;
+			if(p.getGameMode().equals(GameMode.SPECTATOR) || p.getGameMode().equals(GameMode.CREATIVE)) {
+				e.setCancelled(true);
+				return;
+			}
 			for(Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 				if(entry.getValue().isPassenger(p, false)) {
-					e.setDamage(e.getDamage()/6);
+					double finalDamage = Math.max(e.getDamage()/6, 12);
+					e.setDamage(finalDamage);
 				}
 			}
 		}
@@ -606,19 +630,6 @@ public class VehicleManager implements Listener{
 		if(c == null) return;
 		c.close(e.getView().getTopInventory());
 	}
-
-	@EventHandler
-    public void onBoatMove(VehicleMoveEvent event) {
-        if (!(event.getVehicle() instanceof Boat boat)) return;
-
-        Vector velocity = boat.getVelocity();
-        double speed = velocity.length();
-
-        if (speed > 0.1) {
-            Vector capped = velocity.clone().normalize().multiply(0.1);
-            boat.setVelocity(capped);
-        }
-    }
 	
 	public void inputPacket(Player p, float sideways, float forward, boolean space, boolean sneak) {
 	    ActiveVehicle vehicle = activeVehicle.get(p);
@@ -637,14 +648,6 @@ public class VehicleManager implements Listener{
 
 	//Database and persistence, unload vehicle safely and store them in on disk
 	//Chunks and stuff is managed in the spawnmanager
-
-	@EventHandler
-	public void despawnEvent(MythicMobDespawnEvent e) {
-		ActiveVehicle v = get(e.getEntity());
-		if(get(e.getEntity()) != null) {
-			unload(v);
-		}
-	}
 
 	@SuppressWarnings("unchecked")
 	public void unloadAll() {

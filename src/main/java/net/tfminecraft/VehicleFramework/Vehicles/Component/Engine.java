@@ -57,7 +57,7 @@ public class Engine extends VehicleComponent{
 	public Engine(ConfigurationSection config) {
 		super(Component.ENGINE, config);
 		requireStart = config.getBoolean("requires-start", false);
-		throttle = new Throttle(config.getInt("max"), config.getInt("min"), this);
+		throttle = new Throttle(config.getString("throttle-alias", null), config.getInt("max"), config.getInt("min"), this);
 		speed = config.getDouble("speed");
 		turnrate = config.getDouble("turn-rate");
 		if(config.isConfigurationSection("sounds")) {
@@ -78,7 +78,7 @@ public class Engine extends VehicleComponent{
 		requireStart = another.requiresStart();
 		started = !requireStart;
 		starting = false;
-		throttle = new Throttle(another.getThrottle().getMax(), another.getThrottle().getMin(), this);
+		throttle = new Throttle(another.getThrottle().getName(), another.getThrottle().getMax(), another.getThrottle().getMin(), this);
 		speed = another.getBaseSpeed();
 		turnrate = another.getBaseTurnRate();
 		sounds = another.getSounds();
@@ -221,8 +221,12 @@ public class Engine extends VehicleComponent{
 			}
 		}
 		if(healthData.getHealthPercentage() < 1 && started) stop();
-		if(tank.getCurrent() == 0 && started && tank.useFuel()) {
-			stop();
+		if(tank.getCurrent() == 0 && tank.useFuel()) {
+			if(started) {
+				stop();
+			} else {
+				throttle.setThrottle(0);
+			}
 		}
 	}
 	

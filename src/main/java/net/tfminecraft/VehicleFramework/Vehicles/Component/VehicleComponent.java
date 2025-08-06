@@ -4,15 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.bukkit.Bukkit;
+import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-
 import com.ticxo.modelengine.api.model.ActiveModel;
 
-import io.lumine.mythic.bukkit.utils.lib.lang3.text.WordUtils;
 import net.tfminecraft.VehicleFramework.Data.DamageData;
 import net.tfminecraft.VehicleFramework.Data.HealthData;
 import net.tfminecraft.VehicleFramework.Database.IncompleteComponent;
@@ -42,7 +39,7 @@ public class VehicleComponent {
 	
 	protected boolean fatal;
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	public VehicleComponent(Component type, ConfigurationSection config) {
 		this.type = type;
 		alias = config.getString("alias", WordUtils.capitalize(type.toString().toLowerCase()));

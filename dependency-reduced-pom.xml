@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.tfminecraft</groupId>
+  <artifactId>vehicleframework</artifactId>
+  <version>1.0.5</version>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>org.apache.commons.lang3</pattern>
+                  <shadedPattern>net.tfminecraft.shadeutils.lang3</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <repositories>
+    <repository>
+      <id>playpro-repo</id>
+      <url>https://maven.playpro.com</url>
+    </repository>
+    <repository>
+      <id>codemc-repo</id>
+      <url>https://repo.codemc.io/repository/maven-public/</url>
+    </repository>
+  </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>net.coreprotect</groupId>
+      <artifactId>coreprotect</artifactId>
+      <version>22.4</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.tr7zw</groupId>
+      <artifactId>item-nbt-api-plugin</artifactId>
+      <version>2.15.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>local</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1</version>
+      <scope>system</scope>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/json-simple-1.1.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>local</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.10.1</version>
+      <scope>system</scope>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/gson-2.10.1.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>local</groupId>
+      <artifactId>ProtocolLib</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/ProtocolLib.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>local</groupId>
+      <artifactId>MythicMobs</artifactId>
+      <version>5.8.0</version>
+      <scope>system</scope>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MythicMobs-5.8.0-SNAPSHOT.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>local</groupId>
+      <artifactId>joml</artifactId>
+      <version>1.10.8</version>
+      <scope>system</scope>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/joml-1.10.8.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>local</groupId>
+      <artifactId>ModelEngine</artifactId>
+      <version>4.0.8</version>
+      <scope>system</scope>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/ModelEngine-4.0.8.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>local</groupId>
+      <artifactId>spigot-api</artifactId>
+      <version>1.20.2-R0.1-SNAPSHOT</version>
+      <scope>system</scope>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/spigot-api-1.20.2-R0.1-SNAPSHOT.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>local</groupId>
+      <artifactId>TLibs</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>D:/Dokumenter/My Plugins/TFMC/TLibs/TLibs.jar</systemPath>
+    </dependency>
+  </dependencies>
+  <properties>
+    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+  </properties>
+</project>

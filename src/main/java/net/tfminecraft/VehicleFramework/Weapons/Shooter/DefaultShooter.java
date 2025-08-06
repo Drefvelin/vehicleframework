@@ -85,7 +85,7 @@ public class DefaultShooter implements Shooter {
 	            		for(Player p : players) {
 	        				p.spawnParticle(Particle.EXPLOSION_HUGE, e.getLocation(), (int) Math.round(a.getData().getYield()*15), 0, 0, 0, 0);
 	        			}
-						shooter.triggerExplosion(loc, ammoData);
+						shooter.triggerExplosion(e.getLocation(), ammoData);
 	            		sendCluster(e.getLocation(), c, players, projectiles);
 	            		e.remove();
 		                projectiles.remove(e);

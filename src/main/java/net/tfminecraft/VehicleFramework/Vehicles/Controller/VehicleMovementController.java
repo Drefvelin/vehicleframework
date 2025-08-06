@@ -12,6 +12,7 @@ import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Direction;
 import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
+import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Interface.MovementInterface;
 import net.tfminecraft.VehicleFramework.Managers.InventoryManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
@@ -230,7 +231,10 @@ public class VehicleMovementController implements MovementInterface{
 	}
 
 	private Vector flatten(Vector velocity) {
-		if(!v.hasComponent(Component.WINGS)) return velocity;
+		if(!v.hasComponent(Component.WINGS)) {
+			if(v.getCurrentState().getType().equals(State.FLOATING)) velocity.setY(0);
+			return velocity;
+		}
 		if(!v.hasComponent(Component.ENGINE)) return velocity;
 		if(v.getThrottle().getCurrent() < 20) velocity.setY(0);
 		return velocity;

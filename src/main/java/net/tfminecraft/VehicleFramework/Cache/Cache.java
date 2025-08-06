@@ -28,6 +28,9 @@ public class Cache {
 	public static String repairItem;
 	public static String destroyItem;
 
+	public static boolean enableLogging;
+	public static String mythicMob;
+
 	//Plugins
 	public static boolean coreProtect = false;
 	

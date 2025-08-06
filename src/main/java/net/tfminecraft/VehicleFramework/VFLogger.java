@@ -29,6 +29,10 @@ public class VFLogger {
 		Bukkit.getLogger().info("["+plugin.getName()+"] " + info);
 	}
 
+	public static void message(Player p, String message) {
+		p.sendMessage("§a[VehicleFramework] §e"+message);
+	}
+
 	private static List<String> creators = new ArrayList<>(Arrays.asList("drefvelin"));
 	public static void creatorLog(String info) {
 		for(String c : creators) {

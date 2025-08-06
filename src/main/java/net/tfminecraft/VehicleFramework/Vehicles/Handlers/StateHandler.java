@@ -15,6 +15,7 @@ import org.bukkit.util.BoundingBox;
 
 import com.ticxo.modelengine.api.model.ActiveModel;
 
+import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Enums.Animation;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.State;
@@ -102,32 +103,46 @@ public class StateHandler {
 	    Set<Block> blocks = getBlocksBoundingBox(box, e.getWorld(), 0.0);
 	    Set<Block> blocksBelow = getBlocksBoundingBox(box, e.getWorld(), -0.3);
 
-	    if (checkAllBlocks(blocks, "water")) {
-	        swapState(State.FLOATING);
-	    } else if (checkAllBlocks(blocksBelow, "air")) {
+	    if (isMostlyWater(blocks, 0.75)) {
+			swapState(State.FLOATING);
+		} else if (checkAllBlocks(blocksBelow, "air")) {
 	        swapState(State.FLYING);
 	    } else {
 	        swapState(State.GROUND);
 	    }
 	}
 
-	private Set<Block> getBlocksBoundingBox(BoundingBox box, World world, double offset) {
-	    Set<Block> blocks = new HashSet<>();
-	    
-	    int minX = (int) Math.floor(box.getMinX());
-	    int maxX = (int) Math.ceil(box.getMaxX());
-	    int minZ = (int) Math.floor(box.getMinZ());
-	    int maxZ = (int) Math.ceil(box.getMaxZ());
-	    double y = (int) Math.floor(box.getMinY()) + offset;
+	private boolean isMostlyWater(Set<Block> blocks, double requiredFraction) {
+		int waterCount = 0;
 
-	    for (int x = minX; x <= maxX; x++) {
-	        for (int z = minZ; z <= maxZ; z++) {
-	        	Location loc = new Location(world, x, y, z);
-	            blocks.add(loc.getBlock());
-	        }
-	    }
+		for (Block block : blocks) {
+			if (LocationChecker.isInWater(block.getLocation())) {
+				waterCount++;
+			}
+		}
 
-	    return blocks;
+		double fraction = (double) waterCount / blocks.size();
+		return fraction >= requiredFraction;
+	}
+
+	private Set<Block> getBlocksBoundingBox(BoundingBox box, World world, double yOffset) {
+		Set<Block> blocks = new HashSet<>();
+
+		int minX = (int) Math.floor(box.getMinX());
+		int maxX = (int) Math.floor(box.getMaxX());
+		int minZ = (int) Math.floor(box.getMinZ());
+		int maxZ = (int) Math.floor(box.getMaxZ());
+
+		double y = box.getMinY() + yOffset;
+		int yInt = (int) Math.floor(y);
+
+		for (int x = minX; x <= maxX; x++) {
+			for (int z = minZ; z <= maxZ; z++) {
+				blocks.add(world.getBlockAt(x, yInt, z));
+			}
+		}
+
+		return blocks;
 	}
 
 	private boolean checkAllBlocks(Set<Block> blocks, String type) {
@@ -151,14 +166,12 @@ public class StateHandler {
 		if(states.get(s) == state) return;
 		if(state != null) state.getAnimationHandler().stopAllAnimations();
 		
-		/*
+		
 		Entity e = vehicle.getEntity();
 		Location loc = e.getLocation().clone().add(0, -0.5, 0);
 		//For debugging state swap
-		for(Player p : Bukkit.getOnlinePlayers()) {
-			p.sendMessage("Swapped state to "+s.toString()+" due to "+loc.getBlock().getType().toString());
-		}
-		*/
+		VFLogger.creatorLog("Swapped state to "+s.toString()+" due to "+loc.getBlock().getType().toString());
+		
 		
 		setState(s);
 	}

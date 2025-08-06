@@ -12,32 +12,39 @@ import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Permissions.Permissions;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
 
-public class TabCompletion implements TabCompleter{
+public class TabCompletion implements TabCompleter {
     @Override
-    public List<String> onTabComplete (CommandSender sender, Command cmd, String label, String[] args){
-        if(cmd.getName().equalsIgnoreCase("vf") && args.length >= 0 && args.length < 2){
-            if(sender instanceof Player){
-                List<String> completions = new ArrayList<>();
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+        if (!(sender instanceof Player)) return null;
+        List<String> completions = new ArrayList<>();
+
+        if (cmd.getName().equalsIgnoreCase("vf")) {
+            if (args.length == 1) {
                 completions.add("keybinds");
-                if(Permissions.canSpawn(sender) == true) {
+                if (Permissions.canSpawn(sender)) {
                     completions.add("spawn");
-			    }
+                    completions.add("reload");
+                    completions.add("kill");
+                }
                 return completions;
             }
-        } else if(cmd.getName().equalsIgnoreCase("vf") && args.length >= 0 && args[0].equalsIgnoreCase("spawn")){
-            if(sender instanceof Player){
-            	List<String> completions = new ArrayList<String>();
-                if(Permissions.canSpawn(sender) == false) {
-                    return completions;
-			    }
-				for(Vehicle v : VehicleLoader.get().values()) {
-					completions.add(v.getId());
-				}
-                
+
+            if (args[0].equalsIgnoreCase("spawn") && args.length == 2) {
+                if (!Permissions.canSpawn(sender)) return completions;
+                for (Vehicle v : VehicleLoader.get().values()) {
+                    completions.add(v.getId());
+                }
+                return completions;
+            }
+
+            if (args[0].equalsIgnoreCase("kill") && args.length == 2) {
+                completions.add("10");  // Suggest a default radius
+                completions.add("20");
+                completions.add("50");
                 return completions;
             }
         }
+
         return null;
     }
-
 }

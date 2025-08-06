@@ -6,7 +6,7 @@
 
     <groupId>net.tfminecraft</groupId>
     <artifactId>vehicleframework</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.5</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -27,6 +27,11 @@
     </repositories>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.14.0</version> <!-- or latest -->
+        </dependency>
         <dependency>
             <groupId>local</groupId>
             <artifactId>json-simple</artifactId>
@@ -71,27 +76,6 @@
         </dependency>
         <dependency>
             <groupId>local</groupId>
-            <artifactId>MMOCore</artifactId>
-            <version>1.11.3</version>
-            <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MMOCore-1.11.3.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>local</groupId>
-            <artifactId>MMOItems</artifactId>
-            <version>6.10</version>
-            <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MMOItems-6.10.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>local</groupId>
-            <artifactId>MythicLib</artifactId>
-            <version>1.6.1</version>
-            <scope>system</scope>
-            <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MythicLib-1.7.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>local</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.20.2-R0.1-SNAPSHOT</version>
             <scope>system</scope>
@@ -132,6 +116,25 @@
                                 <copy file="${project.build.directory}/${project.build.finalName}.jar"
                                     tofile="D:\Dokumenter\My Plugins\TFMC\VehicleFramework\${project.build.finalName}.jar"/>
                             </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.apache.commons.lang3</pattern>
+                                    <shadedPattern>net.tfminecraft.shadeutils.lang3</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

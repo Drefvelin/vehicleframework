@@ -3,6 +3,7 @@ package net.tfminecraft.VehicleFramework.Managers;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -16,7 +17,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import io.lumine.mythic.bukkit.utils.lib.lang3.text.WordUtils;
 import me.Plugins.TLibs.TLibs;
 import me.Plugins.TLibs.Enums.APIType;
 import me.Plugins.TLibs.Objects.API.ItemAPI;
@@ -24,6 +24,7 @@ import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
+import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
@@ -32,6 +33,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 
 public class RepairManager implements Listener{
+	@SuppressWarnings("deprecation")
 	private ItemAPI api = (ItemAPI) TLibs.getApiInstance(APIType.ITEM_API);
 	private VehicleManager manager;
 	private InventoryManager inv = new InventoryManager();
@@ -81,11 +83,21 @@ public class RepairManager implements Listener{
 	public void repair(Player p, ActiveVehicle v) {
 		ItemStack i = p.getInventory().getItemInMainHand();
 		if(!api.getChecker().checkItemWithPath(i, Cache.repairItem)) return;
-		if(v.getSeat(p) == null) return;
-		Seat s = v.getSeat(p);
-		if(!s.getType().equals(SeatType.MECHANIC)) {
-			p.sendMessage("§cYou are not in a mechanic seat");
-			return;
+		if(v.getSeat(p) == null) {
+			if(v.getCurrentState().getType().equals(State.FLYING)) {
+				p.sendMessage("§cCannot repair while flying");
+				return;
+			}
+			if(v.getAccessPanel().getSpeed() > 0.2) {
+				p.sendMessage("§cCannot repair while moving");
+				return;
+			}
+		} else {
+			Seat s = v.getSeat(p);
+			if(!s.getType().equals(SeatType.MECHANIC)) {
+				p.sendMessage("§cYou are not in a mechanic seat");
+				return;
+			}
 		}
 		activeTool.put(p, "repair");
 		inv.repairWindow(null, p, v, true, activeTool.get(p));
@@ -161,7 +173,8 @@ public class RepairManager implements Listener{
 			p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1f);
 			beingRepaired.put(p, c);
 			new BukkitRunnable() {
-		        @Override
+		        @SuppressWarnings("deprecation")
+				@Override
 		        public void run() {
 					if(v.isDestroyed()) return;
 		        	if(!beingRepaired.containsKey(p)) return;

@@ -3,13 +3,14 @@ package net.tfminecraft.VehicleFramework.Weapons.Handlers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import com.ticxo.modelengine.api.model.ActiveModel;
-import io.lumine.mythic.bukkit.utils.lib.lang3.text.WordUtils;
 import me.Plugins.TLibs.TLibs;
 import me.Plugins.TLibs.Enums.APIType;
 import me.Plugins.TLibs.Objects.API.ItemAPI;
@@ -152,6 +153,7 @@ public class AmmunitionHandler {
         }
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void reload(Player p, Ammunition a) {
 		p.sendTitle("", "§aReloaded!", 0, 10, 4);
 		p.sendMessage("§aLoaded ammunition: §e"+WordUtils.capitalize(new String(a.getId()).replace("_", " ")));
@@ -181,6 +183,7 @@ public class AmmunitionHandler {
 	
 	public void load(Player p, ItemStack i, boolean message) {
 		if(i.getType().equals(Material.AIR)) return;
+		@SuppressWarnings("deprecation")
 		ItemAPI api = (ItemAPI) TLibs.getApiInstance(APIType.ITEM_API);
 		String input = api.getChecker().getAsStringPath(i);
 		if(AmmunitionLoader.getByInput(input) == null) return;

@@ -1,1 +1,44 @@
-max-exposure-points: 120
+##Won't be blown up
+ignore-explosion:
+    - WATER
+    - LAVA
+    - SHORT_GRASS
+    - FERN
+    - TALL_GRASS
+    - LARGE_FERN
+    - LIGHT
+##Won't land and become a full block again
+ignore-landing:
+    - GRASS_BLOCK
+    - OAK_LEAVES
+    - SPRUCE_LEAVES
+    - BIRCH_LEAVES
+    - ACACIA_LEAVES
+    - MANGROVE_LEAVES
+    - JUNGLE_LEAVES
+    - DARK_OAK_LEAVES
+    - AZALEA_LEAVES
+    - FLOWERING_AZALEA_LEAVES
+###Converts blocks in explosions
+convert-explosion:
+    - GRASS_BLOCK.DIRT
+    - STONE_BRICKS.CRACKED_STONE_BRICKS
+    - STONE.COBBLESTONE
+
+##Should we log when people enter the captains seat of a vehicle?
+enable-logging: true
+
+##How far away does the player need to be for the vehicle to despawn?
+despawn-distance: 128
+
+##Explosion Damage
+block-damage: false
+
+##Items, supports TLibs paths for MMOItems and ItemsAdder
+repair-item: v.iron_shovel
+skin-item: v.bucket
+destroy-item: v.blaze_rod
+
+##Set this to the ID of the MythicMob, in the free pack this is VehicleFrameworkDummy
+##You can leave it as "none" if you do not have MythicMobs on your server
+mythicmob: "none"

@@ -17,6 +17,7 @@ import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Managers.CommandManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Protocol.VehiclePacketListener;
+import net.tfminecraft.VehicleFramework.Util.MythicMobsIntegration;
 import net.tfminecraft.VehicleFramework.Util.TabCompletion;
 
 public class VehicleFramework extends JavaPlugin{
@@ -124,6 +125,10 @@ public class VehicleFramework extends JavaPlugin{
 			Cache.coreProtect = true;
 			VFLogger.info("Detected CoreProtect, hooking on");
 		}
+		if (Bukkit.getPluginManager().isPluginEnabled("MythicMobs")) {
+			getServer().getPluginManager().registerEvents(new MythicMobsIntegration(), this);
+			VFLogger.info("MythicMobs integration enabled.");
+		}
 	}
 
 	public static CoreProtectAPI getCoreProtect() {
@@ -146,6 +151,19 @@ public class VehicleFramework extends JavaPlugin{
         }
 
         return CoreProtect;
+	}
+
+	public static VehicleFramework getInstance() {
+		return plugin;
+	}
+
+	public void reload() {
+		vehicleManager.unloadAll();
+		vehicleManager.getSpawnManager().save();
+		Cache.removeLights();
+		Cache.removeProjectiles();
+		loadConfigs();
+		vehicleManager.reload();
 	}
 	
 	//Access we dont need static variables all over the place:

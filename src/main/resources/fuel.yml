@@ -1,1 +1,8 @@
-max-exposure-points: 120
+coal:
+    name: "#524f49Coal Blocks"
+    item: v.coal_block
+    amount: 100
+blaze_powder:
+    name: "#de893aBlaze Powder"
+    item: v.blaze_powder
+    amount: 100

@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
@@ -15,12 +12,10 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
-import net.tfminecraft.VehicleFramework.Managers.Spawner.VehicleSpawner;
 import net.tfminecraft.VehicleFramework.Util.SpawnLocation;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
@@ -56,6 +51,12 @@ public class SpawnManager implements Listener {
 	public void start() {
 		db.loadActiveSpawnLocations();
 		startTickCycle();
+	}
+
+	public void reload() {
+		save();
+		spawns.clear();
+		db.loadActiveSpawnLocations();
 	}
 
 	public void save() {

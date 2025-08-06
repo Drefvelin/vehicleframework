@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -14,12 +15,10 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
-import io.lumine.mythic.bukkit.utils.lib.lang3.text.WordUtils;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
-import net.tfminecraft.VehicleFramework.Vehicles.Component.Hull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Pump;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
@@ -34,6 +33,7 @@ public class ScoreboardController {
 		vehicle = v;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void scoreboard(Player p) {
 		ScoreboardManager manager = Bukkit.getScoreboardManager();
 		Scoreboard board = manager.getNewScoreboard();
@@ -50,7 +50,7 @@ public class ScoreboardController {
 			scores.add("§f- "+c.getHealthData().getHealthPercentageString()+" §"+i);
 			if(c instanceof Engine) {
 				Engine engine = (Engine) vehicle.getComponent(Component.ENGINE);
-				scores.add("§f- Throttle: §e"+engine.getThrottle().getCurrent()+"%");
+				scores.add("§f- "+engine.getThrottle().getName()+": §e"+engine.getThrottle().getCurrent()+"%");
 				if(engine.getFuelTank().useFuel()) scores.add("§f- Fuel: §e"+engine.getFuelTank().getPercentage()+"%");
 			} else if(c instanceof Pump) {
 				Pump pump = (Pump) vehicle.getComponent(Component.PUMP);
@@ -58,7 +58,7 @@ public class ScoreboardController {
 			} else if(c instanceof GearedEngine) {
 				GearedEngine engine = (GearedEngine) vehicle.getComponent(Component.GEARED_ENGINE);
 				scores.add("§f- Gear: §e"+engine.getGear().getName());
-				scores.add("§f- Throttle: §e"+engine.getGear().getThrottle().getCurrent()+"%");
+				scores.add("§f- "+engine.getGear().getThrottle().getName()+": §e"+engine.getGear().getThrottle().getCurrent()+"%");
 				scores.add("§f- Fuel: §e"+engine.getFuelTank().getPercentage()+"%");
 			}
 			i++;

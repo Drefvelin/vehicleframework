@@ -5,13 +5,16 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
 public class Throttle {
 	
 	private VehicleComponent engine;
+	private String name;
 	
 	private int max;
 	private int min;
 	
 	private int current;
 	
-	public Throttle(int x, int n, VehicleComponent en) {
+	public Throttle(String name, int x, int n, VehicleComponent en) {
+		if(name != null) this.name = name;
+		else name = "Throttle";
 		max = x;
 		min = n;
 		current = 0;
@@ -40,6 +43,10 @@ public class Throttle {
 		current = i;
 		if(current > max) current = max;
 		if(current < min) current = min;
+	}
+
+	public String getName() {
+		return name;
 	}
 	
 	public int getCurrent() {

@@ -285,8 +285,12 @@ public class GearedEngine extends VehicleComponent{
 			}
 		}
 		if(healthData.getHealthPercentage() < 1 && started) stop();
-		if(tank.getCurrent() == 0 && started && tank.useFuel()) {
-			stop();
+		if(tank.getCurrent() == 0 && tank.useFuel()) {
+			if(started) {
+				stop();
+			} else {
+				getGear().getThrottle().setThrottle(0);
+			}
 		}
 	}
 	

@@ -5,6 +5,7 @@ public enum Keybind {
 	A,
 	S,
 	D,
+	SWAP,
 	RIGHT_CLICK,
 	LEFT_CLICK,
 	SHIFT_RIGHT_CLICK,

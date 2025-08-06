@@ -3,6 +3,7 @@ package net.tfminecraft.VehicleFramework.Managers;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Rail;
@@ -16,9 +17,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import io.lumine.mythic.bukkit.utils.lib.lang3.text.WordUtils;
 import me.Plugins.TLibs.Enums.NSEW;
 import me.Plugins.TLibs.Utils.LocationUtil;
+import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
@@ -30,6 +31,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 public class CommandManager implements Listener, CommandExecutor{
 	public String cmd1 = "vf";
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if(cmd.getName().equalsIgnoreCase(cmd1)) {
@@ -56,6 +58,37 @@ public class CommandManager implements Listener, CommandExecutor{
 			}
 			if(Permissions.canSpawn(sender) == false) {
 				sender.sendMessage("§cYou do not have access to this command!");
+				return true;
+			}
+			if(args[0].equalsIgnoreCase("reload") && args.length == 1) {
+				Player p = null;
+				if(sender instanceof Player) p = (Player) sender;
+				if(p != null) VFLogger.message(p, "Reloading...");
+				VehicleFramework.getInstance().reload();
+				if(p != null) VFLogger.message(p, "Reload complete!");
+				return true;
+			}
+			if (args[0].equalsIgnoreCase("kill") && args.length == 2) {
+				if (!(sender instanceof Player)) {
+					sender.sendMessage("Only players can use this command.");
+					return true;
+				}
+
+				Player p = (Player) sender;
+
+				int radius;
+				try {
+					radius = Integer.parseInt(args[1]);
+				} catch (NumberFormatException e) {
+					p.sendMessage("§cPlease enter a valid number for the radius.");
+					return true;
+				}
+
+				Location loc = p.getLocation();
+
+				int count = VehicleFramework.getVehicleManager().kill(p, loc, radius);
+
+				VFLogger.message(p, "§aKilled " + count + " entities within " + radius + " blocks.");
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("spawn") && args.length == 2) {

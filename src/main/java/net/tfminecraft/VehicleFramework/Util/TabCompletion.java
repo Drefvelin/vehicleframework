@@ -25,6 +25,7 @@ public class TabCompletion implements TabCompleter {
                     completions.add("spawn");
                     completions.add("reload");
                     completions.add("kill");
+                    completions.add("ammo");
                 }
                 return completions;
             }

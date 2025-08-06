@@ -14,19 +14,24 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import me.Plugins.TLibs.TLibs;
 import me.Plugins.TLibs.Enums.NSEW;
+import me.Plugins.TLibs.Objects.API.SubAPI.ItemCreator;
 import me.Plugins.TLibs.Utils.LocationUtil;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
+import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
 import net.tfminecraft.VehicleFramework.Permissions.Permissions;
 import net.tfminecraft.VehicleFramework.Util.EnumDisplayConverter;
 import net.tfminecraft.VehicleFramework.Util.LocationChecker;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 
 public class CommandManager implements Listener, CommandExecutor{
 	public String cmd1 = "vf";
@@ -66,6 +71,18 @@ public class CommandManager implements Listener, CommandExecutor{
 				if(p != null) VFLogger.message(p, "Reloading...");
 				VehicleFramework.getInstance().reload();
 				if(p != null) VFLogger.message(p, "Reload complete!");
+				return true;
+			}
+			if(args[0].equalsIgnoreCase("ammo") && args.length == 1) {
+				if(!(sender instanceof Player)) return true;
+				Player p = (Player) sender;
+				ItemCreator creator = TLibs.getItemAPI().getCreator();
+				for(Ammunition ammo : AmmunitionLoader.get().values()) {
+					ItemStack item = creator.getItemFromPath(ammo.getData().getInput());
+					item.setAmount(64);
+					p.getInventory().addItem(item);
+				}
+				VFLogger.message(p, "§aGiving Ammo");
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("kill") && args.length == 2) {

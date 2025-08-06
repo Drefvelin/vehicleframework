@@ -167,10 +167,10 @@ public class StateHandler {
 		if(state != null) state.getAnimationHandler().stopAllAnimations();
 		
 		
-		Entity e = vehicle.getEntity();
-		Location loc = e.getLocation().clone().add(0, -0.5, 0);
+		//Entity e = vehicle.getEntity();
+		//Location loc = e.getLocation().clone().add(0, -0.5, 0);
 		//For debugging state swap
-		VFLogger.creatorLog("Swapped state to "+s.toString()+" due to "+loc.getBlock().getType().toString());
+		//VFLogger.creatorLog("Swapped state to "+s.toString()+" due to "+loc.getBlock().getType().toString());
 		
 		
 		setState(s);

@@ -17,6 +17,7 @@ import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Managers.CommandManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Protocol.VehiclePacketListener;
+import net.tfminecraft.VehicleFramework.Util.Metrics;
 import net.tfminecraft.VehicleFramework.Util.MythicMobsIntegration;
 import net.tfminecraft.VehicleFramework.Util.TabCompletion;
 
@@ -48,6 +49,8 @@ public class VehicleFramework extends JavaPlugin{
 		startManagers();
 		setPlugins();
 		VFLogger.info("Setup complete!");
+		int pluginId = 26823; // Replace with your actual bStats plugin ID
+		Metrics metrics = new Metrics(this, pluginId);
 	}
 	@Override
 	public void onDisable() {

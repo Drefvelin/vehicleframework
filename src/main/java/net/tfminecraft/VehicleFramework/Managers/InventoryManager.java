@@ -15,8 +15,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import com.comphenix.net.bytebuddy.dynamic.TypeResolutionStrategy.Active;
-
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;

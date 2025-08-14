@@ -57,7 +57,7 @@ public class Engine extends VehicleComponent{
 	public Engine(ConfigurationSection config) {
 		super(Component.ENGINE, config);
 		requireStart = config.getBoolean("requires-start", false);
-		throttle = new Throttle(config.getString("throttle-alias", null), config.getInt("max"), config.getInt("min"), this);
+		throttle = new Throttle(config.getString("throttle-alias", "Throttle"), config.getInt("max"), config.getInt("min"), this);
 		speed = config.getDouble("speed");
 		turnrate = config.getDouble("turn-rate");
 		if(config.isConfigurationSection("sounds")) {

@@ -22,7 +22,7 @@ public class Gear {
 		name = config.getString("name", "Gear");
 		engineSound = new SoundData(config.getConfigurationSection("engine-sound"));
 		accelerationSound = new TimedSound(config.getConfigurationSection("accelerate-sound"));
-		throttle = new Throttle(config.getString("throttle-alias", null), config.getInt("max", 100), config.getInt("min", 0), c);
+		throttle = new Throttle(config.getString("throttle-alias", "Throttle"), config.getInt("max", 100), config.getInt("min", 0), c);
 		acceleration = config.getInt("acceleration", 1);
 		speed = config.getDouble("speed", 0.3);
 	}

@@ -509,7 +509,7 @@ public class VehicleManager implements Listener{
 			}
 			for(Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 				if(entry.getValue().isPassenger(p, false)) {
-					double finalDamage = Math.max(e.getDamage()/6, 12);
+					double finalDamage = Math.min(e.getDamage()/6, 12);
 					e.setDamage(finalDamage);
 				}
 			}

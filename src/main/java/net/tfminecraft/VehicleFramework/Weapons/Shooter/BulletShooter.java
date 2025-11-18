@@ -2,6 +2,7 @@ package net.tfminecraft.VehicleFramework.Weapons.Shooter;
 
 import java.util.List;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -85,6 +86,7 @@ public class BulletShooter implements Shooter {
 
 	private void triggerExplosionIfExplosive(Location loc, Bullet b) {
 	    if (b.isExplosive()) {
+			loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 8, 1);
 	        ExplosionCreator.triggerExplosion(loc, b.getData().getYield(), b.getData().getRadius(), b.getData().getDamage(), b.getData().getDamageType());
 	    }
 	}

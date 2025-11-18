@@ -13,6 +13,7 @@ import org.bukkit.entity.Entity;
 public class Cache {
 	public static List<Material> ignoreExplode = new ArrayList<Material>();
 	public static List<Material> ignoreLands = new ArrayList<Material>();
+	public static List<Material> ignoreGround = new ArrayList<Material>();
 
 	public static Set<Entity> projectiles = new HashSet<>();
 	

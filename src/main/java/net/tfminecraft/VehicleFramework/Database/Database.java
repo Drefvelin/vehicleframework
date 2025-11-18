@@ -2,7 +2,9 @@ package net.tfminecraft.VehicleFramework.Database;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ import org.joml.Quaternionf;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -45,6 +48,64 @@ import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 public class Database {
 	private JSONObject json; // org.json.simple
     JSONParser parser = new JSONParser();
+
+	private final File dataFile = new File("plugins/VehicleFramework/data/data.json");
+	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+	/**
+	 * Ensure data.json exists with a default dirty=false.
+	 */
+	public void initDataFile() {
+		try {
+			if (!dataFile.exists()) {
+				dataFile.getParentFile().mkdirs();
+				JsonObject obj = new JsonObject();
+				obj.addProperty("dirty", false);
+				try (FileWriter writer = new FileWriter(dataFile)) {
+					gson.toJson(obj, writer);
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	/**
+	 * Set the dirty flag in data.json
+	 */
+	public void setDirtyFlag(boolean value) {
+		try {
+			JsonObject obj = new JsonObject();
+			obj.addProperty("dirty", value);
+
+			try (FileWriter writer = new FileWriter(dataFile)) {
+				gson.toJson(obj, writer);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	/**
+	 * Read the dirty flag from data.json
+	 */
+	public boolean isDirtyFlag() {
+		try {
+			if (!dataFile.exists()) {
+				initDataFile();
+				return false;
+			}
+
+			try (FileReader reader = new FileReader(dataFile)) {
+				JsonObject obj = JsonParser.parseReader(reader).getAsJsonObject();
+				return obj.has("dirty") && obj.get("dirty").getAsBoolean();
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return false;
+		}
+	}
+	
     public IncompleteVehicle loadVehicle(SpawnLocation sLoc) {
     	SpawnManager.remove(sLoc);
     	File file = new File("plugins/VehicleFramework/data/vehicles", sLoc.getFile());
@@ -390,44 +451,63 @@ public class Database {
 	}
 
 	@SuppressWarnings("unchecked")
-    public boolean save(File file, HashMap<String, Object> defaults) {
-      try {
-    	  JSONObject toSave = new JSONObject();
-      
-        for (String s : defaults.keySet()) {
-          Object o = defaults.get(s);
-          if (o instanceof String) {
-            toSave.put(s, getString(s, defaults));
-          } else if (o instanceof Double) {
-            toSave.put(s, getDouble(s, defaults));
-          } else if (o instanceof Float) {
-              toSave.put(s, getFloat(s, defaults));
-          } else if (o instanceof Integer) {
-            toSave.put(s, getInteger(s, defaults));
-          } else if (o instanceof JSONObject) {
-            toSave.put(s, getObject(s, defaults));
-          } else if (o instanceof JSONArray) {
-            toSave.put(s, getArray(s, defaults));
-          }
-        }
-      
-        TreeMap<String, Object> treeMap = new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER);
-        treeMap.putAll(toSave);
-      
-       Gson g = new GsonBuilder().setPrettyPrinting().create();
-       String prettyJsonString = g.toJson(treeMap);
-      
-        FileWriter fw = new FileWriter(file);
-        fw.write(prettyJsonString);
-        fw.flush();
-        fw.close();
-      
-        return true;
-      } catch (Exception ex) {
-        ex.printStackTrace();
-        return false;
-      }
-    }
+	public boolean save(File file, HashMap<String, Object> defaults) {
+		if (json == null) {
+			if (file == null || file.length() == 0) {  // new or empty file
+				json = new JSONObject();               // start fresh instead of parsing
+			} else {
+				try {
+					json = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+				} catch (IOException | ParseException e) {
+					VFLogger.log("JSON parse error in file: " + file.getAbsolutePath());
+					e.printStackTrace();
+					return false;
+				}
+			}
+		}
+		if (json == null) {
+			VFLogger.log("JSON error in file: " + file.getAbsolutePath());
+			return false;
+		}
+
+		try {
+			JSONObject toSave = new JSONObject();
+
+			for (String s : defaults.keySet()) {
+				Object o = defaults.get(s);
+				if (o instanceof String) {
+					toSave.put(s, getString(s, defaults));
+				} else if (o instanceof Double) {
+					toSave.put(s, getDouble(s, defaults));
+				} else if (o instanceof Float) {
+					toSave.put(s, getFloat(s, defaults));
+				} else if (o instanceof Integer) {
+					toSave.put(s, getInteger(s, defaults));
+				} else if (o instanceof JSONObject) {
+					toSave.put(s, getObject(s, defaults));
+				} else if (o instanceof JSONArray) {
+					toSave.put(s, getArray(s, defaults));
+				}
+			}
+
+			TreeMap<String, Object> treeMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+			treeMap.putAll(toSave);
+
+			Gson g = new GsonBuilder().setPrettyPrinting().create();
+			String prettyJsonString = g.toJson(treeMap);
+
+			try (FileWriter fw = new FileWriter(file)) {
+				fw.write(prettyJsonString);
+			}
+
+			return true;
+		} catch (Exception ex) {
+			VFLogger.log("Error saving file: " + file.getAbsolutePath());
+			ex.printStackTrace();
+			return false;
+		}
+	}
+
     
     public String getRawData(String key, HashMap<String, Object> defaults) {
         return json.containsKey(key) ? json.get(key).toString()
@@ -472,4 +552,274 @@ public class Database {
     	     return json.containsKey(key) ? (JSONArray) json.get(key)
     	       : (defaults.containsKey(key) ? (JSONArray) defaults.get(key) : new JSONArray());
       }
+
+	
+	//BACKUPS
+	@SuppressWarnings("unchecked")
+	public void saveBackup(ActiveVehicle v) {
+		try {
+			String id = v.getUUID().toString();
+			String fileString = id + ".json";
+
+			// --- BACKUP SPAWN LOCATION ---
+			saveBackupSpawnLocation(new SpawnLocation(
+				v.getEntity().getLocation().getChunk(),
+				v.getEntity().getLocation(),
+				fileString
+			));
+
+			// --- BACKUP VEHICLE ---
+			File backupFolder = new File("plugins/VehicleFramework/data/backup/vehicles");
+			if (!backupFolder.exists()) backupFolder.mkdirs();
+
+			File file = new File(backupFolder, fileString);
+			if (file.exists()) file.delete();
+			file.createNewFile();
+
+			JSONObject vehicleData = new JSONObject();
+			vehicleData.put("id", v.getId());
+			vehicleData.put("name", v.getName());
+			vehicleData.put("yaw", v.getEntity().getLocation().getYaw());
+			vehicleData.put("skin", v.getSkinHandler().getCurrentSkin().getId());
+
+			if (v.hasContainers()) {
+				saveContainers(new ArrayList<>(v.getContainerHandler().getContainers().values()), vehicleData);
+			}
+
+			// --- PASSENGERS ---
+			JSONObject passengersObject = new JSONObject();
+			for (Entity e : v.getSeatHandler().getPassengers()) {
+				if (!(e instanceof Player)) continue;
+				Player p = (Player) e;
+				Seat seat = v.getSeat(p);
+				if (seat == null) continue;
+				JSONObject passengerData = new JSONObject();
+				passengerData.put("player", p.getName());
+				passengersObject.put(seat.getBone(), passengerData);
+			}
+			vehicleData.put("passengers", passengersObject);
+
+			// --- COMPONENTS ---
+			JSONObject componentsObject = new JSONObject();
+			for (VehicleComponent component : v.getComponents()) {
+				JSONObject componentData = new JSONObject();
+				componentData.put("damage", component.getHealthData().getDamage());
+
+				if (component.isOnFire()) {
+					componentData.put("fire", component.getFire().getProgress());
+				}
+				if (component instanceof SinkableHull hull && hull.isSinking()) {
+					componentData.put("sinkprogress", hull.getSinkProgress());
+				}
+
+				Component type = component.getType();
+				switch (type) {
+					case ENGINE:
+						componentData.put("throttle", ((Engine) component).getThrottle().getCurrent());
+						componentData.put("fuel", ((Engine) component).getFuelTank().getCurrent());
+						break;
+					case GEARED_ENGINE:
+						componentData.put("gear", ((GearedEngine) component).getCurrentGear());
+						componentData.put("throttle", ((GearedEngine) component).getGear().getThrottle().getCurrent());
+						componentData.put("fuel", ((GearedEngine) component).getFuelTank().getCurrent());
+						break;
+					default:
+						break;
+				}
+
+				componentsObject.put(type.toString().toLowerCase(), componentData);
+			}
+			vehicleData.put("components", componentsObject);
+
+			// --- ROTATORS ---
+			JSONObject rotatorsObject = new JSONObject();
+			for (BoneRotator rotator : v.getAccessPanel().getRotators()) {
+				JSONObject rotation = new JSONObject();
+				Quaternionf q = rotator.getAnimator().getRotation();
+				rotation.put("x", q.x());
+				rotation.put("y", q.y());
+				rotation.put("z", q.z());
+				rotation.put("w", q.w());
+				rotatorsObject.put(rotator.getId(), rotation);
+			}
+			vehicleData.put("rotators", rotatorsObject);
+
+			// --- WEAPONS ---
+			if (!v.getWeaponHandler().getWeapons().isEmpty()) {
+				JSONObject weaponsObject = new JSONObject();
+				for (ActiveWeapon w : v.getWeaponHandler().getWeapons()) {
+					JSONObject weaponData = new JSONObject();
+					weaponData.put("damage", w.getHealthData().getDamage());
+					if (w.getAmmunitionHandler().hasAmmo()) {
+						weaponData.put("ammo", w.getAmmunitionHandler().getAmmo().getId());
+						weaponData.put("count", w.getAmmunitionHandler().getCount());
+					}
+					weaponsObject.put(w.getId(), weaponData);
+				}
+				vehicleData.put("weapons", weaponsObject);
+			}
+
+			save(file, vehicleData);
+
+		} catch (Throwable ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public void saveBackupSpawnLocation(SpawnLocation sLoc) {
+		try {
+			String path = "plugins/VehicleFramework/data/backup/locations";
+			path = path + "/" + chunkToString(sLoc.getChunk());
+			File folder = new File(path);
+			if (!folder.exists()) folder.mkdirs();
+
+			File file = new File(path, sLoc.getFile());
+			if (file.exists()) file.delete();
+			file.createNewFile();
+
+			HashMap<String, Object> defaults = new HashMap<>();
+			Location loc = sLoc.getLoc();
+			defaults.put("world", loc.getWorld().getName());
+			defaults.put("xPos", loc.getX());
+			defaults.put("yPos", loc.getY());
+			defaults.put("zPos", loc.getZ());
+			defaults.put("file", sLoc.getFile());
+
+			save(file, defaults);
+		} catch (Throwable ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public void backupFiles() {
+		try {
+			File baseDir = new File("plugins/VehicleFramework/data");
+			File backupDir = new File(baseDir, "backup");
+
+			// Clean old backup before copying new snapshot
+			if (backupDir.exists()) {
+				deleteDirectory(backupDir);
+			}
+			backupDir.mkdirs();
+
+			// Copy vehicles folder
+			File vehiclesFolder = new File(baseDir, "vehicles");
+			if (vehiclesFolder.exists()) {
+				File backupVehicles = new File(backupDir, "vehicles");
+				backupVehicles.mkdirs();
+				copyDirectoryWithValidation(vehiclesFolder, backupVehicles);
+			}
+
+			// Copy locations folder
+			File locationsFolder = new File(baseDir, "locations");
+			if (locationsFolder.exists()) {
+				File backupLocations = new File(backupDir, "locations");
+				backupLocations.mkdirs();
+				copyDirectoryWithValidation(locationsFolder, backupLocations);
+			}
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	/**
+	 * Copy directory recursively, skipping or deleting corrupted JSON files.
+	 */
+	private void copyDirectoryWithValidation(File source, File target) throws Exception {
+		if (source.isDirectory()) {
+			if (!target.exists()) {
+				target.mkdirs();
+			}
+			for (String f : source.list()) {
+				copyDirectoryWithValidation(new File(source, f), new File(target, f));
+			}
+		} else {
+			if (source.getName().endsWith(".json")) {
+				if (!isValidJson(source)) {
+					VFLogger.log("Corrupted JSON detected and deleted: " + source.getAbsolutePath());
+					source.delete(); // remove bad file from main data
+					return; // skip copying
+				}
+			}
+			java.nio.file.Files.copy(
+				source.toPath(),
+				target.toPath(),
+				java.nio.file.StandardCopyOption.REPLACE_EXISTING
+			);
+		}
+	}
+
+	/**
+	 * Quick check if a JSON file is valid and non-empty.
+	 */
+	private boolean isValidJson(File file) {
+		try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
+			parser.parse(reader); // will throw ParseException if invalid
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+
+	private void deleteDirectory(File dir) {
+		if (dir.isDirectory()) {
+			for (File f : dir.listFiles()) {
+				deleteDirectory(f);
+			}
+		}
+		dir.delete();
+	}
+
+	private void copyDirectory(File source, File target) throws Exception {
+		if (source.isDirectory()) {
+			if (!target.exists()) {
+				target.mkdirs();
+			}
+			for (String f : source.list()) {
+				copyDirectory(new File(source, f), new File(target, f));
+			}
+		} else {
+			java.nio.file.Files.copy(
+				source.toPath(),
+				target.toPath(),
+				java.nio.file.StandardCopyOption.REPLACE_EXISTING
+			);
+		}
+	}
+
+	public void restoreBackupSnapshot() {
+		try {
+			File baseDir = new File("plugins/VehicleFramework/data");
+			File backupDir = new File(baseDir, "backup");
+
+			if (!backupDir.exists()) {
+				VFLogger.log("No backup directory found, restore aborted.");
+				return;
+			}
+
+			// --- VEHICLES ---
+			File vehiclesDir = new File(baseDir, "vehicles");
+			if (vehiclesDir.exists()) deleteDirectory(vehiclesDir);
+			File backupVehicles = new File(backupDir, "vehicles");
+			if (backupVehicles.exists()) {
+				copyDirectory(backupVehicles, vehiclesDir);
+			}
+
+			// --- LOCATIONS ---
+			File locationsDir = new File(baseDir, "locations");
+			if (locationsDir.exists()) deleteDirectory(locationsDir);
+			File backupLocations = new File(backupDir, "locations");
+			if (backupLocations.exists()) {
+				copyDirectory(backupLocations, locationsDir);
+			}
+
+			VFLogger.log("Database successfully restored from backup snapshot.");
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
 }

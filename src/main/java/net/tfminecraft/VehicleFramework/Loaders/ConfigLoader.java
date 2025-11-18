@@ -39,6 +39,16 @@ public class ConfigLoader {
 				}
 			}
         }
+
+		if(config.contains("ignore-ground")) {
+			for(String s : config.getStringList("ignore-ground")) {
+				try {
+					Cache.ignoreGround.add(Material.valueOf(s.toUpperCase()));
+				} catch (Exception e) {
+					VFLogger.log(s+" is not a material");
+				}
+			}
+        }
         
         if(config.contains("convert-explosion")) {
 			for(String s : config.getStringList("convert-explosion")) {

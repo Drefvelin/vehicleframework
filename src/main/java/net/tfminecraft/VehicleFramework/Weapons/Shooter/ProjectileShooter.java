@@ -3,6 +3,7 @@ package net.tfminecraft.VehicleFramework.Weapons.Shooter;
 import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.Entity;
@@ -75,6 +76,7 @@ public class ProjectileShooter implements Shooter {
 	}
 	
 	public void triggerExplosion(Location explosionCenter, AmmunitionData a) {
+		explosionCenter.getWorld().playSound(explosionCenter, Sound.ENTITY_GENERIC_EXPLODE, 8, 1);
 	    ExplosionCreator.triggerExplosion(explosionCenter, a.getYield(), a.getRadius(), a.getDamage(), a.getDamageType());
 	}
 }

@@ -12,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.entity.Entity;
@@ -35,89 +36,79 @@ public class ExplosionCreator {
         if (event.isCancelled()) {
             return;
         }
-	    int radius = (int) Math.round(yield);
 	    int particles = (int) Math.round(yield*15);
 	    Random random = new Random();
+		// Falling Block Effect
+		if (event.doesBlockDamage()) {
+			int conversionRadius = (int) Math.round(yield * 1.5);
+			int maxDepth = (int) Math.max(3, yield * 1.2);
+			double radiusSq = conversionRadius * conversionRadius;
 
-	    //Fallin Block Effect
-	    for (int x = -radius; x <= radius; x++) {
-			if(!event.doesBlockDamage()) break;
-	        for (int y = -radius; y <= radius; y++) {
-	            for (int z = -radius; z <= radius; z++) {
-	                Location loc = explosionCenter.clone().add(x, y, z);
-	                Block block = loc.getBlock();
-	                if (block.getType() != Material.AIR) {
-	                    Material blockType = block.getType();
-	                    if (Cache.ignoreExplode.contains(blockType)) continue;
-	                    if (Cache.convertExplode.containsKey(blockType)) {
-	                        block.setType(Cache.convertExplode.get(blockType));
-	                        continue;
-	                    }
-	                    float blastResistance = block.getBlockData().getMaterial().getBlastResistance();
-	                    
-	                    // Calculate probability (lower resistance = higher chance)
-	                    double chance = 1.0 - (blastResistance / 20.0);
-	                    chance = Math.max(0.1, Math.min(chance, 0.9));
-	                    // Decide whether to spawn as falling block
-	                    if (random.nextDouble() < chance) {
-	                    	BlockData blockData = block.getBlockData();
+			for (int x = -conversionRadius; x <= conversionRadius; x++) {
+				for (int z = -conversionRadius; z <= conversionRadius; z++) {
+					double distSqXZ = (x * x) + (z * z);
+					if (distSqXZ > radiusSq) continue;
 
-	                        // Check if the block is a SLAB
-	                        if (blockData instanceof Slab) {
-	                            Slab slab = (Slab) blockData;
-	                            if (slab.getType() == Slab.Type.TOP) {
-	                                slab.setType(Slab.Type.BOTTOM); // Convert to lower slab
-	                            }
-	                            blockData = slab;
-	                        }
+					double dist = Math.sqrt(distSqXZ);
+					int depth = (int) Math.ceil(maxDepth * (1 - (dist / conversionRadius)));
 
-	                        FallingBlock fallingBlock = explosionCenter.getWorld().spawnFallingBlock(loc, blockData);
-	                        
-	                        
+					for (int y = 0; y >= -depth; y--) {
+						Location loc = explosionCenter.clone().add(x, y, z);
+						Block block = loc.getBlock();
 
-	                        Vector velocity = new Vector(
-	                            random.nextDouble() - 0.5,
-	                            random.nextDouble() * 1,
-	                            random.nextDouble() - 0.5
-	                        ).multiply(1.5);
+						if (block.getType() == Material.AIR) continue;
+						if (Cache.ignoreExplode.contains(block.getType())) continue;
 
-	                        fallingBlock.setVelocity(velocity);
-	                        fallingBlock.setDropItem(false);
+						Material originalType = block.getType();
+						BlockData originalData = block.getBlockData();
 
-	                        if (Cache.ignoreLands.contains(blockType)) {
-	                            fallingBlock.setCancelDrop(true);
-	                        }
-							// Particle trail + landing tracker
-							new BukkitRunnable() {
-								@Override
-								public void run() {
-									if (fallingBlock.isDead() || fallingBlock.isOnGround()) {
-										if(fallingBlock.isOnGround()) {
-											// Log block placement at final position
-											Block landedBlock = fallingBlock.getLocation().getBlock();
-											LogWriter.logPlace(cause, landedBlock);
-										}
-										this.cancel();
-										return;
-									}
+						// Determine if it's "soft ground" (guaranteed removal)
+						boolean isSoftGround = originalType == Material.DIRT
+								|| originalType == Material.GRASS_BLOCK
+								|| originalType == Material.PODZOL
+								|| originalType == Material.COARSE_DIRT
+								|| originalType == Material.ROOTED_DIRT
+								|| originalType == Material.MYCELIUM
+								|| originalType == Material.FARMLAND
+								|| originalType == Material.SNOW
+								|| originalType == Material.SNOW_BLOCK;
 
-									// Spawn particle trail
-									fallingBlock.getWorld().spawnParticle(
-										Particle.SMOKE_NORMAL,
-										fallingBlock.getLocation().add(0.5, 0.5, 0.5),
-										2,
-										0, 0, 0,
-										0
-									);
-								}
-							}.runTaskTimer(VehicleFramework.plugin, 0L, 2L); // Adjust delay (2 ticks = 0.1s) as needed
+						// Choose debris type (convert if mapping exists, else original)
+						Material debrisMaterial = Cache.convertExplode.getOrDefault(originalType, originalType);
+						BlockData debrisData = Bukkit.createBlockData(debrisMaterial);
+
+						if (isSoftGround) {
+							// ✅ Guaranteed removal
 							LogWriter.logBreak(cause, block);
-	                        block.setType(Material.AIR); // Clear the block
-	                    }
-	                }
-	            }
-	        }
-	    }
+							block.setType(Material.AIR);
+
+							// Still spawn debris optionally
+							double chance = 0.7; // soil is lightweight, lots of debris
+							if (random.nextDouble() < chance) {
+								spawnDebris(loc, explosionCenter, debrisData, originalType, cause, random);
+							}
+						} else {
+							// ⛏ Hard block (stone, ores, etc.) → chance-based destruction
+							float blastResistance = originalData.getMaterial().getBlastResistance();
+							double chance = 1.0 - (blastResistance / 20.0);
+							chance = Math.max(0.05, Math.min(chance, 0.6)); // stronger blocks: lower removal chance
+
+							if (random.nextDouble() < chance) {
+								LogWriter.logBreak(cause, block);
+								block.setType(Material.AIR);
+
+								if (random.nextDouble() < 0.5) { // smaller chance to spawn debris for stone
+									spawnDebris(loc, explosionCenter, debrisData, originalType, cause, random);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+
+
 
 	    // Spawn explosion effects and physical explosion
 	    final List<Player> players = new ArrayList<Player>();
@@ -165,14 +156,14 @@ public class ExplosionCreator {
 		                } else {
 		                    knockback = new Vector(0, 0, 0); // Default to zero vector
 		                }
-		                double velocityScale = yield * (1 - (distance / blastRadius)); // Scale by yield and distance
+		                double velocityScale = yield * (1.5 - (distance / blastRadius)); // Scale by yield and distance
 		                Vector velocity = knockback.multiply(velocityScale).add(new Vector(0, 0.5 * yield, 0)); // Add upward lift
 		                livingEntity.setVelocity(velocity);
 	                }
 	            }
 	        }
 	    }
-	    explosionCenter.getWorld().createExplosion(explosionCenter, (float) yield, false, event.doesBlockDamage());
+	    //explosionCenter.getWorld().createExplosion(explosionCenter, (float) yield, false, event.doesBlockDamage());
 	}
 	
 	public static void applyDamage(Entity e, double damage, String cause) {
@@ -192,4 +183,89 @@ public class ExplosionCreator {
         }
         
 	}
+
+	private static void spawnDebris(Location loc, Location explosionCenter,
+                               BlockData debrisData, Material originalType,
+                               String cause, Random random) {
+
+		FallingBlock fallingBlock = explosionCenter.getWorld().spawnFallingBlock(
+			loc.clone().add(0, 1, 0), debrisData
+		);
+
+		// Outward horizontal velocity from explosion center
+		Vector dir = loc.toVector().subtract(explosionCenter.toVector());
+		dir.setY(0);
+		if (dir.lengthSquared() < 1e-6) {
+			dir = new Vector((random.nextDouble() - 0.5), 0, (random.nextDouble() - 0.5));
+		}
+		dir.normalize();
+
+		Vector velocity = dir.multiply(0.8 + random.nextDouble() * 0.6);
+		velocity.setY(0.4 + random.nextDouble() * 0.4);
+		fallingBlock.setVelocity(velocity);
+
+		fallingBlock.setDropItem(false);
+		if (Cache.ignoreLands.contains(originalType)) {
+			fallingBlock.setCancelDrop(true);
+		}
+
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				if (fallingBlock.isDead() || fallingBlock.isOnGround()) {
+					if (fallingBlock.isOnGround()) {
+						Block landedBlock = fallingBlock.getLocation().getBlock();
+						Block belowBlock = landedBlock.getRelative(BlockFace.DOWN);
+
+						// Always remove if ground is invalid
+						if (Cache.ignoreGround.contains(belowBlock.getType())) {
+							fallingBlock.remove();
+						} else {
+							// Distance factor: further debris is less likely to stay
+							double distSq = landedBlock.getLocation().distanceSquared(explosionCenter);
+							double maxDistSq = Math.pow(64, 2); // normalize against some max distance (64 blocks here)
+							double distanceFactor = Math.min(1.0, distSq / maxDistSq);
+
+							// Probability to place decreases with distance
+							double placeChance = 1.0 - (0.7 * distanceFactor); 
+							// → at center ~100%, at maxDist ~30%
+
+							// Pillar prevention: check neighbors around belowBlock
+							boolean hasSupport = false;
+							for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST}) {
+								if (belowBlock.getRelative(face).getType().isSolid()) {
+									hasSupport = true;
+									break;
+								}
+							}
+
+							if (!hasSupport) {
+								// No neighbors = lone pillar → remove
+								fallingBlock.remove();
+							} else if (random.nextDouble() < placeChance) {
+								// Passed distance & support checks → allow placement
+								LogWriter.logPlace(cause, landedBlock);
+							} else {
+								// Too far / unlucky → vanish
+								fallingBlock.remove();
+							}
+						}
+					}
+					this.cancel();
+					return;
+				}
+
+
+				fallingBlock.getWorld().spawnParticle(
+					Particle.BLOCK_DUST,
+					fallingBlock.getLocation().add(0.5, 0.5, 0.5),
+					8,
+					0.1, 0.1, 0.1,
+					0,
+					fallingBlock.getBlockData()
+				);
+			}
+		}.runTaskTimer(VehicleFramework.plugin, 0L, 2L);
+	}
+
 }

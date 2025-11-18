@@ -56,6 +56,7 @@ import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
 import net.tfminecraft.VehicleFramework.Managers.Spawner.VehicleSpawner;
 import net.tfminecraft.VehicleFramework.Protocol.PacketConverter;
+import net.tfminecraft.VehicleFramework.Util.Damager;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
@@ -165,9 +166,11 @@ public class VehicleManager implements Listener{
 	}
 	
 	public void start() {
+		if(db.isDirtyFlag()) db.restoreBackupSnapshot();
 		spawnManager.start();
 		vehicleFastTickCycle();
 		vehicleSlowTickCycle();
+		snapshotCycle();
 	}
 
 	public void reload() {
@@ -222,6 +225,18 @@ public class VehicleManager implements Listener{
 	            }
 	        }
 	    }.runTaskTimer(VehicleFramework.plugin, 0L, 1L);
+	}
+	private void snapshotCycle() {
+		new BukkitRunnable() {
+			@Override
+	        public void run() {
+				VFLogger.info("Performing backup...");
+				db.backupFiles();
+				for(ActiveVehicle v : vehicles.values()) {
+					db.saveBackup(v);
+				}
+	        }
+	    }.runTaskTimer(VehicleFramework.plugin, 0L, 6000L);
 	}
 	
 	public void updateInventory() {
@@ -488,7 +503,11 @@ public class VehicleManager implements Listener{
 				if(e.isCancelled()) return; 
 				e.setCancelled(true);
         		LivingEntity l = (LivingEntity) e.getEntity();
-        		l.setHealth(Math.max(0, l.getHealth() - event.getDamage()));
+        		try {
+					Damager.applyDirectDamage(l, event.getDamage());
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
         	}
         }
 	}
@@ -509,7 +528,7 @@ public class VehicleManager implements Listener{
 			}
 			for(Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 				if(entry.getValue().isPassenger(p, false)) {
-					double finalDamage = Math.min(e.getDamage()/6, 12);
+					double finalDamage = Math.min(e.getDamage()/2, 8);
 					e.setDamage(finalDamage);
 				}
 			}

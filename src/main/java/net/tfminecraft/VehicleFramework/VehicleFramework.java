@@ -10,6 +10,7 @@ import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Database.LogWriter;
+import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
 import net.tfminecraft.VehicleFramework.Loaders.ConfigLoader;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
@@ -24,6 +25,8 @@ import net.tfminecraft.VehicleFramework.Util.TabCompletion;
 public class VehicleFramework extends JavaPlugin{
 	
 	public static VehicleFramework plugin;
+
+	private static boolean dirtyBit = false;
 	
 	private static LogWriter log;
 	private final CommandManager commandManager = new CommandManager();
@@ -33,9 +36,11 @@ public class VehicleFramework extends JavaPlugin{
 	private final AmmunitionLoader ammunitionLoader = new AmmunitionLoader();
 	private final VehicleLoader vehicleLoader = new VehicleLoader();
 	private final FuelLoader fuelLoader = new FuelLoader();
+	private final Database db = new Database();
 	
 	@Override
 	public void onEnable() {
+		dirtyBit = db.isDirtyFlag();
 		Bukkit.getLogger().info("Initializing VF");
 		printBanner();
 		plugin = this;
@@ -51,9 +56,11 @@ public class VehicleFramework extends JavaPlugin{
 		VFLogger.info("Setup complete!");
 		int pluginId = 26823; // Replace with your actual bStats plugin ID
 		Metrics metrics = new Metrics(this, pluginId);
+		db.setDirtyFlag(true);
 	}
 	@Override
 	public void onDisable() {
+		db.setDirtyFlag(false);
 		vehicleManager.unloadAll();
 		vehicleManager.getSpawnManager().save();
 		Cache.removeLights();

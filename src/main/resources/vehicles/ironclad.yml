@@ -1,0 +1,262 @@
+ironclad:
+    name: "§l§eIronclad"
+    model: ironclad
+    skins:
+        ironclad:
+            name: "Ironclad"
+            model: ironclad
+    death:
+        explode:
+            fragments: 30
+            duration: 320
+            sounds:
+                sink:
+                    sound: "vehicleframework:ship_sinking"
+                    pitch: 1.0
+                    volume: 5.0
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+        sink:
+            duration: 320
+            sounds:
+                sink:
+                    sound: "vehicleframework:ship_sinking"
+                    pitch: 1.0
+                    volume: 5.0
+    behaviour:
+        rotator: body_controller
+        vector: move.movealign
+        float: true
+        float-in:
+            - WATER
+            - KELP
+    states:
+        floating:
+            animations:
+                default:
+                    - float
+                explode:
+                    - explode
+                sink:
+                    - sink
+                right:
+                    - turn_right
+                left:
+                    - turn_left
+            keybinds:
+                W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                A: TURN_LEFT
+                D: TURN_RIGHT
+                SHIFT: SEAT_SELECTION
+    components:
+        engine:
+            sounds:
+                steam_engine:
+                    sound: "vehicleframework:steam_engine"
+                    pitched: true
+                    pitch: 1.0
+                    volume: 6.0
+                water_move:
+                    sound: "vehicleframework:ship_water_move"
+                    pitch: 1.0
+                    volume: 4.0
+            particles:
+                    exhaust:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 10
+                        spread: 0.3
+                        speed: 0.2
+            particle-bones:
+                - exhaust.exhaustalign
+            requires-start: true
+            health: 200.0
+            repair-time: 60
+            fuel-burn-rate: 5
+            fuel: coal
+            fuel-capacity: 1200
+            damage-chance: 0.7
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.2)
+                - bullet(0.6)
+                - entity_explosion(1.5)
+                - small_bomb(6.0)
+                - cannonball(1.3)
+                - torpedo(5.0)
+            max: 100
+            min: -10
+            speed: 0.3
+            turn-rate: 0.2
+            vfx:
+                - engine_vfx_1
+                - engine_vfx_2
+                - engine_vfx_3
+        hull:
+            sinkable: true
+            health: 400.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.1)
+                - bullet(0.1)
+                - entity_explosion(1.5)
+                - small_bomb(6.0)
+                - cannonball(1.3)
+                - torpedo(5.0)
+            vfx:
+                - hull_vfx_1
+                - hull_vfx_2
+                - hull_vfx_3
+        pump:
+            health: 80.0
+            repair-time: 40
+            damage-chance: 0.4
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.7)
+                - bullet(0.7)
+                - entity_explosion(1.5)
+                - small_bomb(10.0)
+                - cannonball(1.3)
+                - torpedo(5.0)
+            power: 50
+            vfx:
+                - pump_vfx_1
+                - pump_vfx_2
+    seats:
+        - captain(captain)
+        - mechanic(first_mate)
+        - mechanic(deck_officer)
+        - passenger(gunner)
+        - passenger(aa_turret_gunner)
+        - mechanic(front_middle)
+        - passenger(front_left)
+        - passenger(front_right)
+        - mechanic(middle_right)
+        - mechanic(middle_left)
+        - passenger(back_right)
+        - passenger(back_left)
+    weapons:
+        large_cannon:
+            name: "§eFront Cannon"
+            seat: gunner
+            body-bone: "weapon_body"
+            head-bone: "cannon_controller"
+            head-axis: z
+            rotation-limits:
+              min-roll: -75
+              max-roll: 15
+            reload-time: 5
+            accepted-ammunition:
+                - cannonball
+                - clusterbomb
+            bones:
+                - exit.exit_align
+            animations:
+                reload:
+                    - weapon_reload
+                shoot:
+                    - weapon_shoot
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:entity.generic.explode"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 100
+                        spread: 0.3
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 100
+                        spread: 1.4
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 50
+                        spread: 0.7
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        aa_turret:
+            name: "§eAnti-Air Turret"
+            seat: aa_turret_gunner
+            body-bone: "aa_turret_body"
+            head-bone: "gun"
+            head-axis: x
+            rotation-limits:
+              min-pitch: 0
+              max-pitch: 85
+            reload-time: 10
+            cooldown: 10
+            accepted-ammunition:
+                - bullet
+            animations:
+                shoot:
+                    - shoot
+                    - shoot2
+            bones:
+                - exit1.exit_align1
+                - exit2.exit_align2
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:guns.musket_1"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 10
+                        spread: 0.1
+                        speed: 1.2
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT

@@ -49,6 +49,13 @@ One of the more challenging parts of this project was implementing smooth, physi
 
 Along the way, I learned the practical differences between Euler angles and quaternions, why quaternions avoid gimbal lock, and how to blend rotations smoothly regardless of input. After about a week of experimentation, testing, and reading documentation, I built a fully consistent quaternion-driven rotation system that works regardless of the starting rotation.
 
+## AI Tools
+I used **ChatGPT** primarily for math-heavy components, such as understanding and verifying quaternion operations in the **BoneRotator**. It was especially helpful for breaking down complex concepts and providing alternate explanations while I learned JOML’s rotation systems.
+
+For architecture, class design, and the overall structure of the plugin, I relied on my own judgment. In my experience, AI struggles with maintaining coherent object-oriented structure in larger projects, so all high-level design, class relationships, and system architecture were created and implemented by me.
+
+Most of the plugin was written manually for efficiency and to maintain full control over the design. **ChatGPT** was also used to help format and refine this README.
+
 ## Configuration
 The framework uses YAML files to define vehicle behavior, components, seats, and weapons.  
 Here is a short example excerpt from the configuration of the first vehicle I made, a fixed artillery piece:

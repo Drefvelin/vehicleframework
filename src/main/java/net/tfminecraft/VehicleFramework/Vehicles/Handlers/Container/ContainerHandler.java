@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -61,5 +62,9 @@ public class ContainerHandler {
         if(c == null) return false;
         c.open(vehicle, player);
         return true;
+    }
+
+    public void destroy(Location loc) {
+        for(Container c : containers.values()) c.destroy(loc);
     }
 }

@@ -447,6 +447,7 @@ public class ActiveVehicle {
 			break;
 		
 		}
+		if(hasContainers()) containerHandler.destroy(getLocation());
 	}
 	
 	public void remove() {

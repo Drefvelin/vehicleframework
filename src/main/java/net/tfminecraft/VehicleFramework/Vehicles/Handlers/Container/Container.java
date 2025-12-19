@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -207,6 +208,12 @@ public class Container {
             VFLogger.creatorLog("Bone " + i + " (" + bones.get(i).getBoneId() + "): " + (visible ? "VISIBLE" : "HIDDEN"));
         }
         */
+    }
+
+    public void destroy(Location loc) {
+        for(ItemStack item : items) {
+            loc.getWorld().dropItem(loc, item);
+        }
     }
 
 }

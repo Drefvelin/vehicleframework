@@ -1,10 +1,12 @@
 package net.tfminecraft.VehicleFramework.Managers;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -85,6 +87,16 @@ public class VehicleManager implements Listener{
 	private HashMap<Player, ActiveVehicle> tow = new HashMap<>();
 	
 	private HashMap<Entity, ActiveVehicle> vehicles = new HashMap<>();
+
+	private Set<Entity> damagedEntities = new HashSet<>();
+
+	public void setDamaged(Entity e, boolean damaged) {
+		if (damaged) {
+			damagedEntities.add(e);
+		} else {
+			damagedEntities.remove(e);
+		}
+	}
 
 	//Managers
 	public RepairManager getRepairManager() {
@@ -488,6 +500,7 @@ public class VehicleManager implements Listener{
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void damagePassenger(EntityDamageEvent e) {
 		Entity entity = e.getEntity();
+		if(damagedEntities.contains(entity)) return;
 		for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
         	ActiveVehicle v = entry.getValue();
             if(v.isPassenger(entity, SeatType.HARNESS)) {
@@ -504,7 +517,7 @@ public class VehicleManager implements Listener{
 				e.setCancelled(true);
         		LivingEntity l = (LivingEntity) e.getEntity();
         		try {
-					Damager.applyDirectDamage(l, event.getDamage());
+					Damager.damage(l, event.getDamage());
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
@@ -528,7 +541,7 @@ public class VehicleManager implements Listener{
 			}
 			for(Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 				if(entry.getValue().isPassenger(p, false)) {
-					double finalDamage = Math.min(e.getDamage()/2, 8);
+					double finalDamage = Math.min(e.getDamage()/2, 18);
 					e.setDamage(finalDamage);
 				}
 			}

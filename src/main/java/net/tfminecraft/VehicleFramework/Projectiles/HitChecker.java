@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 
 public class HitChecker {
@@ -93,6 +94,9 @@ public class HitChecker {
 	    
 	    for (Entity entity : loc.getWorld().getNearbyEntities(e.getLocation(), 0.5, 0.5, 0.5)) {
 	        if (entity == e || ignore.contains(entity)) continue; // Skip the entity itself
+			if(entity instanceof ArmorStand armorstand) {
+				if(armorstand.isMarker()) continue;
+			}
 	        
 	        // Optional: distance check for performance (e.g., entities within 5 blocks)
 	        if (entity.getLocation().distance(loc) > 5) continue;

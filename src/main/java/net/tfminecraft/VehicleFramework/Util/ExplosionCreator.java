@@ -171,7 +171,7 @@ public class ExplosionCreator {
         if (e instanceof Player) {
         	Player player = (Player) e;
             double armorValue = player.getAttribute(Attribute.GENERIC_ARMOR).getValue(); // Get armor value
-            double damageReductionFactor = Math.max(0, 1 - (armorValue / 40)); // Armor reduces damage by 50% at max (20 armor)
+            double damageReductionFactor = Math.max(0, 1 - (armorValue / 80)); // Armor reduces damage by 50% at max (20 armor)
             damage *= damageReductionFactor; // Apply armor scaling
         }
         LivingEntity l = (LivingEntity) e;
@@ -179,7 +179,7 @@ public class ExplosionCreator {
         Bukkit.getPluginManager().callEvent(event);
 
         if (!event.isCancelled()) {
-            l.setHealth(Math.max(0, l.getHealth() - event.getDamage()));
+            Damager.damage(l, event.getDamage());
         }
         
 	}

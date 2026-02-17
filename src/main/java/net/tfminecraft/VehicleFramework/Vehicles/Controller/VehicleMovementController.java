@@ -236,7 +236,7 @@ public class VehicleMovementController implements MovementInterface{
 			return velocity;
 		}
 		if(!v.hasComponent(Component.ENGINE)) return velocity;
-		if(v.getThrottle().getCurrent() < 20) velocity.setY(0);
+		if(v.getThrottle().getCurrent() < 20 && !v.getLocation().clone().add(0, -0.5, 0).getBlock().isPassable()) velocity.setY(0);
 		return velocity;
 	}
 	

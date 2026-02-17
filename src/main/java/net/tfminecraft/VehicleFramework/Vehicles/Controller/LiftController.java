@@ -50,9 +50,21 @@ public class LiftController {
 	            }
 	            */
 	            y -= 0.49;
-				if(engine.getThrottle().getCurrent() < 10) {
-					y -= 0.98;
-					return velocity;
+				double throttle = engine.getThrottle().getCurrent();
+
+				// Only apply interpolation if throttle is 30 or below
+				if (throttle <= 30) {
+
+					// Clamp throttle between 0 and 30
+					double clampedThrottle = Math.max(0, Math.min(30, throttle));
+
+					// Convert to 0 → 1 range
+					double factor = clampedThrottle / 30.0;
+
+					// Interpolate between -0.98 (at 0 throttle) and 0 (at 30 throttle)
+					double extraGravity = -0.98 * (1 - factor);
+
+					y += extraGravity;
 				}
 	            velocity.setY(y); // Update vertical velocity
 

@@ -65,6 +65,8 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.mobs.ActiveMob;
 
 public class VehicleManager implements Listener{
 	private ItemAPI api = TLibs.getItemAPI();
@@ -85,6 +87,9 @@ public class VehicleManager implements Listener{
 	private HashMap<Player, NamingData> naming = new HashMap<>();
 	
 	private HashMap<Player, ActiveVehicle> tow = new HashMap<>();
+
+	private HashMap<Player, ActiveVehicle> pendingEntityVehicle = new HashMap<>();
+	private HashMap<Player, String> pendingEntitySeat = new HashMap<>();
 	
 	private HashMap<Entity, ActiveVehicle> vehicles = new HashMap<>();
 
@@ -306,6 +311,9 @@ public class VehicleManager implements Listener{
 	    if(v.isPassenger(p, true)) {
 	    	return;
 	    }
+	    // Clear any pending entity mount when opening the seat menu again
+	    pendingEntityVehicle.remove(p);
+	    pendingEntitySeat.remove(p);
 	    inv.seatSelection(null, p, v, true);
 	    tempVehicle.put(p, v);
 	}
@@ -314,7 +322,45 @@ public class VehicleManager implements Listener{
 	    inv.skinSelection(null, p, v, true);
 	    tempVehicle.put(p, v);
 	}
-	
+
+	private void handlePendingEntityMount(Player p, Entity entity) {
+		ActiveVehicle v = pendingEntityVehicle.remove(p);
+		String seatBone = pendingEntitySeat.remove(p);
+		if(v == null || seatBone == null) return;
+		if(v.isDestroyed()) {
+			p.sendMessage("§cThe vehicle has been destroyed");
+			return;
+		}
+		if(!isEntityAllowed(entity, v.getEntitySeatWhitelist())) {
+			p.sendMessage("§cThat entity is not allowed in this seat");
+			return;
+		}
+		Seat seat = v.getSeat(seatBone);
+		if(seat == null || seat.isOccupied()) {
+			p.sendMessage("§cSeat is no longer available");
+			return;
+		}
+		v.addPassenger(entity, seat);
+		p.sendMessage("§aEntity mounted");
+	}
+
+	private boolean isEntityAllowed(Entity entity, List<String> whitelist) {
+		if(whitelist == null || whitelist.isEmpty()) return false;
+		for(String entry : whitelist) {
+			if(entry.startsWith("mm.")) {
+				String mmId = entry.substring(3);
+				try {
+					Optional<ActiveMob> mob = MythicBukkit.inst().getMobManager().getActiveMob(entity.getUniqueId());
+					if(mob.isPresent() && mob.get().getType().getInternalName().equals(mmId)) return true;
+				} catch(Exception ex) {}
+			} else if(entry.startsWith("v.")) {
+				String vanillaType = entry.substring(2).toUpperCase();
+				if(entity.getType().name().equalsIgnoreCase(vanillaType)) return true;
+			}
+		}
+		return false;
+	}
+
 	public void towSelect(Player p, ActiveVehicle v) {
 		if(tow.containsKey(p)) {
 			p.sendMessage("§7Deselected "+tow.get(p).getName()+" §7for towing");
@@ -357,6 +403,7 @@ public class VehicleManager implements Listener{
 	@EventHandler 
 	public void vehicleInteract(PlayerInteractEntityEvent e){
 		Entity entity = e.getRightClicked();
+		Player p = e.getPlayer();
 		for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
         	ActiveVehicle v = entry.getValue();
             if(v.isPassenger(entity, true)) {
@@ -364,9 +411,14 @@ public class VehicleManager implements Listener{
             	return;
             }
         }
+		// Handle pending entity mount: player selected an entity seat and is now right-clicking an entity
+		if(pendingEntityVehicle.containsKey(p) && !vehicles.containsKey(entity)) {
+			e.setCancelled(true);
+			handlePendingEntityMount(p, entity);
+			return;
+		}
 		if(!vehicles.containsKey(entity)) return;
 		ActiveVehicle v = vehicles.get(entity);
-		Player p = e.getPlayer();
 		if(cooldown.containsKey(p)) {
 			if(cooldown.get(p) > System.currentTimeMillis()) {
 				return;
@@ -478,6 +530,8 @@ public class VehicleManager implements Listener{
 	@EventHandler
 	public void playerLeave(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
+		pendingEntityVehicle.remove(p);
+		pendingEntitySeat.remove(p);
 		for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
         	ActiveVehicle v = entry.getValue();
             if(v.isPassenger(p, false)) {
@@ -609,6 +663,25 @@ public class VehicleManager implements Listener{
 		if(id == null) return;
 		Seat seat = v.getSeat(id);
 		
+		// Occupied entity seat: click to dismount the entity and teleport it to the player
+		if(i.getType().equals(Material.GRAY_CONCRETE) && seat != null && seat.getType().equals(SeatType.ENTITY)) {
+			if(seat.isOccupied()) {
+				Entity mounted = seat.getEntity();
+				v.dismountPassenger(mounted, false);
+				mounted.teleport(p.getLocation());
+				p.sendMessage("§eEntity dismounted");
+			}
+			p.closeInventory();
+			return;
+		}
+		// Empty entity seat: enter pending entity mount mode
+		if(i.getType().equals(Material.CYAN_CONCRETE) && seat != null && seat.getType().equals(SeatType.ENTITY)) {
+			pendingEntityVehicle.put(p, v);
+			pendingEntitySeat.put(p, id);
+			p.closeInventory();
+			p.sendMessage("§eRight-click an entity to mount it in this seat");
+			return;
+		}
 		if(i.getType().equals(Material.YELLOW_CONCRETE)) {
 			p.sendMessage("§cSeat is occupied");
 			return;

@@ -121,11 +121,11 @@ public class WeaponMovementController{
 
 	private void inputUp() {
 		if(axis.equalsIgnoreCase("z")) {
-			headRotator.rotateSmoothed(0, 0, -0.5f);
+			headRotator.rotateSmoothed(0, 0, 0.5f);
 		} else if(axis.equalsIgnoreCase("x")) {
-			headRotator.rotateSmoothed(-0.5f, 0, 0);
+			headRotator.rotateSmoothed(0.5f, 0, 0);
 		} else {
-			headRotator.rotateSmoothed(0, -0.5f, 0);
+			headRotator.rotateSmoothed(0, 0.5f, 0);
 		}
 	}
 
@@ -135,11 +135,11 @@ public class WeaponMovementController{
 
 	private void inputDown() {
 		if(axis.equalsIgnoreCase("z")) {
-			headRotator.rotateSmoothed(0, 0, 0.5f);
+			headRotator.rotateSmoothed(0, 0, -0.5f);
 		} else if(axis.equalsIgnoreCase("x")) {
-			headRotator.rotateSmoothed(0.5f, 0, 0);
+			headRotator.rotateSmoothed(-0.5f, 0, 0);
 		} else {
-			headRotator.rotateSmoothed(0, 0.5f, 0);
+			headRotator.rotateSmoothed(0, -0.5f, 0);
 		}
 	}
 

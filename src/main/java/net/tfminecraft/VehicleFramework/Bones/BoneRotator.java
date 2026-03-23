@@ -22,6 +22,8 @@ public class BoneRotator {
 	private double smoothY = 0f;
 	private double smoothZ = 0f;
 
+	private double yawOffset = 0f;
+
 	private RotationLimits limits;
 	
 	public BoneRotator(ActiveVehicle v, Entity e, ModelBone bone, RotationLimits limits) {
@@ -30,6 +32,7 @@ public class BoneRotator {
 		this.bone = bone;
 		animator = new SimpleManualAnimator(bone);
 		bone.setManualAnimator(animator);
+		yawOffset = new ConvertedAngle(animator.getRotation()).getYaw();
 		v.getAccessPanel().addRotator(this);
 		this.limits = limits;
 	}
@@ -37,8 +40,10 @@ public class BoneRotator {
 	public void updateModel(ActiveModel m) {
 		bone = m.getBone(bone.getBoneId()).get();
 		id = bone.getBoneId();
+		
 		Quaternionf temp = new Quaternionf(animator.getRotation());
 		ConvertedAngle a = new ConvertedAngle(temp);
+		yawOffset = a.getYaw();
 		animator = new SimpleManualAnimator(bone);
 		rotateToTarget(a.getYaw(), a.getPitch(), a.getRoll(), 1f, true, true, true);
 		bone.setManualAnimator(animator);
@@ -58,7 +63,7 @@ public class BoneRotator {
 
 	public void rawSet(float x, float y, float z, float w) {
 		animator.getRotation().set(x, y, z, w);
-		animator.animate(bone);
+		//animator.animate(bone);
 	}
 	
 	public void rotateEntity(float yaw, float pitch) {
@@ -92,7 +97,7 @@ public class BoneRotator {
 	public void reset() {
 		Quaternionf q = new Quaternionf();
 		animator.getRotation().set(q.x, q.y, q.z, q.w);
-	    animator.animate(bone);
+	    //animator.animate(bone);
 	}
 	
 	public void setRotation(double yaw, double pitch, double roll, boolean shouldYaw, boolean shouldPitch, boolean shouldRoll) {
@@ -147,7 +152,7 @@ public class BoneRotator {
 		    		) {
 		        // Essentially the same orientation; snap to target & return true
 		        animator.getRotation().set(targetQ.x, targetQ.y, targetQ.z, targetQ.w);
-		        animator.animate(bone);
+		        //animator.animate(bone);
 		        return true;
 		    }
 		    
@@ -155,7 +160,7 @@ public class BoneRotator {
 
 		    // 6. Apply the new slerped orientation to the animator
 		    animator.getRotation().set(currentQ.x, currentQ.y, currentQ.z, currentQ.w);
-		    animator.animate(bone);
+		    //animator.animate(bone);
 		    return false;
 		}
 
@@ -185,8 +190,8 @@ public class BoneRotator {
 				0, 30, 0
 			);
 			*/
-
-			if(limits.withinAll(currentAngles.getYaw(), currentAngles.getPitch(), currentAngles.getRoll())) {
+			//Bukkit.getPlayerExact("drefvelin").sendMessage(currentAngles.getYaw()+"; "+currentAngles.getPitch()+"; "+currentAngles.getRoll() + " offset "+yawOffset);
+			if(limits.withinAll((float) (currentAngles.getYaw()-yawOffset), currentAngles.getPitch(), currentAngles.getRoll())) {
 				// Combine the current rotation with the incremental rotation
 				currentRotation.mul(incrementalRotation);
 				
@@ -198,7 +203,7 @@ public class BoneRotator {
 			}
 	    }
 	    // Trigger the animation (update the model with the new rotation)
-	    animator.animate(bone);
+	    //animator.animate(bone);
 	}
 	
 	public void normalize(boolean nx, boolean ny, boolean nz) {

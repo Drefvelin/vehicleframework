@@ -66,6 +66,9 @@ public class Vehicle {
 
 	//Containers
 	protected ContainerHandler containerHandler;
+
+	//Entity seat whitelist
+	protected List<String> entitySeatWhitelist = new ArrayList<>();
 	
 	
 	public Vehicle(String key, ConfigurationSection config) {
@@ -117,6 +120,9 @@ public class Vehicle {
 		}
 		if(config.isConfigurationSection("utilities")) {
 			utilityHandler = new UtilityHandler(config.getConfigurationSection("utilities"));
+		}
+		if(config.contains("entity-seat-whitelist")) {
+			entitySeatWhitelist = config.getStringList("entity-seat-whitelist");
 		}
 	}
 	
@@ -202,6 +208,10 @@ public class Vehicle {
 
 	public ContainerHandler getContainerHandler() {
 		return containerHandler;
+	}
+
+	public List<String> getEntitySeatWhitelist() {
+		return entitySeatWhitelist;
 	}
 	
 	

@@ -56,24 +56,24 @@ public class RotateController {
 	
 	public void pitchUp(BoneRotator rotator, ActiveVehicle v, Player p, float rate) {
 		if(v.getSeat(p).getType().equals(SeatType.CAPTAIN)) {
-			rotator.rotateSmoothed(rate, 0, 0);    
+			rotator.rotateSmoothed(-rate, 0, 0);    
 		}
 	}
 
 	public void pitchDown(BoneRotator rotator, ActiveVehicle v, Player p, float rate) {
 		if(v.getSeat(p).getType().equals(SeatType.CAPTAIN)) {
-			rotator.rotateSmoothed(-rate, 0, 0);    
+			rotator.rotateSmoothed(rate, 0, 0);    
 		}
 	}
 	public void rollLeft(BoneRotator rotator, ActiveVehicle v, Player p, float rate) {
 		if(v.getSeat(p).getType().equals(SeatType.CAPTAIN)) {
-			rotator.rotateSmoothed(0, 0, rate);    
+			rotator.rotateSmoothed(0, 0, -rate);    
 		}
 	}
 
 	public void rollRight(BoneRotator rotator, ActiveVehicle v, Player p, float rate) {
 		if(v.getSeat(p).getType().equals(SeatType.CAPTAIN)) {
-			rotator.rotateSmoothed(0, 0, -rate);    
+			rotator.rotateSmoothed(0, 0, rate);    
 		}
 	}
 }

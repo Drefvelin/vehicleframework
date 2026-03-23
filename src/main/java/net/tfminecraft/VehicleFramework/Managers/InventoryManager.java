@@ -16,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
@@ -62,8 +63,14 @@ public class InventoryManager {
 	@SuppressWarnings("deprecation")
 	private ItemStack getSeatItem(ActiveVehicle v, Seat s) {
 		ItemStack i = new ItemStack(Material.GREEN_CONCRETE, 1);
+		if(s.getType().equals(SeatType.ENTITY)) {
+			i = new ItemStack(Material.CYAN_CONCRETE, 1);
+		}
 		if(s.isOccupied()) {
 			i = new ItemStack(Material.YELLOW_CONCRETE, 1);
+			if(s.getType().equals(SeatType.ENTITY)) {
+				i = new ItemStack(Material.GRAY_CONCRETE, 1);
+			}
 		}
 		ItemMeta m = i.getItemMeta();
 		if(s.isOccupied()) {
@@ -75,6 +82,25 @@ public class InventoryManager {
 		m.getPersistentDataContainer().set(key, PersistentDataType.STRING, s.getBone());
 		List<String> lore = new ArrayList<>();
 		lore.add("§7Type: §e"+WordUtils.capitalize(s.getType().toString().toLowerCase()));
+		if(s.getType().equals(SeatType.ENTITY)) {
+			if(s.isOccupied()) {
+				lore.add("§7Entity: §e"+WordUtils.capitalize(s.getEntity().getType().name().toLowerCase().replace("_", " ")));
+				lore.add("");
+				lore.add("§cClick to dismount entity");
+			} else {
+				List<String> whitelist = v.getEntitySeatWhitelist();
+				/*
+				if(!whitelist.isEmpty()) {
+					lore.add("§7Allowed entities:");
+					for(String entry : whitelist) {
+						lore.add("§8- §e"+entry);
+					}
+				}
+				*/
+				lore.add("");
+				lore.add("§aClick to select entity to mount");
+			}
+		}
 		if(v.hasContainers()) {
 			Container c = v.getContainerHandler().getBySeat(s.getBone());
 			if(c != null) {

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -68,11 +69,11 @@ public class StateHandler {
 		if(state.hasSwitchParameter()) {
 			/*
 			//For debugging parameters
-			for(Player p : Bukkit.getOnlinePlayers()) {
-				p.sendMessage("§eState parameters");
-				for(Map.Entry<String, Parameter> entry : state.getSwitchParameter().getParameters().entrySet()) {
-					p.sendMessage("§a"+entry.getKey()+": §cmin: §e"+entry.getValue().getMin()+", max: §e"+entry.getValue().getMax()+" §7Current: §e"+vehicle.getParameterValue(entry.getKey()));
-				}
+			Player p = Bukkit.getPlayer("drefvelin");
+			p.sendMessage("switched to "+state.getType().name());
+			p.sendMessage("§eState parameters");
+			for(Map.Entry<String, Parameter> entry : state.getSwitchParameter().getParameters().entrySet()) {
+				p.sendMessage("§a"+entry.getKey()+": §cmin: §e"+entry.getValue().getMin()+", max: §e"+entry.getValue().getMax()+" §7Current: §e"+vehicle.getParameterValue(entry.getKey()));
 			}
 			*/
 			for(Map.Entry<String, Parameter> entry : state.getSwitchParameter().getParameters().entrySet()) {
@@ -134,11 +135,10 @@ public class StateHandler {
 		int maxZ = (int) Math.floor(box.getMaxZ());
 
 		double y = box.getMinY() + yOffset;
-		int yInt = (int) Math.floor(y);
 
 		for (int x = minX; x <= maxX; x++) {
 			for (int z = minZ; z <= maxZ; z++) {
-				blocks.add(world.getBlockAt(x, yInt, z));
+				blocks.add(world.getBlockAt(new Location(world, x, y, z)));
 			}
 		}
 

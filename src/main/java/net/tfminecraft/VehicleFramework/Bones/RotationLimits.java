@@ -1,6 +1,7 @@
 package net.tfminecraft.VehicleFramework.Bones;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.checkerframework.checker.units.qual.min;
 
 public class RotationLimits {
 
@@ -48,6 +49,8 @@ public class RotationLimits {
 
     public boolean withinYaw(float yaw) {
         if (!yawEnabled) return true;
+        if(yaw > 180) yaw -= 360; //Wrap around to make it easier to work with
+        if(yaw < -180) yaw += 360;
         return within(yaw, minYaw, maxYaw);
     }
 

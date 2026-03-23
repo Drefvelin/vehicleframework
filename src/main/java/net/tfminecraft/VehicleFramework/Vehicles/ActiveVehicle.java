@@ -126,6 +126,9 @@ public class ActiveVehicle {
 
 	//Containers
 	protected ContainerHandler containerHandler;
+
+	//Entity seat whitelist
+	protected List<String> entitySeatWhitelist = new ArrayList<>();
 	
 	protected List<Player> nearby = new ArrayList<>();
 	
@@ -156,6 +159,7 @@ public class ActiveVehicle {
 		if(stored.getUtilityHandler() != null) utilityHandler = new UtilityHandler(m, stored.getUtilityHandler());
 		
 		deathData = stored.getDeathData();
+		entitySeatWhitelist = stored.getEntitySeatWhitelist();
 		sb = new ScoreboardController(this);
 		initialize(i);
 	}
@@ -291,6 +295,10 @@ public class ActiveVehicle {
 	public ContainerHandler getContainerHandler() {
 		return containerHandler;
 	}
+
+	public List<String> getEntitySeatWhitelist() {
+		return entitySeatWhitelist;
+	}
 	
 	//Model
 	public boolean changeSkin(String id) {
@@ -366,9 +374,17 @@ public class ActiveVehicle {
 
 	private void initializePassengers(List<PassengerData> passengers) {
 		for(PassengerData passenger : passengers) {
-			Player p = Bukkit.getPlayerExact(passenger.getPassenger());
-			if(p == null || !p.isOnline()) continue;
-			vehicleManager.mount(p, passenger.getSeat(), this);
+			if(passenger.isEntity()) {
+				Entity e = Bukkit.getEntity(passenger.getEntityUUID());
+				if(e == null || e.isDead()) continue;
+				Seat s = getSeat(passenger.getSeat());
+				if(s == null || s.isOccupied()) continue;
+				addPassenger(e, s);
+			} else {
+				Player p = Bukkit.getPlayerExact(passenger.getPassenger());
+				if(p == null || !p.isOnline()) continue;
+				vehicleManager.mount(p, passenger.getSeat(), this);
+			}
 		}
 	}
 

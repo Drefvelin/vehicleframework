@@ -199,14 +199,21 @@ public class Database {
 			if(json.containsKey("passengers")) {
 				JSONObject passengersObject = (JSONObject) json.get("passengers");
 
-				// Iterate over the components (key is the component type, value is the component data)
 				for (Object passengerKey : passengersObject.keySet()) {
 					String seatId = (String) passengerKey;
 					JSONObject passengerData = (JSONObject) passengersObject.get(seatId);
 
-					// Extract properties
-					String player = (String) passengerData.get("player");
-					passengers.add(new PassengerData(player, seatId));
+					if (passengerData.containsKey("entity")) {
+						try {
+							UUID entityUUID = UUID.fromString((String) passengerData.get("entity"));
+							passengers.add(new PassengerData(entityUUID, seatId));
+						} catch (IllegalArgumentException ex) {
+							VFLogger.log("Invalid entity UUID in passenger data for seat "+seatId);
+						}
+					} else {
+						String player = (String) passengerData.get("player");
+						passengers.add(new PassengerData(player, seatId));
+					}
 				}
 			}
 			List<JsonObject> containers = loadContainers(json);
@@ -367,12 +374,14 @@ public class Database {
 			// --- PASSENGERS ---
 			JSONObject passengersObject = new JSONObject();
 			for (Entity e : v.getSeatHandler().getPassengers()) {
-				if(!(e instanceof Player)) continue;
-				Player p = (Player) e;
-				Seat seat = v.getSeat(p);
+				Seat seat = v.getSeat(e);
 				if(seat == null) continue;
 				JSONObject passengerData = new JSONObject();
-				passengerData.put("player", p.getName());
+				if (e instanceof Player) {
+					passengerData.put("player", ((Player) e).getName());
+				} else {
+					passengerData.put("entity", e.getUniqueId().toString());
+				}
 				passengersObject.put(seat.getBone(), passengerData);
 			}
 			vehicleData.put("passengers", passengersObject);
@@ -589,12 +598,14 @@ public class Database {
 			// --- PASSENGERS ---
 			JSONObject passengersObject = new JSONObject();
 			for (Entity e : v.getSeatHandler().getPassengers()) {
-				if (!(e instanceof Player)) continue;
-				Player p = (Player) e;
-				Seat seat = v.getSeat(p);
+				Seat seat = v.getSeat(e);
 				if (seat == null) continue;
 				JSONObject passengerData = new JSONObject();
-				passengerData.put("player", p.getName());
+				if (e instanceof Player) {
+					passengerData.put("player", ((Player) e).getName());
+				} else {
+					passengerData.put("entity", e.getUniqueId().toString());
+				}
 				passengersObject.put(seat.getBone(), passengerData);
 			}
 			vehicleData.put("passengers", passengersObject);

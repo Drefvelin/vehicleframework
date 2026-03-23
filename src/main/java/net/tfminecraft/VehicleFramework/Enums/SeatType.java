@@ -7,4 +7,5 @@ public enum SeatType {
 	GUNNER,
 	HARNESS,
 	TOWING,
+	ENTITY,
 }

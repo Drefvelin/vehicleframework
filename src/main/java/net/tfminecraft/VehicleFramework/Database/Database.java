@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -230,6 +231,34 @@ public class Database {
 			ex.printStackTrace();
 		}
     	return null;
+	}
+
+	public Map<String, Integer> getStoredVehicleCountsByOwner(String owner) {
+		Map<String, Integer> stored = new HashMap<>();
+		if(owner == null || owner.isEmpty()) return stored;
+
+		File folder = new File("plugins/VehicleFramework/data/vehicles");
+		if(!folder.exists() || !folder.isDirectory()) return stored;
+
+		File[] files = folder.listFiles();
+		if(files == null) return stored;
+
+		for(File file : files) {
+			if(file == null || !file.isFile() || !file.getName().toLowerCase().endsWith(".json")) continue;
+			try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
+				JSONObject vehicleJson = (JSONObject) parser.parse(reader);
+				String fileOwner = vehicleJson.containsKey("owner") ? (String) vehicleJson.get("owner") : "none";
+				if(fileOwner == null || !fileOwner.equalsIgnoreCase(owner)) continue;
+
+				String id = (String) vehicleJson.get("id");
+				if(id == null || id.isEmpty()) continue;
+				stored.put(id, stored.getOrDefault(id, 0) + 1);
+			} catch (Exception ex) {
+				VFLogger.log("Failed to read stored vehicle file " + file.getName());
+			}
+		}
+
+		return stored;
 	}
 
 	public List<JsonObject> loadContainers(JSONObject vehicleJson) {

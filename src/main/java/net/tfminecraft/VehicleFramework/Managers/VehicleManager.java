@@ -324,6 +324,24 @@ public class VehicleManager implements Listener{
 	    if(v.isPassenger(p, true)) {
 	    	return;
 	    }
+	    // If whitelist mode is enabled, only owner or whitelisted players can open seat selection.
+	    if(v.getOwnerData().isWhiteListed() && !v.getOwnerData().getOwner().equalsIgnoreCase("none")) {
+	    	String ownerEntry = v.getOwnerData().getOwner();
+	    	String playerEntry = "player_" + p.getName();
+	    	boolean isOwner = ownerEntry != null && ownerEntry.equalsIgnoreCase(playerEntry);
+	    	boolean isWhitelisted = false;
+	    	for(String entry : v.getOwnerData().getWhiteList()) {
+	    		if(entry == null) continue;
+	    		if(entry.equalsIgnoreCase(playerEntry) || entry.equalsIgnoreCase(p.getName())) {
+	    			isWhitelisted = true;
+	    			break;
+	    		}
+	    	}
+	    	if(!(isOwner || isWhitelisted)) {
+	    		p.sendMessage("§cYou are not on this vehicle's whitelist.");
+	    		return;
+	    	}
+	    }
 	    // Check if this player was ejected by the owner and is still on cooldown
 	    if(ejectCooldown.containsKey(p)) {
 	    	if(ejectCooldown.get(p) > System.currentTimeMillis()) {
@@ -946,5 +964,26 @@ public class VehicleManager implements Listener{
 		} else {
 			v.getEntity().remove();
 		}
+	}
+
+	public Map<Vehicle, Integer> getVehiclesByOwner(String owner) {
+		Map<Vehicle, Integer> owned = new HashMap<>();
+		for(Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
+			ActiveVehicle v = entry.getValue();
+			if(v.getOwnerData().getOwner().equalsIgnoreCase(owner)) {
+				Vehicle base = VehicleLoader.getByString(v.getId());
+				if(base == null) continue;
+				owned.put(base, owned.getOrDefault(base, 0) + 1);
+			}
+		}
+
+		Map<String, Integer> stored = db.getStoredVehicleCountsByOwner(owner);
+		for(Map.Entry<String, Integer> entry : stored.entrySet()) {
+			Vehicle base = VehicleLoader.getByString(entry.getKey());
+			if(base == null) continue;
+			owned.put(base, owned.getOrDefault(base, 0) + entry.getValue());
+		}
+
+		return owned;
 	}
 }

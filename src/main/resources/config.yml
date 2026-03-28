@@ -39,6 +39,9 @@ repair-item: v.iron_shovel
 skin-item: v.bucket
 destroy-item: v.blaze_rod
 
+##Can players set up whitelists for their vehicle
+allow-whitelist: true
+
 ##Set this to the ID of the MythicMob, in the free pack this is VehicleFrameworkDummy
 ##You can leave it as "none" if you do not have MythicMobs on your server
 mythicmob: "none"

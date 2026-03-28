@@ -16,12 +16,12 @@ import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 
-import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Bones.BoneRotator;
 import net.tfminecraft.VehicleFramework.Bones.ConvertedAngle;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Data.DeathData;
 import net.tfminecraft.VehicleFramework.Data.DeathOverride;
+import net.tfminecraft.VehicleFramework.Data.OwnerData;
 import net.tfminecraft.VehicleFramework.Database.IncompleteComponent;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Database.IncompleteWeapon;
@@ -30,36 +30,37 @@ import net.tfminecraft.VehicleFramework.Database.RotationData;
 import net.tfminecraft.VehicleFramework.Effects.CustomEffect;
 import net.tfminecraft.VehicleFramework.Enums.Animation;
 import net.tfminecraft.VehicleFramework.Enums.Component;
+import net.tfminecraft.VehicleFramework.Enums.CustomAction;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VehicleDeath;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
-import net.tfminecraft.VehicleFramework.Enums.CustomAction;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Util.ConditionChecker;
+import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
-import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
-import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
 import net.tfminecraft.VehicleFramework.Vehicles.Controller.ScoreboardController;
 import net.tfminecraft.VehicleFramework.Vehicles.Controller.VehicleMovementController;
 import net.tfminecraft.VehicleFramework.Vehicles.Fuel.Fuel;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.BehaviourHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.ComponentHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.ContainerHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.DeathHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.EffectHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SeatHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SkinHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.StateHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TrainHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.UtilityHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.WeaponHandler;
-import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
-import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.ContainerHandler;
-import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleState;
 import net.tfminecraft.VehicleFramework.Vehicles.Util.AccessPanel;
@@ -88,6 +89,7 @@ public class ActiveVehicle {
 	protected boolean destroyed;
 	
 	//Data
+	protected final OwnerData ownerData;
 	protected List<DeathData> deathData = new ArrayList<>();
 	protected AccessPanel panel = new AccessPanel();
 	
@@ -145,6 +147,7 @@ public class ActiveVehicle {
 		uuid = UUID.randomUUID().toString();
 		destroyed = false;
 		initialized = false;
+		ownerData = new OwnerData();
 		
 		//handlers
 		behaviourHandler = new BehaviourHandler(this, e, m, stored.getBehaviourHandler());
@@ -208,6 +211,10 @@ public class ActiveVehicle {
 	
 	public AccessPanel getAccessPanel() {
 		return panel;
+	}
+
+	public OwnerData getOwnerData() {
+		return ownerData;
 	}
 	
 	public boolean hasParent() {
@@ -345,6 +352,9 @@ public class ActiveVehicle {
 		initializeContainers(inc.getContainers());
 		name = inc.getName();
 		uuid = inc.getUUID();
+		ownerData.setOwner(inc.getOwner());
+		ownerData.setWhiteListed(inc.isWhitelisted());
+		ownerData.setWhiteList(inc.getWhitelist());
 		setFuel(inc.getFuel());
 		if(!changeSkin(inc.getSkin(), true)) {
 			VFLogger.log("could not apply skin "+inc.getSkin()+" to "+id);

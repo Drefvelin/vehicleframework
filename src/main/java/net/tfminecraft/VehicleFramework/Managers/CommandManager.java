@@ -18,18 +18,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import me.Plugins.TLibs.TLibs;
 import me.Plugins.TLibs.Enums.NSEW;
 import me.Plugins.TLibs.Objects.API.SubAPI.ItemCreator;
+import me.Plugins.TLibs.TLibs;
 import me.Plugins.TLibs.Utils.LocationUtil;
-import net.tfminecraft.VehicleFramework.VFLogger;
-import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
 import net.tfminecraft.VehicleFramework.Permissions.Permissions;
 import net.tfminecraft.VehicleFramework.Util.EnumDisplayConverter;
 import net.tfminecraft.VehicleFramework.Util.LocationChecker;
+import net.tfminecraft.VehicleFramework.VFLogger;
+import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 
@@ -61,16 +61,8 @@ public class CommandManager implements Listener, CommandExecutor{
 				p.sendMessage("§c======================================");
 				return true;
 			}
-			if(Permissions.canSpawn(sender) == false) {
+			if(!Permissions.canSpawn(sender)) {
 				sender.sendMessage("§cYou do not have access to this command!");
-				return true;
-			}
-			if(args[0].equalsIgnoreCase("reload") && args.length == 1) {
-				Player p = null;
-				if(sender instanceof Player) p = (Player) sender;
-				if(p != null) VFLogger.message(p, "Reloading...");
-				VehicleFramework.getInstance().reload();
-				if(p != null) VFLogger.message(p, "Reload complete!");
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("ammo") && args.length == 1) {
@@ -113,6 +105,27 @@ public class CommandManager implements Listener, CommandExecutor{
 				Player p = (Player) sender;
 				String vehicle = args[1];
 				VehicleFramework.getVehicleManager().spawn(p.getLocation(), vehicle);
+				return true;
+			}
+			if(!Permissions.isAdmin(sender)) {
+				sender.sendMessage("§cYou do not have access to this command!");
+				return true;
+			}
+			if(args[0].equalsIgnoreCase("takeover") && args.length == 1) {
+				if(!(sender instanceof Player)) {
+					sender.sendMessage("§cOnly players can use this command.");
+					return true;
+				}
+				Player p = (Player) sender;
+				VehicleFramework.getVehicleManager().startTakeover(p);
+				return true;
+			}
+			if(args[0].equalsIgnoreCase("reload") && args.length == 1) {
+				Player p = null;
+				if(sender instanceof Player) p = (Player) sender;
+				if(p != null) VFLogger.message(p, "Reloading...");
+				VehicleFramework.getInstance().reload();
+				if(p != null) VFLogger.message(p, "Reload complete!");
 				return true;
 			}
 			if(args[0].equalsIgnoreCase("tracktest") && args.length == 1) {

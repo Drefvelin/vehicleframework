@@ -119,6 +119,12 @@ public class Database {
 			String id = (String) json.get("id");
 			String name = (String) json.get("name");
 			String skin = (String) json.get("skin");
+			String owner = json.containsKey("owner") ? (String) json.get("owner") : "none";
+			boolean whitelisted = json.containsKey("whitelisted") && (Boolean) json.get("whitelisted");
+			List<String> whitelist = new ArrayList<>();
+			if (json.containsKey("whitelist")) {
+				for (Object entry : (JSONArray) json.get("whitelist")) whitelist.add((String) entry);
+			}
 
 			int throttle = 0;
 			int gear = 1;
@@ -219,7 +225,7 @@ public class Database {
 			List<JsonObject> containers = loadContainers(json);
 	        // Create and return IncompleteVehicle with loaded components
 	        file.delete();
-	        return new IncompleteVehicle(uuid, id, name, skin, componentsList, weapons, rotations, passengers, containers, throttle, gear, yaw, fuel);
+	        return new IncompleteVehicle(uuid, id, name, skin, componentsList, weapons, rotations, passengers, containers, throttle, gear, yaw, fuel, owner, whitelisted, whitelist);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -370,6 +376,12 @@ public class Database {
 			vehicleData.put("name", v.getName());
 			vehicleData.put("yaw", v.getEntity().getLocation().getYaw());
 			vehicleData.put("skin", v.getSkinHandler().getCurrentSkin().getId());
+			// --- OWNERSHIP ---
+			vehicleData.put("owner", v.getOwnerData().getOwner());
+			vehicleData.put("whitelisted", v.getOwnerData().isWhiteListed());
+			JSONArray whitelistArray = new JSONArray();
+			for (String entry : v.getOwnerData().getWhiteList()) whitelistArray.add(entry);
+			vehicleData.put("whitelist", whitelistArray);
 			if(v.hasContainers()) saveContainers(new ArrayList<>(v.getContainerHandler().getContainers().values()), vehicleData);
 			// --- PASSENGERS ---
 			JSONObject passengersObject = new JSONObject();
@@ -590,6 +602,12 @@ public class Database {
 			vehicleData.put("name", v.getName());
 			vehicleData.put("yaw", v.getEntity().getLocation().getYaw());
 			vehicleData.put("skin", v.getSkinHandler().getCurrentSkin().getId());
+			// --- OWNERSHIP ---
+			vehicleData.put("owner", v.getOwnerData().getOwner());
+			vehicleData.put("whitelisted", v.getOwnerData().isWhiteListed());
+			JSONArray backupWhitelistArray = new JSONArray();
+			for (String entry : v.getOwnerData().getWhiteList()) backupWhitelistArray.add(entry);
+			vehicleData.put("whitelist", backupWhitelistArray);
 
 			if (v.hasContainers()) {
 				saveContainers(new ArrayList<>(v.getContainerHandler().getContainers().values()), vehicleData);

@@ -21,11 +21,14 @@ public class TabCompletion implements TabCompleter {
         if (cmd.getName().equalsIgnoreCase("vf")) {
             if (args.length == 1) {
                 completions.add("keybinds");
-                if (Permissions.canSpawn(sender)) {
+                if(Permissions.canSpawn(sender)) {
                     completions.add("spawn");
-                    completions.add("reload");
                     completions.add("kill");
                     completions.add("ammo");
+                }
+				if (Permissions.isAdmin(sender)) {
+					completions.add("takeover");
+                    completions.add("reload");
                 }
                 return completions;
             }

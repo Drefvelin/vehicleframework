@@ -39,11 +39,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
-import me.Plugins.TLibs.TLibs;
+
+import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.mobs.ActiveMob;
 import me.Plugins.TLibs.Objects.API.ItemAPI;
 import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
-import net.tfminecraft.VehicleFramework.VFLogger;
-import net.tfminecraft.VehicleFramework.VehicleFramework;
+import me.Plugins.TLibs.TLibs;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Data.NamingData;
 import net.tfminecraft.VehicleFramework.Database.Database;
@@ -59,14 +60,14 @@ import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
 import net.tfminecraft.VehicleFramework.Managers.Spawner.VehicleSpawner;
 import net.tfminecraft.VehicleFramework.Protocol.PacketConverter;
 import net.tfminecraft.VehicleFramework.Util.Damager;
+import net.tfminecraft.VehicleFramework.VFLogger;
+import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
-import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
-import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
-import io.lumine.mythic.bukkit.MythicBukkit;
-import io.lumine.mythic.core.mobs.ActiveMob;
+import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
 
 public class VehicleManager implements Listener{
 	private ItemAPI api = TLibs.getItemAPI();
@@ -85,6 +86,18 @@ public class VehicleManager implements Listener{
 	private HashMap<Player, ActiveVehicle> tempVehicle = new HashMap<>();
 	private HashMap<Player, ActiveVehicle> activeVehicle = new HashMap<>();
 	private HashMap<Player, NamingData> naming = new HashMap<>();
+
+	// Ownership – whitelist-add state (player typed name is pending)
+	private HashMap<Player, ActiveVehicle> addingToWhitelist = new HashMap<>();
+	private HashMap<Player, Integer> addingToWhitelistTimeout = new HashMap<>();
+
+	// Owner-eject cooldown: player cannot re-enter any vehicle until timestamp expires
+	private HashMap<Player, Long> ejectCooldown = new HashMap<>();
+
+	// Admin takeover: player is waiting to click a vehicle and claim ownership
+	private HashMap<Player, Integer> pendingTakeover = new HashMap<>();
+
+	private OwnershipGUIManager ownershipGUI = new OwnershipGUIManager();
 	
 	private HashMap<Player, ActiveVehicle> tow = new HashMap<>();
 
@@ -311,6 +324,16 @@ public class VehicleManager implements Listener{
 	    if(v.isPassenger(p, true)) {
 	    	return;
 	    }
+	    // Check if this player was ejected by the owner and is still on cooldown
+	    if(ejectCooldown.containsKey(p)) {
+	    	if(ejectCooldown.get(p) > System.currentTimeMillis()) {
+	    		long remaining = (ejectCooldown.get(p) - System.currentTimeMillis() + 999) / 1000;
+	    		p.sendMessage("§cYou cannot enter this vehicle for §e" + remaining + "§c more seconds.");
+	    		return;
+	    	} else {
+	    		ejectCooldown.remove(p);
+	    	}
+	    }
 	    // Clear any pending entity mount when opening the seat menu again
 	    pendingEntityVehicle.remove(p);
 	    pendingEntitySeat.remove(p);
@@ -359,6 +382,28 @@ public class VehicleManager implements Listener{
 			}
 		}
 		return false;
+	}
+
+	public void startTakeover(Player p) {
+		cancelTakeover(p);
+		int taskId = new BukkitRunnable() {
+			@Override
+			public void run() {
+				if(pendingTakeover.containsKey(p)) {
+					pendingTakeover.remove(p);
+					p.sendMessage("\u00a7cTakeover expired.");
+				}
+			}
+		}.runTaskLater(VehicleFramework.plugin, 300L).getTaskId();
+		pendingTakeover.put(p, taskId);
+		p.sendMessage("\u00a7aRight-click a vehicle within 15 seconds to claim ownership.");
+	}
+
+	private void cancelTakeover(Player p) {
+		if(pendingTakeover.containsKey(p)) {
+			VehicleFramework.plugin.getServer().getScheduler().cancelTask(pendingTakeover.get(p));
+			pendingTakeover.remove(p);
+		}
 	}
 
 	public void towSelect(Player p, ActiveVehicle v) {
@@ -419,6 +464,14 @@ public class VehicleManager implements Listener{
 		}
 		if(!vehicles.containsKey(entity)) return;
 		ActiveVehicle v = vehicles.get(entity);
+		// Admin takeover
+		if(pendingTakeover.containsKey(p)) {
+			cancelTakeover(p);
+			v.getOwnerData().setOwner("player_" + p.getName());
+			e.setCancelled(true);
+			p.sendMessage("\u00a7aYou are now the owner of \u00a7e" + v.getName() + "\u00a7a.");
+			return;
+		}
 		if(cooldown.containsKey(p)) {
 			if(cooldown.get(p) > System.currentTimeMillis()) {
 				return;
@@ -428,6 +481,10 @@ public class VehicleManager implements Listener{
 		//Containers
 		if(v.hasContainers()) {
 			if(v.getContainerHandler().open(p)) return;
+		}
+		//Set Ownership
+		if(v.getOwnerData().getOwner().equalsIgnoreCase("none")) {
+			v.getOwnerData().setOwner("player_" + p.getName());
 		}
 		//Destroy
 		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.destroyItem)) {
@@ -511,10 +568,103 @@ public class VehicleManager implements Listener{
 		seatInteract(p, v);
 	}
 	@EventHandler
+	public void ownershipClick(InventoryClickEvent e) {
+		Player p = (Player) e.getWhoClicked();
+		if(!(e.getView().getTopInventory().getHolder() instanceof VFInventoryHolder)) return;
+		VFInventoryHolder h = (VFInventoryHolder) e.getView().getTopInventory().getHolder();
+		if(!h.getType().equals(VFGUI.OWNERSHIP)) return;
+		e.setCancelled(true);
+		if(!h.getVehicle().isPresent()) return;
+		ActiveVehicle v = h.getVehicle().get();
+		if(v.isDestroyed()) { p.closeInventory(); return; }
+		ItemStack item = e.getCurrentItem();
+		if(item == null || item.getType().equals(Material.GRAY_STAINED_GLASS_PANE)) return;
+		switch(e.getSlot()) {
+			case 0: // Toggle whitelisting
+				v.getOwnerData().setWhiteListed(!v.getOwnerData().isWhiteListed());
+				ownershipGUI.ownershipGui(e.getView().getTopInventory(), p, v, false);
+				break;
+			case 2: // Add to whitelist
+				p.closeInventory();
+				addingToWhitelist.put(p, v);
+				addingToWhitelistTimeout.put(p, 0);
+				p.sendMessage("§aType the player name in chat to add them to the whitelist. Type §ccancel §ato abort.");
+				break;
+			case 4: // View whitelist
+				p.closeInventory();
+				ownershipGUI.whitelistGui(null, p, v, true);
+				break;
+			case 6: // Remove ownership
+				v.getOwnerData().setOwner("none");
+				v.getOwnerData().setWhiteListed(false);
+				p.closeInventory();
+				p.sendMessage("§7Ownership of §f" + v.getName() + "§7 has been removed.");
+				break;
+			default:
+				break;
+		}
+	}
+
+	@EventHandler
+	public void whitelistClick(InventoryClickEvent e) {
+		Player p = (Player) e.getWhoClicked();
+		if(!(e.getView().getTopInventory().getHolder() instanceof VFInventoryHolder)) return;
+		VFInventoryHolder h = (VFInventoryHolder) e.getView().getTopInventory().getHolder();
+		if(!h.getType().equals(VFGUI.WHITELIST)) return;
+		e.setCancelled(true);
+		if(!h.getVehicle().isPresent()) return;
+		ActiveVehicle v = h.getVehicle().get();
+		if(v.isDestroyed()) { p.closeInventory(); return; }
+		ItemStack item = e.getCurrentItem();
+		if(item == null || item.getType().equals(Material.GRAY_STAINED_GLASS_PANE)) return;
+		if(e.getSlot() == 26) {
+			// Back button
+			p.closeInventory();
+			ownershipGUI.ownershipGui(null, p, v, true);
+			return;
+		}
+		// Player head – remove from whitelist
+		if(item.getType().equals(Material.PLAYER_HEAD)) {
+			NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_whitelist_entry");
+			String entry = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+			if(entry != null) {
+				v.getOwnerData().removeFromWhiteList(entry);
+				p.sendMessage("§eRemoved §f" + (entry.startsWith("player_") ? entry.substring(7) : entry) + "§e from the whitelist.");
+				ownershipGUI.whitelistGui(e.getView().getTopInventory(), p, v, false);
+			}
+		}
+	}
+
+	@EventHandler
 	public void nameVehicle(AsyncPlayerChatEvent e) {
 		Player p = e.getPlayer();
-		if(!naming.containsKey(p)) return;
+		if(!naming.containsKey(p) && !addingToWhitelist.containsKey(p)) return;
 		e.setCancelled(true);
+		// Whitelist add
+		if(addingToWhitelist.containsKey(p)) {
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					ActiveVehicle v = addingToWhitelist.get(p);
+					addingToWhitelist.remove(p);
+					addingToWhitelistTimeout.remove(p);
+					if(e.getMessage().equalsIgnoreCase("cancel")) {
+						p.sendMessage("§cCancelled.");
+						return;
+					}
+					String playerName = e.getMessage().trim();
+					String entry = "player_" + playerName;
+					if(v.getOwnerData().getWhiteList().contains(entry)) {
+						p.sendMessage("§c" + playerName + " is already on the whitelist.");
+						return;
+					}
+					v.getOwnerData().addToWhiteList(entry);
+					p.sendMessage("§aAdded §f" + playerName + "§a to the whitelist.");
+				}
+			}.runTask(VehicleFramework.plugin);
+			return;
+		}
+		if(!naming.containsKey(p)) return;
 		new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -532,6 +682,10 @@ public class VehicleManager implements Listener{
 		Player p = e.getPlayer();
 		pendingEntityVehicle.remove(p);
 		pendingEntitySeat.remove(p);
+		addingToWhitelist.remove(p);
+		addingToWhitelistTimeout.remove(p);
+		ejectCooldown.remove(p);
+		cancelTakeover(p);
 		for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
         	ActiveVehicle v = entry.getValue();
             if(v.isPassenger(p, false)) {
@@ -654,6 +808,14 @@ public class VehicleManager implements Listener{
 	    	p.sendMessage("Vehicle is destroyed");
 	    	return;
 	    }
+		if(e.getSlot() == 25) {
+			// Ownership settings – only owner can open this
+			if(v.getOwnerData().getOwner().equalsIgnoreCase("player_" + p.getName())) {
+				p.closeInventory();
+				ownershipGUI.ownershipGui(null, p, v, true);
+			}
+			return;
+		}
 		if(e.getSlot() == 26) {
 			v.dismountPassenger(p, false);
 			return;
@@ -683,6 +845,20 @@ public class VehicleManager implements Listener{
 			return;
 		}
 		if(i.getType().equals(Material.YELLOW_CONCRETE)) {
+			// Owner can eject the player occupying this seat
+			if(seat != null && !seat.getType().equals(SeatType.ENTITY)
+					&& v.getOwnerData().getOwner().equalsIgnoreCase("player_" + p.getName())) {
+				Entity occupant = seat.getEntity();
+				if(occupant instanceof Player) {
+					Player ejected = (Player) occupant;
+					v.dismountPassenger(ejected, false);
+					ejectCooldown.put(ejected, System.currentTimeMillis() + 60000L);
+					ejected.sendMessage("§cYou have been removed from the vehicle by the owner and cannot re-enter for 60 seconds.");
+					p.sendMessage("§aEjected §e" + ejected.getName() + "§a from the vehicle.");
+					inv.seatSelection(p.getOpenInventory().getTopInventory(), p, v, false);
+					return;
+				}
+			}
 			p.sendMessage("§cSeat is occupied");
 			return;
 		}

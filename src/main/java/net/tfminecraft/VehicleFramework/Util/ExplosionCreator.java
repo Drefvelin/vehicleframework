@@ -14,7 +14,6 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.Slab;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
@@ -22,11 +21,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Database.LogWriter;
 import net.tfminecraft.VehicleFramework.Events.VFEntityDamageEvent;
 import net.tfminecraft.VehicleFramework.Events.VFExplosionEvent;
+import net.tfminecraft.VehicleFramework.VehicleFramework;
 
 public class ExplosionCreator {
 
@@ -86,13 +85,11 @@ public class ExplosionCreator {
 							LogWriter.logBreak(cause, block);
 							block.setType(Material.AIR);
 
-							// Still spawn debris optionally
 							double chance = 0.7; // soil is lightweight, lots of debris
 							if (random.nextDouble() < chance) {
 								spawnDebris(loc, explosionCenter, debrisData, originalType, cause, random);
 							}
 						} else {
-							// ⛏ Hard block (stone, ores, etc.) → chance-based destruction
 							float blastResistance = originalData.getMaterial().getBlastResistance();
 							double chance = 1.0 - (blastResistance / 20.0);
 							chance = Math.max(0.05, Math.min(chance, 0.6)); // stronger blocks: lower removal chance

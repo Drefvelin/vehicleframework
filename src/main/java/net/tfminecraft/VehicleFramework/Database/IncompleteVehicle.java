@@ -2,7 +2,6 @@ package net.tfminecraft.VehicleFramework.Database;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import com.google.gson.JsonObject;
 
@@ -27,7 +26,11 @@ public class IncompleteVehicle {
 
 	private List<JsonObject> containers = new ArrayList<>();
 
-	public IncompleteVehicle(String uuid, String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, List<JsonObject> containers, int throttle, int gear, float yaw, double fuel) {
+	private String owner = "none";
+	private boolean whitelisted = false;
+	private List<String> whitelist = new ArrayList<>();
+
+	public IncompleteVehicle(String uuid, String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, List<JsonObject> containers, int throttle, int gear, float yaw, double fuel, String owner, boolean whitelisted, List<String> whitelist) {
 		this.uuid = uuid;
 		this.id = id;
 		this.name = name;
@@ -41,6 +44,9 @@ public class IncompleteVehicle {
 		this.yaw = yaw;
 		this.fuel = fuel;
 		this.containers = containers;
+		this.owner = owner;
+		this.whitelisted = whitelisted;
+		this.whitelist = whitelist;
 	}
 
 	public double getFuel() {
@@ -92,5 +98,17 @@ public class IncompleteVehicle {
 
 	public List<JsonObject> getContainers() {
 		return containers;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public boolean isWhitelisted() {
+		return whitelisted;
+	}
+
+	public List<String> getWhitelist() {
+		return whitelist;
 	}
 }

@@ -32,6 +32,9 @@ public class Cache {
 	public static boolean enableLogging;
 	public static String mythicMob;
 
+	public static boolean allowWhitelist;
+	public static boolean whitelistedByDefault;
+
 	//Plugins
 	public static boolean coreProtect = false;
 	

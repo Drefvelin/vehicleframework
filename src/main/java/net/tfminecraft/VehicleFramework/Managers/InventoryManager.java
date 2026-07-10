@@ -15,10 +15,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
+import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
@@ -33,6 +33,8 @@ import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 
 public class InventoryManager {
+	private OwnershipGUIManager ownershipGUI = new OwnershipGUIManager();
+
 	//Seat Selector
 	public void seatSelection(Inventory i, Player p, ActiveVehicle v, boolean open) {
 		if(open) {
@@ -40,8 +42,14 @@ public class InventoryManager {
 		}
 		int x = 0;
 		for(Seat seat : v.getSeatHandler().getSeats()) {
+			if(x == 25) x++; // slot 25 is reserved for ownership settings
 			i.setItem(x, getSeatItem(v, seat));
 			x++;
+		}
+		// Slot 25 – ownership settings button (owner only)
+		if(v.getOwnerData().getOwner().equalsIgnoreCase("player_" + p.getName())) {
+			
+			i.setItem(25, ownershipGUI.createOwnershipButton());
 		}
 		if(v.isPassenger(p, false)) i.setItem(26, createDismountButton());
 		int slotn = 0;

@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -119,6 +120,12 @@ public class Database {
 			String id = (String) json.get("id");
 			String name = (String) json.get("name");
 			String skin = (String) json.get("skin");
+			String owner = json.containsKey("owner") ? (String) json.get("owner") : "none";
+			boolean whitelisted = json.containsKey("whitelisted") && (Boolean) json.get("whitelisted");
+			List<String> whitelist = new ArrayList<>();
+			if (json.containsKey("whitelist")) {
+				for (Object entry : (JSONArray) json.get("whitelist")) whitelist.add((String) entry);
+			}
 
 			int throttle = 0;
 			int gear = 1;
@@ -219,11 +226,39 @@ public class Database {
 			List<JsonObject> containers = loadContainers(json);
 	        // Create and return IncompleteVehicle with loaded components
 	        file.delete();
-	        return new IncompleteVehicle(uuid, id, name, skin, componentsList, weapons, rotations, passengers, containers, throttle, gear, yaw, fuel);
+	        return new IncompleteVehicle(uuid, id, name, skin, componentsList, weapons, rotations, passengers, containers, throttle, gear, yaw, fuel, owner, whitelisted, whitelist);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
     	return null;
+	}
+
+	public Map<String, Integer> getStoredVehicleCountsByOwner(String owner) {
+		Map<String, Integer> stored = new HashMap<>();
+		if(owner == null || owner.isEmpty()) return stored;
+
+		File folder = new File("plugins/VehicleFramework/data/vehicles");
+		if(!folder.exists() || !folder.isDirectory()) return stored;
+
+		File[] files = folder.listFiles();
+		if(files == null) return stored;
+
+		for(File file : files) {
+			if(file == null || !file.isFile() || !file.getName().toLowerCase().endsWith(".json")) continue;
+			try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
+				JSONObject vehicleJson = (JSONObject) parser.parse(reader);
+				String fileOwner = vehicleJson.containsKey("owner") ? (String) vehicleJson.get("owner") : "none";
+				if(fileOwner == null || !fileOwner.equalsIgnoreCase(owner)) continue;
+
+				String id = (String) vehicleJson.get("id");
+				if(id == null || id.isEmpty()) continue;
+				stored.put(id, stored.getOrDefault(id, 0) + 1);
+			} catch (Exception ex) {
+				VFLogger.log("Failed to read stored vehicle file " + file.getName());
+			}
+		}
+
+		return stored;
 	}
 
 	public List<JsonObject> loadContainers(JSONObject vehicleJson) {
@@ -370,6 +405,12 @@ public class Database {
 			vehicleData.put("name", v.getName());
 			vehicleData.put("yaw", v.getEntity().getLocation().getYaw());
 			vehicleData.put("skin", v.getSkinHandler().getCurrentSkin().getId());
+			// --- OWNERSHIP ---
+			vehicleData.put("owner", v.getOwnerData().getOwner());
+			vehicleData.put("whitelisted", v.getOwnerData().isWhiteListed());
+			JSONArray whitelistArray = new JSONArray();
+			for (String entry : v.getOwnerData().getWhiteList()) whitelistArray.add(entry);
+			vehicleData.put("whitelist", whitelistArray);
 			if(v.hasContainers()) saveContainers(new ArrayList<>(v.getContainerHandler().getContainers().values()), vehicleData);
 			// --- PASSENGERS ---
 			JSONObject passengersObject = new JSONObject();
@@ -590,6 +631,12 @@ public class Database {
 			vehicleData.put("name", v.getName());
 			vehicleData.put("yaw", v.getEntity().getLocation().getYaw());
 			vehicleData.put("skin", v.getSkinHandler().getCurrentSkin().getId());
+			// --- OWNERSHIP ---
+			vehicleData.put("owner", v.getOwnerData().getOwner());
+			vehicleData.put("whitelisted", v.getOwnerData().isWhiteListed());
+			JSONArray backupWhitelistArray = new JSONArray();
+			for (String entry : v.getOwnerData().getWhiteList()) backupWhitelistArray.add(entry);
+			vehicleData.put("whitelist", backupWhitelistArray);
 
 			if (v.hasContainers()) {
 				saveContainers(new ArrayList<>(v.getContainerHandler().getContainers().values()), vehicleData);

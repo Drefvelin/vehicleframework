@@ -8,8 +8,8 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
+import net.tfminecraft.VehicleFramework.VFLogger;
 
 public class ConfigLoader {
 
@@ -72,5 +72,7 @@ public class ConfigLoader {
 		Cache.destroyItem = config.getString("destroy-item", "v.stone_axe");
 
 		Cache.mythicMob = config.getString("mythicmob", "none");
+		Cache.allowWhitelist = config.getBoolean("allow-whitelist", false);
+		Cache.whitelistedByDefault = config.getBoolean("whitelisted-by-default", false);
 	}
 }

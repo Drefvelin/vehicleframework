@@ -61,6 +61,7 @@ public class ExplosionCreator {
 						Block block = loc.getBlock();
 
 						if (block.getType() == Material.AIR) continue;
+						if (block.getType() == Material.BEDROCK) continue; //Cant break bedrock
 						if (Cache.ignoreExplode.contains(block.getType())) continue;
 
 						Material originalType = block.getType();

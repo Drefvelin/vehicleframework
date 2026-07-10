@@ -84,10 +84,20 @@ public class AmmunitionHandler {
 		currentBone = 0;
 		reloadStates = another.getReloadStates();
 		for(String bone : bones) {
+			if(!bone.contains(".")) {
+				VFLogger.log(weapon.getId()+" has an invalid exit bone: "+bone);
+				continue;
+			}
 			String base = bone.split("\\.")[0];
 			String alignment = bone.split("\\.")[1];
-			if(m.getBone(base).isEmpty()) VFLogger.log(weapon.getId()+" has an invalid exit bone");
-			if(m.getBone(alignment).isEmpty()) VFLogger.log(weapon.getId()+" has an invalid alignment bone");
+			if(m.getBone(base).isEmpty()) {
+				VFLogger.log(weapon.getId()+" has an invalid exit bone "+base);
+				continue;
+			}
+			if(m.getBone(alignment).isEmpty()) {
+				VFLogger.log(weapon.getId()+" has an invalid alignment bone "+alignment);
+				continue;
+			}
 			exitBones.add(new VectorBone(m.getBone(base).get(), m.getBone(alignment).get()));
 		}
 	}

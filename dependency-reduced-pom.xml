@@ -68,53 +68,73 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.10.2</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>junit-jupiter-api</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>junit-jupiter-params</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>junit-jupiter-engine</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>local</groupId>
       <artifactId>json-simple</artifactId>
       <version>1.1</version>
       <scope>system</scope>
-      <systemPath>C:/Users/vbdre/Documents/Reference Libs/json-simple-1.1.jar</systemPath>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/json-simple-1.1.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>local</groupId>
       <artifactId>gson</artifactId>
       <version>2.10.1</version>
       <scope>system</scope>
-      <systemPath>C:/Users/vbdre/Documents/Reference Libs/gson-2.10.1.jar</systemPath>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/gson-2.10.1.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>local</groupId>
       <artifactId>ProtocolLib</artifactId>
       <version>1.0</version>
       <scope>system</scope>
-      <systemPath>C:/Users/vbdre/Documents/Reference Libs/ProtocolLib.jar</systemPath>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/ProtocolLib.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>local</groupId>
       <artifactId>MythicMobs</artifactId>
       <version>5.8.0</version>
       <scope>system</scope>
-      <systemPath>C:/Users/vbdre/Documents/Reference Libs/MythicMobs-5.10.0.jar</systemPath>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MythicMobs-5.8.0-SNAPSHOT.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>local</groupId>
       <artifactId>ModelEngine</artifactId>
       <version>4.0.8</version>
       <scope>system</scope>
-      <systemPath>C:/Users/vbdre/Documents/Reference Libs/ModelEngine-R4.1.0.jar</systemPath>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/ModelEngine-4.0.8.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>local</groupId>
       <artifactId>spigot-api</artifactId>
       <version>1.20.2-R0.1-SNAPSHOT</version>
       <scope>system</scope>
-      <systemPath>C:/Users/vbdre/Documents/Reference Libs/spigot-api-1.20.2-R0.1-SNAPSHOT.jar</systemPath>
+      <systemPath>D:/Dokumenter/My Plugins/Reference Libs/spigot-api-1.20.2-R0.1-SNAPSHOT.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>local</groupId>
       <artifactId>TLibs</artifactId>
       <version>1.0</version>
       <scope>system</scope>
-      <systemPath>C:/Users/vbdre/Documents/Reference Libs/TLibs.jar</systemPath>
+      <systemPath>D:/Dokumenter/My Plugins/TFMC/TLibs/TLibs.jar</systemPath>
     </dependency>
   </dependencies>
   <properties>

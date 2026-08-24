@@ -34,6 +34,9 @@ import net.tfminecraft.VehicleFramework.Enums.CustomAction;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VehicleDeath;
+import net.tfminecraft.VehicleFramework.Enums.VehicleRemoveReason;
+import net.tfminecraft.VehicleFramework.Data.VehicleRemovePayload;
+import net.tfminecraft.VehicleFramework.Events.VehicleRemoveEvent;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Util.ConditionChecker;
@@ -87,6 +90,8 @@ public class ActiveVehicle {
 	//Booleans
 	protected boolean initialized;
 	protected boolean destroyed;
+	protected boolean removed = false;
+	protected VehicleDeath pendingDeathCause;
 	
 	//Data
 	protected final OwnerData ownerData;
@@ -455,6 +460,7 @@ public class ActiveVehicle {
 			}
 		}
 		destroyed = true;
+		pendingDeathCause = type;
 		dismountAll();
 		switch(type) {
 		case CRASH:
@@ -477,9 +483,37 @@ public class ActiveVehicle {
 	}
 	
 	public void remove() {
+		remove(VehicleRemoveReason.GENERIC);
+	}
+
+	public void remove(VehicleRemoveReason reason) {
+		remove(buildRemovePayload(reason));
+	}
+
+	public void remove(VehicleRemovePayload payload) {
+		if (removed) {
+			return;
+		}
+		removed = true;
+		pendingDeathCause = null;
 		seatHandler.dismountAll();
+		VehicleRemovePayload resolved = payload != null
+			? payload
+			: VehicleRemovePayload.remove(VehicleRemoveReason.GENERIC);
+		Bukkit.getPluginManager().callEvent(new VehicleRemoveEvent(this, resolved));
 		vehicleManager.unregister(entity);
 		entity.remove();
+	}
+
+	private VehicleRemovePayload buildRemovePayload(VehicleRemoveReason reason) {
+		if (pendingDeathCause != null) {
+			return VehicleRemovePayload.death(pendingDeathCause);
+		}
+		if (destroyed) {
+			return VehicleRemovePayload.death(VehicleDeath.DIE);
+		}
+		VehicleRemoveReason resolved = reason != null ? reason : VehicleRemoveReason.GENERIC;
+		return VehicleRemovePayload.remove(resolved);
 	}
 	//Tick
 	public void slowTick() {

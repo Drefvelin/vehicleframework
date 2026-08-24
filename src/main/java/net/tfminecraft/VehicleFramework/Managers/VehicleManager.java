@@ -53,6 +53,7 @@ import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
+import net.tfminecraft.VehicleFramework.Enums.VehicleRemoveReason;
 import net.tfminecraft.VehicleFramework.Events.VFEntityDamageEvent;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
@@ -169,7 +170,7 @@ public class VehicleManager implements Listener{
 		for (Entity entity : world.getNearbyEntities(loc, radius, radius, radius)) {
 			if(get(entity) == null) continue;
 			ActiveVehicle v = get(entity);
-			v.remove();
+			v.remove(VehicleRemoveReason.ADMIN_KILL);
 			count++;
 			if(p != null) VFLogger.message(p, "§cKilled "+v.getName());
 		}
@@ -506,7 +507,7 @@ public class VehicleManager implements Listener{
 		}
 		//Destroy
 		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.destroyItem)) {
-			v.remove();
+			v.remove(VehicleRemoveReason.PLAYER_DESTROY);
 			p.sendMessage("§cRemoved");
 			return;
 		}
@@ -960,9 +961,9 @@ public class VehicleManager implements Listener{
 	public void unload(ActiveVehicle v) {
 		if(!v.isDestroyed()) {
 			db.saveVehicle(v);
-			v.remove();
+			v.remove(VehicleRemoveReason.UNLOAD);
 		} else {
-			v.getEntity().remove();
+			v.remove(VehicleRemoveReason.UNLOAD);
 		}
 	}
 

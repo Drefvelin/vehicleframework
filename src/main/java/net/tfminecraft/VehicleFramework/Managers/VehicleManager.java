@@ -55,6 +55,8 @@ import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Enums.VehicleRemoveReason;
 import net.tfminecraft.VehicleFramework.Events.VFEntityDamageEvent;
+import net.tfminecraft.VehicleFramework.Events.VehiclePreInteractEvent;
+import net.tfminecraft.VehicleFramework.Events.VehicleSpawnEvent;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
@@ -193,6 +195,7 @@ public class VehicleManager implements Listener{
 	public ActiveVehicle spawn(Location loc, Vehicle v, IncompleteVehicle i) {
 		ActiveVehicle vehicle = spawner.spawn(loc, v, this, i);
 		register(vehicle);
+		Bukkit.getPluginManager().callEvent(new VehicleSpawnEvent(vehicle));
 		return vehicle;
 	}
 	
@@ -489,6 +492,12 @@ public class VehicleManager implements Listener{
 			v.getOwnerData().setOwner("player_" + p.getName());
 			e.setCancelled(true);
 			p.sendMessage("\u00a7aYou are now the owner of \u00a7e" + v.getName() + "\u00a7a.");
+			return;
+		}
+		VehiclePreInteractEvent preInteract = new VehiclePreInteractEvent(p, v);
+		Bukkit.getPluginManager().callEvent(preInteract);
+		if (preInteract.isCancelled()) {
+			e.setCancelled(true);
 			return;
 		}
 		if(cooldown.containsKey(p)) {

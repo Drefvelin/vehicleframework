@@ -18,8 +18,10 @@ import net.tfminecraft.VehicleFramework.Managers.InventoryManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Balloon;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Wings;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.TerrainFollowConfig;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleState;
 
@@ -178,18 +180,27 @@ public class VehicleMovementController implements MovementInterface{
 	private void forward(Player p) {
 		if(!v.getSeat(p).getType().equals(SeatType.CAPTAIN)) return;
 		if(baseController.getDirection(v).equals(Direction.STILL)) return;
+		if (applyTerrainFollow(Direction.FORWARD)) {
+			return;
+		}
 		Vector velocity = getSimpleMovements(Direction.FORWARD);
 		apply(velocity, Direction.FORWARD);
 	}
 	private void backward(Player p) {
 		if(!v.getSeat(p).getType().equals(SeatType.CAPTAIN)) return;
 		if(baseController.getDirection(v).equals(Direction.STILL)) return;
+		if (applyTerrainFollow(Direction.BACKWARD)) {
+			return;
+		}
 		Vector velocity = getSimpleMovements(Direction.BACKWARD);
 		apply(velocity, Direction.BACKWARD);
 	}
 
 	private void move() {
 		if(v.hasParent()) return;
+		if (applyTerrainFollow(baseController.getDirection(v))) {
+			return;
+		}
 		liftController.checkHitWall(v);
 		Vector velocity = getSimpleMovements(Direction.STILL);
 		if(v.shouldFloat()) velocity = floatController.calculateFloat(v, velocity);
@@ -223,6 +234,43 @@ public class VehicleMovementController implements MovementInterface{
 		balloon.setDelta(-lift); // Set delta to negative for downward force
 	}
 	
+	private boolean applyTerrainFollow(Direction dir) {
+		if (state.isDefault()) {
+			return false;
+		}
+		TerrainFollowConfig follow = state.getTerrainFollow();
+		if (follow == null || !follow.isEnabled()) {
+			return false;
+		}
+		if (v.isTrain()) {
+			return false;
+		}
+		TerrainFollowEngine.Result result = TerrainFollowEngine.step(v, vector, dir, baseController, follow);
+		if (result == null) {
+			return true;
+		}
+		e.teleport(result.location);
+		e.setVelocity(result.velocity);
+		if (v.hasComponent(Component.HARNESS)) {
+			((Harness) v.getComponent(Component.HARNESS)).syncMountedEntities();
+		}
+		if (result.tilt != null) {
+			rotator.rotateToTarget(
+					rotator.getDriveYaw(),
+					result.tilt.pitchDeg,
+					result.tilt.rollDeg,
+					0.25f,
+					true,
+					true,
+					true);
+		}
+		propagate(result.velocity, dir);
+		if (!v.isTrain()) {
+			animateMove(dir);
+		}
+		return true;
+	}
+
 	private Vector getSimpleMovements(Direction dir) {
 		Vector velocity = baseController.calculateMoveVector(v, vector, dir);
 		velocity = baseController.climbVector(v, velocity);

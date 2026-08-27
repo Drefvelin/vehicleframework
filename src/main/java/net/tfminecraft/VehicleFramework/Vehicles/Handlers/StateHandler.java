@@ -23,10 +23,12 @@ import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Enums.VehicleDeath;
 import net.tfminecraft.VehicleFramework.Util.LocationChecker;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Vehicles.Controller.GroundEngineLog;
 import net.tfminecraft.VehicleFramework.Vehicles.Controller.VehicleMovementController;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.State.Parameter;
 import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleState;
+import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleStateRules;
 
 public class StateHandler {
 	private ActiveVehicle vehicle;
@@ -102,14 +104,23 @@ public class StateHandler {
 	    BoundingBox box = e.getBoundingBox();
 
 	    Set<Block> blocks = getBlocksBoundingBox(box, e.getWorld(), 0.0);
+	    Set<Block> blocksAboveFeet = getBlocksBoundingBox(box, e.getWorld(), 1.0);
 	    Set<Block> blocksBelow = getBlocksBoundingBox(box, e.getWorld(), -0.3);
 
-	    if (isMostlyWater(blocks, 0.75)) {
-			swapState(State.FLOATING);
-		} else if (checkAllBlocks(blocksBelow, "air")) {
-	        swapState(State.FLYING);
+	    VehicleState floating = states.get(State.FLOATING);
+	    VehicleState flying = states.get(State.FLYING);
+	    boolean floatingConfigured = floating != null && !floating.isDefault();
+	    if (VehicleStateRules.shouldSwapToFloating(
+	    		floatingConfigured,
+	    		isMostlyWater(blocks, 0.75),
+	    		isMostlyWater(blocksAboveFeet, 0.75))) {
+			swapState(State.FLOATING, "water");
+		} else if (VehicleStateRules.shouldSwapToFlying(
+				flying != null && !flying.isDefault(),
+				checkAllBlocks(blocksBelow, "air"))) {
+	        swapState(State.FLYING, "air");
 	    } else {
-	        swapState(State.GROUND);
+	        swapState(State.GROUND, "ground");
 	    }
 	}
 
@@ -161,18 +172,20 @@ public class StateHandler {
 	
 
 	
-	private void swapState(State s) {
+	private void swapState(State s, String reason) {
 		if(!hasState(s)) return;
 		if(states.get(s) == state) return;
 		if(state != null) state.getAnimationHandler().stopAllAnimations();
-		
-		
-		//Entity e = vehicle.getEntity();
-		//Location loc = e.getLocation().clone().add(0, -0.5, 0);
-		//For debugging state swap
-		//VFLogger.creatorLog("Swapped state to "+s.toString()+" due to "+loc.getBlock().getType().toString());
-		
-		
+		VehicleState next = states.get(s);
+		String from = state == null || state.getType() == null ? "none" : state.getType().name();
+		String to = s == null ? "null" : s.name();
+		String id = vehicle == null ? "null" : vehicle.getId();
+		GroundEngineLog.append(GroundEngineLog.formatStateSwap(
+				id,
+				from,
+				to,
+				reason,
+				next != null && next.isDefault()));
 		setState(s);
 	}
 	

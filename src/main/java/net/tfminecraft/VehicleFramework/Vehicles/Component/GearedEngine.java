@@ -131,6 +131,10 @@ public class GearedEngine extends VehicleComponent{
 	public boolean isStarted() {
 		return started;
 	}
+
+	public boolean isShifting() {
+		return shifting;
+	}
 	
 	public double getTurnRate() {
 		if(v == null) return turnrate;

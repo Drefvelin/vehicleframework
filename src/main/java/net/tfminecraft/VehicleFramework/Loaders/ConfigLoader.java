@@ -76,5 +76,8 @@ public class ConfigLoader {
 		Cache.whitelistedByDefault = config.getBoolean("whitelisted-by-default", false);
 		Cache.weaponDegradedReloadMultiplier = Math.max(1.0, config.getDouble("weapon-degraded-reload-multiplier", 2.0));
 		Cache.weaponAimDebug = config.getBoolean("weapon-aim-debug", false);
+		Cache.terrainFollowDebug = config.getBoolean("terrain-follow-debug", false);
+		Cache.groundEngineLogging = config.getBoolean("ground-engine-logging", true);
+		Cache.wipeLog = config.getBoolean("wipe-log", true);
 	}
 }

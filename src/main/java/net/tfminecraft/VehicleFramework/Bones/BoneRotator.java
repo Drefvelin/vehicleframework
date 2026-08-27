@@ -23,6 +23,7 @@ public class BoneRotator {
 	private double smoothZ = 0f;
 
 	private double yawOffset = 0f;
+	private float driveYaw = 0f;
 
 	private RotationLimits limits;
 	
@@ -50,6 +51,11 @@ public class BoneRotator {
 
 	private void captureRestYaw(ConvertedAngle angles) {
 		yawOffset = angles.getYaw();
+		driveYaw = angles.getYaw();
+	}
+
+	public float getDriveYaw() {
+		return ConvertedAngle.wrapDegrees(driveYaw);
 	}
 
 	public String getId() {
@@ -135,6 +141,9 @@ public class BoneRotator {
 		    float finalPitch = shouldPitch ? targetPitchDeg : currentPitch;
 		    float finalYaw   = shouldYaw   ? targetYawDeg   : currentYaw;
 		    float finalRoll  = shouldRoll  ? targetRollDeg  : currentRoll;
+		    if (shouldYaw) {
+		        driveYaw = targetYawDeg;
+		    }
 
 		    // 4. Build the target quaternion from these "final" angles
 		    //    NOTE: rotateXYZ means (pitch -> yaw -> roll) in X->Y->Z intrinsic order
@@ -203,6 +212,9 @@ public class BoneRotator {
 			if(limits.withinAll((float) (currentAngles.getYaw()-yawOffset), currentAngles.getPitch(), currentAngles.getRoll())) {
 				// Combine the current rotation with the incremental rotation
 				currentRotation.mul(incrementalRotation);
+				if (y != 0.0) {
+					driveYaw = ConvertedAngle.wrapDegrees(driveYaw + (float) Math.toDegrees(y));
+				}
 				
 				// Normalize to avoid floating-point precision errors
 				currentRotation.normalize();

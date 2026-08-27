@@ -67,22 +67,38 @@ public class Harness extends VehicleComponent{
 	    AccessPanel p = v.getAccessPanel();
 	    p.setSpeed(getSpeed());
 	    p.setTurnRate(getTurnRate());
-	    Vector align = v.getBehaviourHandler().getVector().getVector();
-	    
-	    for (Seat s : mounts) {
-	        if (!s.isOccupied()) continue;
-	        
-	        Entity e = s.getEntity();
-	        if(e.isDead()) dismount(s);
-	        Location loc = v.getModel().getBone(s.getBone()).get().getLocation().clone();
+	    syncMountedEntities();
+	}
 
-	        // Convert vector direction to yaw
-	        float yaw = (float) Math.toDegrees(Math.atan2(-align.getX(), align.getZ()));
-
-	        // Apply yaw alignment
-	        loc.setYaw(yaw);
-	        e.teleport(loc);
-	    }
+	public void syncMountedEntities() {
+		if (v == null || v.getModel() == null || v.getBehaviourHandler() == null) {
+			return;
+		}
+		if (v.getBehaviourHandler().getVector() == null) {
+			return;
+		}
+		Vector align = v.getBehaviourHandler().getVector().getVector();
+		if (align == null) {
+			return;
+		}
+		for (Seat s : mounts) {
+			if (!s.isOccupied()) {
+				continue;
+			}
+			Entity e = s.getEntity();
+			if (e == null || e.isDead()) {
+				dismount(s);
+				continue;
+			}
+			var bone = v.getModel().getBone(s.getBone());
+			if (bone.isEmpty()) {
+				continue;
+			}
+			Location loc = bone.get().getLocation().clone();
+			float yaw = (float) Math.toDegrees(Math.atan2(-align.getX(), align.getZ()));
+			loc.setYaw(yaw);
+			e.teleport(loc);
+		}
 	}
 	
 	public void dismount(Seat s) {

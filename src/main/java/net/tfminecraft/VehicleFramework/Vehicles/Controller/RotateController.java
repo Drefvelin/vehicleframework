@@ -23,7 +23,7 @@ public class RotateController {
 		if(reverse) turn = turn*-1;
 		turn *= 5;
 		ConvertedAngle a = new ConvertedAngle(rotator.getAnimator().getRotation());
-		if(turn != 0) rotator.setRotation(a.getYaw()+turn, a.getPitch(), a.getRoll(), true, false, false);
+		if(turn != 0) rotator.setRotation(rotator.getDriveYaw() + turn, a.getPitch(), a.getRoll(), true, false, false);
 	}
 	
 	public void turnLeftLocal(BoneRotator rotator, ActiveVehicle v, Player p) {

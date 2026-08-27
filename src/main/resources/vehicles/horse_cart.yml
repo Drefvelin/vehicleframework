@@ -1,0 +1,105 @@
+horse_cart:
+    name: "§l§eHorse Cart"
+    model: horse_cart
+    skins:
+        horse_cart:
+            name: "Horse Cart"
+            model: horse_cart
+    death:
+        explode:
+            fragments: 10
+            duration: 320
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+    towing:
+        bone: tow_connection
+        reversed: true
+    behaviour:
+        turn-scaling: false
+        rotator: body_controller
+        vector: move.movealign
+        secondary-rotators:
+            - connector_rotator
+        rotation-targets:
+            no_horses:
+                rotator: connector_rotator
+                conditions:
+                    - AND(seat_empty=horse_mount1;seat_empty=horse_mount2)
+                pitch: 25.0
+                interval: 0.2
+            horses:
+                rotator: connector_rotator
+                conditions:
+                    - OR(seat_filled=horse_mount1;seat_filled=horse_mount2)
+                pitch: 0.0
+                interval: 0.2
+    states:
+        ground:
+            terrain-follow: true
+            step-height: 1
+            ground-probes:
+              - ground_fl
+              - ground_fr
+              - ground_bl
+              - ground_br
+            climb: 1
+            animations:
+                forward:
+                    - forward
+                backward:
+                    - backward
+            keybinds:
+                W: FORWARD
+                S: BACKWARD
+                A: TURN_LEFT
+                D: TURN_RIGHT
+                SHIFT: SEAT_SELECTION
+    components:
+        harness:
+            health: 100.0
+            repair-time: 60
+            damage-chance: 0.8
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.2)
+                - bullet(0.6)
+                - entity_explosion(1.5)
+                - small_bomb(3.0)
+                - cannonball(1.3)
+            turn-rate: 0.2
+            mount-bones:
+                - horse_mount1
+                - horse_mount2
+            vfx:
+                - body
+        hull:
+            health: 150.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.2)
+                - bullet(0.6)
+                - entity_explosion(1.5)
+                - small_bomb(3.0)
+                - cannonball(1.3)
+            vfx:
+                - body
+    seats:
+        - captain(driver)
+        - passenger(gunner)
+    weapons:
+        rear_gun:
+          name: "§eRear Rifle"
+          template: gun_turret
+          seat: gunner
+          body-bone: "gunturret"
+          head-bone: "gunrotator"
+          aim-vector: exit2.exitalign2
+          bones:
+            - exit2.exitalign2

@@ -22,6 +22,7 @@ import net.tfminecraft.VehicleFramework.Protocol.VehiclePacketListener;
 import net.tfminecraft.VehicleFramework.Util.Metrics;
 import net.tfminecraft.VehicleFramework.Util.MythicMobsIntegration;
 import net.tfminecraft.VehicleFramework.Util.TabCompletion;
+import net.tfminecraft.VehicleFramework.Vehicles.Controller.GroundEngineLog;
 
 public class VehicleFramework extends JavaPlugin{
 	
@@ -119,6 +120,7 @@ public class VehicleFramework extends JavaPlugin{
     			ammunitionLoader.load(file);
     		}
     	}
+		GroundEngineLog.configure(Cache.groundEngineLogging, Cache.wipeLog, getDataFolder());
 	}
 	
 	public void createConfigs() {

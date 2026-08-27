@@ -4,7 +4,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
-import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Bones.VectorBone;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Direction;
@@ -12,7 +11,6 @@ import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Balloon;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
-import net.tfminecraft.VehicleFramework.Vehicles.State.VehicleState;
 
 public class BaseController {
 	
@@ -24,12 +22,16 @@ public class BaseController {
 			velocity.setY(delta);
 			return velocity;
 		}
-		VehicleState state = v.getCurrentState();
-		if(state.getClimbHandler().canClimb()) {
-			if(state.getClimbHandler().shouldClimb(v)) {
-				velocity.setY(0.3);
-			}
-		}
+		return velocity;
+	}
+
+	public Vector horizontalMoveVector(ActiveVehicle v, VectorBone vector, Direction dir) {
+		Entity e = v.getEntity();
+		Vector velocity = v.getEntity().getVelocity();
+		if(v.hasComponent(Component.ENGINE) || v.hasComponent(Component.GEARED_ENGINE)) velocity = engineVector(v, vector, e, velocity);
+		if(v.hasComponent(Component.HARNESS)) velocity = harnessVector(v, vector, e, velocity, dir);
+		velocity = velocity.clone();
+		velocity.setY(0);
 		return velocity;
 	}
 	

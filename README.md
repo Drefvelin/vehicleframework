@@ -198,10 +198,46 @@ rear_gun:
     - exit2.exitalign2
 ```
 
+### Land terrain-follow (opt-in)
+
+Default ground movement is still velocity-based. The climb hop is gone for every vehicle.
+
+Carts and cars opt in per state. Planes and ships should omit the flag.
+
+```yaml
+states:
+  ground:
+    terrain-follow: true   # required to use kinematic snap + step-up
+    step-height: 1         # max blocks to step up in the travel direction
+    snap-speed: 0.25       # climb cap at rest (omit to use this default)
+    climb-lead-ticks: 3    # extra down-rays this many ticks ahead at current speed
+    climb-lead-factor: 1   # extra climb per tick = speed * this, capped by step-height
+    air-gravity: 0.08      # Y acceleration per tick when airborne
+    air-drag: 0.98         # XZ multiplier per tick when airborne
+    ground-probes:         # optional; empty or missing bones fall back to the body
+      - ground_fl
+      - ground_fr
+      - ground_bl
+      - ground_br
+```
+
+When enabled, the vehicle **teleports** along flattened `move.movealign` (Y stripped). Visual tilt is `rotateToTarget` with stored steering yaw plus probe pitch/roll, so Euler extract cannot yaw the bone. Velocity is client interpol only and **Y is always 0 while grounded**, so vanilla gravity cannot add airtime. Extra down-rays sample ahead along heading (`speed * climb-lead-ticks`) so climb starts before the wheels reach a rise. Climb rate is `min(step-height, snap-speed + speed * climb-lead-factor)`. A 1-block STEP still raises in place until dest Y is at the step top, then slides horizontally in 0.02-block steps. If raise-in-place is blocked by the first STEP lip, it may ease back (about 0.1) then raise. Reverse does not climb-unstick upward. If the heading is blocked after that, it slides along X then Z (scrape along an edge). While XZ is blocked, dest Y is held (no downhill undo). Tilt does not move the hitbox.
+
+If a destination AABB would overlap a solid, the slide stops at the last clear XZ instead of freezing or launching with a combined XZ+Y teleport. Hitbox dest Y uses the **highest** probe hit (support), not the average.
+
+Vertical snap is clamped by `snap-speed` plus speed-scaled lead on **climb**. **Downhill** snaps to probe support in one tick when the destination AABB is clear (no snap-speed cap). After two consecutive probe misses the vehicle is **airborne**: engine XZ is frozen, last grounded momentum is kept, XZ is multiplied by `air-drag` each tick, and Y accelerates by `air-gravity` (velocity Y is not zeroed). The next probe hit returns to kinematic ground.
+
+One-block water stays **ground**: dummy FLOATING (no YAML `floating:` state) is never used, and FLOATING requires water at the feet **and** one block above. Dummy FLYING is also ignored (cars stay GROUND if air is under a raised hitbox). Down-rays collide with fluids so a shallow river surface counts as support; water is still passable for XZ.
+
+Parent probe locators to non-spinning wheel groups (`front_wheels` / `back_wheels`, or the car's `front_axle_turn` / `back_axle_turn`), not spinning rims. Rays are always world-down. Order is front-left, front-right, back-left, back-right looking along the move direction. With all four hits, pitch and roll are visual only (`ConvertedAngle.fromDirection` on the world front-back and left-right axes, clamped to ±25°); they do not move the hitbox. `body_controller` yaw is left to turning. Missing probe bones are logged once and skipped. If none resolve, snap uses the `body` bone as in Batch 1.
+
 ### Global config (`config.yml`)
 
 - `weapon-degraded-reload-multiplier` (default `2.0`) - At 0% weapon health, reload takes this many times longer than at 100% health. Scales linearly between full and zero health.
 - `weapon-aim-debug` (default `false`) - When true, shows an `END_ROD` particle at the resolved cursor aim target for the gunner and logs aim angles/target to console every 0.5s.
+- `terrain-follow-debug` (default `false`) - When true, shows `END_ROD` particles at terrain-follow probe (or body) starts and down-ray hits for nearby players.
+- `ground-engine-logging` (default `true`) - When true, appends each terrain-follow step (`state=` plus dest/vel, `lookaheadY`, `effSnap`, `air`, airborne `vx`, and geared-engine `gear`/`thr` when present) and each state swap (`state=A->B reason=... isDefault=...`) to `plugins/VehicleFramework/logs/ground_engine.log`.
+- `wipe-log` (default `true`) - When true, deletes `ground_engine.log` on plugin start and `/vf reload`. Live `config.yml` is not overwritten; add these keys if they are missing.
 
 ### Weapon aim mode (optional)
 

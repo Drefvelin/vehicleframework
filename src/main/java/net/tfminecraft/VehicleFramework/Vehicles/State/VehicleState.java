@@ -10,6 +10,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Controller.VehicleMovementContr
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.ClimbHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.InputHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.TerrainFollowConfig;
 
 public class VehicleState {
 	protected State type;
@@ -27,6 +28,7 @@ public class VehicleState {
 	
 	//Movement
 	protected ClimbHandler climbHandler;
+	protected TerrainFollowConfig terrainFollow;
 	
 	protected SwitchParameter switchParameter;
 	
@@ -48,6 +50,7 @@ public class VehicleState {
 			switchParameter = new SwitchParameter(config.getConfigurationSection("switch-parameters"));
 		}
 		climbHandler = new ClimbHandler(config);
+		terrainFollow = TerrainFollowConfig.from(config);
 	}
 	
 	public VehicleState(ActiveVehicle vehicle, VehicleState another) {
@@ -58,6 +61,7 @@ public class VehicleState {
 		moveControls = new VehicleMovementController(vehicle, this);
 		switchParameter = another.getSwitchParameter();
 		climbHandler = another.getClimbHandler();
+		terrainFollow = another.getTerrainFollow();
 	}
 	
 	public VehicleState(State type, ActiveVehicle vehicle) {
@@ -67,6 +71,7 @@ public class VehicleState {
 		animationHandler = new AnimationHandler();
 		moveControls = new VehicleMovementController(vehicle, this);
 		climbHandler = new ClimbHandler();
+		terrainFollow = TerrainFollowConfig.disabled();
 	}
 	
 	public State getType() {
@@ -103,5 +108,9 @@ public class VehicleState {
 	
 	public ClimbHandler getClimbHandler() {
 		return climbHandler;
+	}
+
+	public TerrainFollowConfig getTerrainFollow() {
+		return terrainFollow;
 	}
 }

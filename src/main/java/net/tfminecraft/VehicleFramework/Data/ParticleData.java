@@ -5,6 +5,7 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import net.tfminecraft.VehicleFramework.VFLogger;
+import net.tfminecraft.VehicleFramework.Util.ImpactVfx;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -53,6 +54,17 @@ public class ParticleData {
 	}
 	
 	public void spawnParticle(Location spawnLocation, Vector vector) {
+		spawnParticle(spawnLocation, vector, false);
+	}
+
+	public void spawnParticleVisible(Location spawnLocation, Vector vector) {
+		spawnParticle(spawnLocation, vector, true);
+	}
+
+	private void spawnParticle(Location spawnLocation, Vector vector, boolean nearbyPlayers) {
+		if (spawnLocation == null || spawnLocation.getWorld() == null) {
+			return;
+		}
 		for (int i = 0; i < amount; i++) {
 	        Vector particleDirection = vector.clone();
 
@@ -69,15 +81,25 @@ public class ParticleData {
 
 	        particleDirection.normalize();
 
-	        spawnLocation.getWorld().spawnParticle(
-	            particle,
-	            spawnLocation,
-	            0,
-	            particleDirection.getX(), particleDirection.getY(), particleDirection.getZ(),
-	            speed,
-				null,
-				true
-	        );
+			if (nearbyPlayers) {
+				ImpactVfx.spawn(
+						spawnLocation,
+						particle,
+						0,
+						particleDirection.getX(), particleDirection.getY(), particleDirection.getZ(),
+						speed,
+						null);
+			} else {
+				spawnLocation.getWorld().spawnParticle(
+					particle,
+					spawnLocation,
+					0,
+					particleDirection.getX(), particleDirection.getY(), particleDirection.getZ(),
+					speed,
+					null,
+					true
+				);
+			}
 	    }
 	}
 }

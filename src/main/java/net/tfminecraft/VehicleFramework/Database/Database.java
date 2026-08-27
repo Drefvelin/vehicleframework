@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -34,6 +35,7 @@ import com.google.gson.JsonParser;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Bones.BoneRotator;
+import net.tfminecraft.VehicleFramework.Data.StoredVehicleMeta;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Managers.SpawnManager;
 import net.tfminecraft.VehicleFramework.Util.SpawnLocation;
@@ -259,6 +261,149 @@ public class Database {
 		}
 
 		return stored;
+	}
+
+	public Optional<StoredVehicleMeta> readStoredVehicle(String vehicleUuid) {
+		if (vehicleUuid == null || vehicleUuid.isBlank()) {
+			return Optional.empty();
+		}
+		String fileName = toVehicleFileName(vehicleUuid);
+		File file = new File("plugins/VehicleFramework/data/vehicles", fileName);
+		if (!file.exists() || !file.isFile()) {
+			return Optional.empty();
+		}
+		try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
+			JSONObject vehicleJson = (JSONObject) parser.parse(reader);
+			String uuid = fileName.replace(".json", "");
+			String typeId = vehicleJson.containsKey("id") ? (String) vehicleJson.get("id") : "";
+			String name = vehicleJson.containsKey("name") ? (String) vehicleJson.get("name") : typeId;
+			String owner = vehicleJson.containsKey("owner") ? (String) vehicleJson.get("owner") : "none";
+			return Optional.of(new StoredVehicleMeta(uuid, name, typeId, owner));
+		} catch (Exception ex) {
+			VFLogger.log("Failed to read stored vehicle file " + file.getName());
+			return Optional.empty();
+		}
+	}
+
+	public List<StoredVehicleMeta> listStoredVehiclesByOwner(String owner) {
+		if (owner == null || owner.isEmpty()) {
+			return new ArrayList<>();
+		}
+		return listStoredVehicles(fileOwner -> fileOwner != null && fileOwner.equalsIgnoreCase(owner));
+	}
+
+	public List<StoredVehicleMeta> listStoredPlayerOwnedVehicles() {
+		return listStoredVehicles(Database::isPlayerOwner);
+	}
+
+	public static boolean isPlayerOwner(String owner) {
+		if (owner == null || owner.isBlank()) {
+			return false;
+		}
+		if (!owner.regionMatches(true, 0, "player_", 0, 7)) {
+			return false;
+		}
+		return !owner.equalsIgnoreCase("player_none") && owner.length() > 7;
+	}
+
+	private List<StoredVehicleMeta> listStoredVehicles(java.util.function.Predicate<String> ownerMatch) {
+		List<StoredVehicleMeta> stored = new ArrayList<>();
+		File folder = new File("plugins/VehicleFramework/data/vehicles");
+		if (!folder.exists() || !folder.isDirectory()) {
+			return stored;
+		}
+
+		File[] files = folder.listFiles();
+		if (files == null) {
+			return stored;
+		}
+
+		for (File file : files) {
+			if (file == null || !file.isFile() || !file.getName().toLowerCase().endsWith(".json")) {
+				continue;
+			}
+			try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
+				JSONObject vehicleJson = (JSONObject) parser.parse(reader);
+				String fileOwner = vehicleJson.containsKey("owner") ? (String) vehicleJson.get("owner") : "none";
+				if (!ownerMatch.test(fileOwner)) {
+					continue;
+				}
+				String uuid = file.getName().replace(".json", "");
+				String typeId = vehicleJson.containsKey("id") ? (String) vehicleJson.get("id") : "";
+				String name = vehicleJson.containsKey("name") ? (String) vehicleJson.get("name") : typeId;
+				stored.add(new StoredVehicleMeta(uuid, name, typeId, fileOwner));
+			} catch (Exception ex) {
+				VFLogger.log("Failed to read stored vehicle file " + file.getName());
+			}
+		}
+
+		return stored;
+	}
+
+	public boolean clearStoredOwnership(String vehicleUuid) {
+		if (vehicleUuid == null || vehicleUuid.isBlank()) {
+			return false;
+		}
+		String fileName = toVehicleFileName(vehicleUuid);
+		File file = new File("plugins/VehicleFramework/data/vehicles", fileName);
+		if (!file.exists() || !file.isFile()) {
+			return false;
+		}
+		try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
+			JSONObject vehicleJson = (JSONObject) parser.parse(reader);
+			vehicleJson.put("owner", "none");
+			vehicleJson.put("whitelisted", false);
+			vehicleJson.put("whitelist", new JSONArray());
+			try (PrintWriter writer = new PrintWriter(file, "UTF-8")) {
+				writer.print(vehicleJson.toJSONString());
+			}
+			return true;
+		} catch (Exception ex) {
+			VFLogger.log("Failed to clear ownership for vehicle file " + file.getName());
+			return false;
+		}
+	}
+
+	public Optional<Location> getStoredSpawnLocation(String vehicleUuid) {
+		if (vehicleUuid == null || vehicleUuid.isBlank()) {
+			return Optional.empty();
+		}
+		String fileName = toVehicleFileName(vehicleUuid);
+		File locationsRoot = new File("plugins/VehicleFramework/data/locations");
+		if (!locationsRoot.exists()) {
+			return Optional.empty();
+		}
+		return findStoredSpawnLocation(locationsRoot, fileName);
+	}
+
+	private Optional<Location> findStoredSpawnLocation(File directory, String fileName) {
+		File[] children = directory.listFiles();
+		if (children == null) {
+			return Optional.empty();
+		}
+		for (File child : children) {
+			if (child.isDirectory()) {
+				Optional<Location> nested = findStoredSpawnLocation(child, fileName);
+				if (nested.isPresent()) {
+					return nested;
+				}
+				continue;
+			}
+			if (!child.getName().equalsIgnoreCase(fileName)) {
+				continue;
+			}
+			try (InputStreamReader reader = new InputStreamReader(new FileInputStream(child), "UTF-8")) {
+				json = (JSONObject) parser.parse(reader);
+				return Optional.of(locFromFile(child));
+			} catch (Exception ex) {
+				VFLogger.log("Failed to read stored spawn location " + child.getName());
+			}
+		}
+		return Optional.empty();
+	}
+
+	private static String toVehicleFileName(String vehicleUuid) {
+		return vehicleUuid.endsWith(".json") ? vehicleUuid : vehicleUuid + ".json";
 	}
 
 	public List<JsonObject> loadContainers(JSONObject vehicleJson) {

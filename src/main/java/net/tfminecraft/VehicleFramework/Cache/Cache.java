@@ -35,6 +35,9 @@ public class Cache {
 	public static boolean allowWhitelist;
 	public static boolean whitelistedByDefault;
 
+	public static double weaponDegradedReloadMultiplier = 2.0;
+	public static boolean weaponAimDebug = false;
+
 	//Plugins
 	public static boolean coreProtect = false;
 	

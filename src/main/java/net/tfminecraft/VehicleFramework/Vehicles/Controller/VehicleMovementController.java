@@ -232,7 +232,9 @@ public class VehicleMovementController implements MovementInterface{
 
 	private Vector flatten(Vector velocity) {
 		if(!v.hasComponent(Component.WINGS)) {
-			if(v.getCurrentState().getType().equals(State.FLOATING)) velocity.setY(0);
+			if(v.getCurrentState().getType().equals(State.FLOATING) && !v.shouldFloat()) {
+				velocity.setY(0);
+			}
 			return velocity;
 		}
 		if(!v.hasComponent(Component.ENGINE)) return velocity;

@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -82,12 +83,63 @@ public class AmmunitionData {
 	}
 	
 	public void fx(List<Player> players, Location loc, float pitch, int i) {
-		for(SoundData sd : sfx) {
-			if(sd.getDelay() > i) continue;
+		playFlightSounds(players, loc, pitch, i);
+		for (ParticleData pd : vfx) {
+			pd.spawnParticle(loc, new Vector(0, 0, 0));
+		}
+	}
+
+	/**
+	 * In-flight FX for bullets: sounds at the segment end, particles interpolated along
+	 * the path (matches GunsAndGadgets drawLine so fast bullets do not look dotted).
+	 */
+	public void trailSegment(
+			List<Player> players,
+			Location from,
+			Location to,
+			float pitch,
+			int tick) {
+		playFlightSounds(players, to, pitch, tick);
+		drawTrailLine(from, to);
+	}
+
+	private void playFlightSounds(List<Player> players, Location loc, float pitch, int tick) {
+		for (SoundData sd : sfx) {
+			if (sd.getDelay() > tick) {
+				continue;
+			}
 			sd.playSound(players, loc, pitch);
 		}
-		for(ParticleData pd : vfx) {
-			pd.spawnParticle(loc, new Vector(0, 0, 0));
+	}
+
+	private void drawTrailLine(Location from, Location to) {
+		if (from == null || to == null || from.getWorld() == null || !from.getWorld().equals(to.getWorld())) {
+			return;
+		}
+
+		Particle particle = Particle.CAMPFIRE_COSY_SMOKE;
+		if (!vfx.isEmpty()) {
+			particle = vfx.get(0).getParticle();
+		}
+
+		Vector diff = to.toVector().subtract(from.toVector());
+		int steps = (int) (diff.length() * 4);
+		if (steps <= 0) {
+			return;
+		}
+
+		Vector step = diff.clone().multiply(1.0 / steps);
+		Location point = from.clone();
+		for (int i = 0; i < steps; i++) {
+			from.getWorld().spawnParticle(
+					particle,
+					point,
+					1,
+					0, 0, 0,
+					0,
+					null,
+					true);
+			point.add(step);
 		}
 	}
 
@@ -96,7 +148,7 @@ public class AmmunitionData {
 			sd.playSound(players, loc, pitch);
 		}
 		for(ParticleData pd : hitVFX) {
-			pd.spawnParticle(loc, new Vector(0, 0.1, 0));
+			pd.spawnParticleVisible(loc, new Vector(0, 0.1, 0));
 		}
 	}
 

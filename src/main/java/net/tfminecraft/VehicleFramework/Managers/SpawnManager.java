@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import org.bukkit.Location;
 import org.bukkit.Chunk;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
@@ -46,6 +49,19 @@ public class SpawnManager implements Listener {
 	public static void remove(SpawnLocation s) {
 		if(!exists(s)) return;
 		spawns.remove(s);
+	}
+
+	public static Optional<Location> findSpawnLocation(String vehicleUuid) {
+		if (vehicleUuid == null || vehicleUuid.isBlank()) {
+			return Optional.empty();
+		}
+		String fileName = vehicleUuid.endsWith(".json") ? vehicleUuid : vehicleUuid + ".json";
+		for (SpawnLocation spawn : spawns) {
+			if (spawn.getFile().equalsIgnoreCase(fileName)) {
+				return Optional.ofNullable(spawn.getLoc());
+			}
+		}
+		return Optional.empty();
 	}
 	
 	public void start() {

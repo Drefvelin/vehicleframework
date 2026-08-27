@@ -110,65 +110,182 @@ fixed_artillery: # First vehicle I made
     - captain(gunner)
 
   weapons:                          # Weapon definitions
-    flak_cannon:
-      name: "§eFlak Cannon"
-      seat: gunner                  # Which seat controls this weapon
-      body-bone: "weapon_body"
-      head-bone: "cannon_controller"
-      head-axis: z                  # Axis used for pitch rotation
-      rotation-limits:              # Limits keep aiming realistic
-        min-roll: -75
-        max-roll: 15
-      reload-time: 5
-      cooldown: 15
+    aa_turret:
+      name: "§eAnti-Air Turret"
+      seat: aa_turret_gunner        # Which seat controls this weapon
+      health: 100.0                 # Weapon component health (default 100)
+      turn-rate: 0.5                # Turret follow speed (manual and cursor); scales down with health
+      aim-mode: cursor              # manual (WASD) or cursor (crosshair tracking; WASD aim disabled)
+      cursor-range: 120             # Max ray distance when cursor aim finds no block/entity
+      aim-vector: exit1.exit_align1 # Barrel direction bone pair (falls back to first bones entry)
+      body-bone: "aa_turret_body"
+      head-bone: "gun"
+      head-axis: x                  # Pitch axis; use z for roll-based cannons
+      rotation-limits:
+        min-pitch: 0
+        max-pitch: 85
+      reload-time: 10
+      cooldown: 10                  # ticks between shots (20 ticks = 1 second)
+      projectile-damage: 12         # optional; outgoing hit/explosion damage (not vehicle incoming `damage:`)
       accepted-ammunition:
-        - cannonball
-        - clusterbomb
+        - bullet
       bones:
-        - exit.exitalign        # Projectile is fired along this bone vector
+        - exit1.exit_align1
       animations:
         shoot:
           - shoot
-      data:                         # Sound and particle data
+      data:
         shoot-sounds:
           sound:
-            sound: "minecraft:entity.generic.explode"
+            sound: "minecraft:guns.musket_1"
             pitch: 1.0
             volume: 6.0
-        reload-sounds:
-          sound:
-            sound: "minecraft:block.anvil.land"
-            pitch: 1.0
-            volume: 1.0
-        reload-start-sounds:
-          sound:
-            sound: "minecraft:block.anvil.land"
-            pitch: 1.0
-            volume: 1.0
-        particles:
-          particle1:
-            particle: FLAME
-            amount: 100
-            spread: 0.3
-            speed: 1.2
-          particle2:
-            particle: CAMPFIRE_COSY_SMOKE
-            amount: 100
-            spread: 1.4
-            speed: 0.2
-          particle3:
-            particle: CAMPFIRE_COSY_SMOKE
-            amount: 50
-            spread: 0.7
-            speed: 0.4
       keybinds:
         W: WEAPON_UP
         S: WEAPON_DOWN
         A: WEAPON_LEFT
         D: WEAPON_RIGHT
-        SPACE_W: WEAPON_UP
-        SPACE_S: WEAPON_DOWN
-        SPACE_A: WEAPON_LEFT
-        SPACE_D: WEAPON_RIGHT
         RIGHT_CLICK: WEAPON_RELOAD
         SPACE: WEAPON_SHOOT
+
+    large_cannon:                   # Roll-axis cannon (opt-in cursor aim; see Weapon aim mode below)
+      name: "§eFront Cannon"
+      seat: gunner
+      # aim-mode: cursor            # Uncomment to enable crosshair tracking
+      # cursor-range: 120
+      # turn-rate: 0.5
+      body-bone: "weapon_body"
+      head-bone: "cannon_controller"
+      head-axis: z                  # Roll for elevation; use x for pitch turrets
+      rotation-limits:
+        min-roll: -75
+        max-roll: 15
+      reload-time: 5
+      accepted-ammunition:
+        - cannonball
+      bones:
+        - exit.exit_align
+      keybinds:
+        RIGHT_CLICK: WEAPON_RELOAD
+        SPACE: WEAPON_SHOOT
+```
+
+### Weapon templates (optional)
+
+Shared turrets live in `plugins/VehicleFramework/templates/weapons/*.yml`. Root keys are template ids. Vehicles reference them with `template:` and overlay per-model keys. Merge is instance-wins: nested sections (`data`, `keybinds`, `rotation-limits`, `aim-offset`, `animations`) deep-merge; lists (`bones`, `accepted-ammunition`, `damage`) replace when the vehicle sets them. Weapon YAML `damage:` is still incoming vulnerability, not outgoing projectile damage.
+
+Unknown `template` ids skip that weapon and log an error. `/vf reload` reloads templates before vehicles. Templates cannot reference other templates.
+
+Balance cooldown, `projectile-damage`, sounds, and limits in the template. Leave seat, bones, and barrel vector on the vehicle:
+
+```yaml
+# templates/weapons/gun_turret.yml
+gun_turret:
+  cooldown: 4
+  projectile-damage: 12
+  aim-mode: cursor
+  # ... sounds, keybinds, limits
+```
+
+```yaml
+rear_gun:
+  template: gun_turret
+  seat: gunner
+  body-bone: "gunturret"
+  head-bone: "gunrotator"
+  aim-vector: exit2.exitalign2
+  bones:
+    - exit2.exitalign2
+```
+
+### Global config (`config.yml`)
+
+- `weapon-degraded-reload-multiplier` (default `2.0`) - At 0% weapon health, reload takes this many times longer than at 100% health. Scales linearly between full and zero health.
+- `weapon-aim-debug` (default `false`) - When true, shows an `END_ROD` particle at the resolved cursor aim target for the gunner and logs aim angles/target to console every 0.5s.
+
+### Weapon aim mode (optional)
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `aim-mode` | `manual` | `manual` uses WASD aim keybinds; `cursor` slews the turret toward the gunner's crosshair each tick while controlled |
+| `aim-vector` | first `bones` entry | `base.align` bone pair defining barrel aim direction in world space (logs a warning when falling back) |
+| `cursor-range` | `80` | Fallback distance along the look ray when no block or entity is hit |
+| `turn-rate` | `0.5` | Follow speed in both modes; scales down with weapon health |
+
+Optional `aim-offset` section (degrees) biases world yaw/pitch before alignment:
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `body-yaw` | `0` | Added to desired world yaw (use `180` if the barrel bone pair points backward) |
+| `head-pitch` | `0` | World pitch bias (`head-axis: x`) |
+| `head-yaw` | `0` | Extra yaw bias (`head-axis: y`) |
+| `head-roll` | `0` | World pitch bias for roll-elevation cannons (`head-axis: z`) |
+
+```yaml
+aim-mode: cursor
+aim-vector: exit.exit_align
+aim-offset:
+  body-yaw: 180
+```
+
+In `cursor` mode, WASD aim keys are ignored; shoot, reload, and weapon switch still work. The raycast ignores the firing vehicle and its passengers. Each tick converts the `aim-vector` world direction and the crosshair target into Minecraft yaw/pitch (`ConvertedAngle`) and drives body yaw + head elevation through the same incremental rotation path as manual aim. `head-axis: x` (pitch) suits AA turrets; `head-axis: z` (roll) suits front cannons with roll-based elevation. If the barrel points backward, set `aim-offset.body-yaw: 180` instead of flipping the aim vector.
+
+**Enable cursor aim on a weapon:** add these keys to that weapon's block in the vehicle YAML (defaults keep manual WASD aim):
+
+```yaml
+aim-mode: cursor      # required
+aim-vector: exit.exit_align  # recommended; falls back to first bones entry with a log warning
+cursor-range: 120     # optional; fallback ray length (default 80)
+turn-rate: 0.5        # optional; follow speed (default 0.5)
+```
+
+Reload or respawn the vehicle after editing. For first-time tuning, set `weapon-aim-debug: true` in `config.yml` to show the resolved target particle for the gunner.
+
+**In-game checklist (cursor weapons):**
+
+1. Turret follows crosshair smoothly (no snap)
+2. Barrel direction (`aim-vector`) aligns toward the crosshair target
+3. Block hit aims at impact point; open sky aims at `cursor-range`
+4. Rotation limits are respected at the limit edge
+5. Shoot and reload still work; WASD does not move the turret
+6. Damaged weapons turn slower
+7. Own vehicle is ignored by the aim raycast
+8. `/vf reload` while seated does not jump or invert aim-offset tuning
+
+### Weapon projectile damage (optional)
+
+Outgoing hit and explosion damage comes from ammunition by default. A weapon can override that without mutating the shared ammo singleton. Weapon YAML `damage:` is incoming vulnerability (`DamageData`) and is not used here.
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `projectile-damage` | ammo `damage` | Outgoing projectile/explosion damage for this weapon only |
+| `projectile-damage-type` | ammo `damage-type` | Outgoing damage type for hits and explosions from this weapon |
+
+```yaml
+projectile-damage: 12
+# projectile-damage-type: bullet   # optional; omit to keep ammo type
+```
+
+### Bullet ammunition (`ammunition/*.yml`, type `BULLET`)
+
+Vehicle bullets use per-tick simulated projectiles with gravity and raycast hit detection (close-range hits work from the muzzle onward).
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `range` | `80.0` | Max travel distance in blocks |
+| `speed` | `7.0` | Initial velocity (blocks per tick) |
+| `gravity` | `-0.05` | Vertical velocity added each tick |
+
+Example:
+
+```yaml
+bullet:
+  type: BULLET
+  range: 80
+  speed: 7.0
+  gravity: -0.05
+  damage: 4
+  damage-type: bullet
+```
+
+Weapons may override outgoing damage without copying the ammo definition. Example on `aa_turret`: `projectile-damage: 12`. Omit both keys on other weapons (for example a machine gun) to keep the ammunition defaults.

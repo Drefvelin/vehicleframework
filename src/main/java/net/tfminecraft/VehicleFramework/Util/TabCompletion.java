@@ -20,6 +20,7 @@ public class TabCompletion implements TabCompleter {
 
         if (cmd.getName().equalsIgnoreCase("vf")) {
             if (args.length == 1) {
+                completions.add("findvehicles");
                 completions.add("keybinds");
                 if(Permissions.canSpawn(sender)) {
                     completions.add("spawn");

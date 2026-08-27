@@ -15,6 +15,7 @@ import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
 import net.tfminecraft.VehicleFramework.Loaders.ConfigLoader;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
+import net.tfminecraft.VehicleFramework.Loaders.WeaponTemplateLoader;
 import net.tfminecraft.VehicleFramework.Managers.CommandManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Protocol.VehiclePacketListener;
@@ -35,6 +36,7 @@ public class VehicleFramework extends JavaPlugin{
 	private final ConfigLoader configLoader = new ConfigLoader();
 	private final AmmunitionLoader ammunitionLoader = new AmmunitionLoader();
 	private final VehicleLoader vehicleLoader = new VehicleLoader();
+	private final WeaponTemplateLoader weaponTemplateLoader = new WeaponTemplateLoader();
 	private final FuelLoader fuelLoader = new FuelLoader();
 	private final Database db = new Database();
 	
@@ -92,11 +94,16 @@ public class VehicleFramework extends JavaPlugin{
 		if(!subFolder.exists()) subFolder.mkdir();
 		subFolder = new File(getDataFolder(), "templates");
 		if(!subFolder.exists()) subFolder.mkdir();
+		subFolder = new File(getDataFolder(), "templates/weapons");
+		if(!subFolder.exists()) subFolder.mkdir();
 	}
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
 		VFLogger.info("Loading fuel...");
 		fuelLoader.load(new File(getDataFolder(), "fuel.yml"));
+		weaponTemplateLoader.clear();
+		VFLogger.info("Loading weapon templates...");
+		weaponTemplateLoader.loadFolder(new File(getDataFolder(), "templates/weapons"));
 		File folder = new File(getDataFolder(), "vehicles");
 		VFLogger.info("Loading vehicles...");
     	for (final File file : folder.listFiles()) {
@@ -117,7 +124,8 @@ public class VehicleFramework extends JavaPlugin{
 	public void createConfigs() {
 		String[] files = {
 				"config.yml",
-				"fuel.yml"
+				"fuel.yml",
+				"templates/weapons/gun_turret.yml"
 				};
 		for(String s : files) {
 			File newConfigFile = new File(getDataFolder(), s);

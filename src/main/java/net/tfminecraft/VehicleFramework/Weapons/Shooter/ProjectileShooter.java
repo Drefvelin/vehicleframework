@@ -16,6 +16,7 @@ import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Interface.Shooter;
 import net.tfminecraft.VehicleFramework.Util.ExplosionCreator;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
+import net.tfminecraft.VehicleFramework.Weapons.Weapon;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
 
@@ -76,15 +77,15 @@ public class ProjectileShooter implements Shooter {
 		}.runTaskTimer(VehicleFramework.plugin, 0L, 1L);
 	}
 	
-	public void triggerExplosion(List<Player> players, Location explosionCenter, AmmunitionData a) {
+	public void triggerExplosion(List<Player> players, Location explosionCenter, AmmunitionData a, ActiveWeapon w) {
 		if (a.isExplosive()) {
 			explosionCenter.getWorld().playSound(explosionCenter, Sound.ENTITY_GENERIC_EXPLODE, 8, 1);
 	    	ExplosionCreator.triggerExplosion(
 	    			explosionCenter,
 	    			a.getYield(),
 	    			a.getRadius(),
-	    			a.getDamage(),
-	    			a.getDamageType(),
+	    			Weapon.effectiveDamage(w, a),
+	    			Weapon.effectiveDamageType(w, a),
 	    			a.isFire()
 	    	);
 		}

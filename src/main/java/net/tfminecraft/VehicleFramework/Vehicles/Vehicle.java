@@ -19,6 +19,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.StateHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.UtilityHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.ContainerHandler;
+import net.tfminecraft.VehicleFramework.Loaders.WeaponTemplateLoader;
 import net.tfminecraft.VehicleFramework.Weapons.Weapon;
 
 public class Vehicle {
@@ -106,7 +107,11 @@ public class Vehicle {
 
 			List<String> list = new ArrayList<String>(set);
 			for(String w : list) {
-				weapons.add(new Weapon(w, weaponConfig.getConfigurationSection(w)));
+				ConfigurationSection resolved = WeaponTemplateLoader.resolve(w, weaponConfig.getConfigurationSection(w));
+				if (resolved == null) {
+					continue;
+				}
+				weapons.add(new Weapon(w, resolved));
 			}
 		}
 		if(!config.isConfigurationSection("death")) VFLogger.log(key+" has death section");

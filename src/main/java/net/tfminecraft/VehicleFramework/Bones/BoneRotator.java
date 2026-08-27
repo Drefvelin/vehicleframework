@@ -32,7 +32,7 @@ public class BoneRotator {
 		this.bone = bone;
 		animator = new SimpleManualAnimator(bone);
 		bone.setManualAnimator(animator);
-		yawOffset = new ConvertedAngle(animator.getRotation()).getYaw();
+		captureRestYaw(new ConvertedAngle(animator.getRotation()));
 		v.getAccessPanel().addRotator(this);
 		this.limits = limits;
 	}
@@ -40,13 +40,16 @@ public class BoneRotator {
 	public void updateModel(ActiveModel m) {
 		bone = m.getBone(bone.getBoneId()).get();
 		id = bone.getBoneId();
-		
+
 		Quaternionf temp = new Quaternionf(animator.getRotation());
 		ConvertedAngle a = new ConvertedAngle(temp);
-		yawOffset = a.getYaw();
 		animator = new SimpleManualAnimator(bone);
 		rotateToTarget(a.getYaw(), a.getPitch(), a.getRoll(), 1f, true, true, true);
 		bone.setManualAnimator(animator);
+	}
+
+	private void captureRestYaw(ConvertedAngle angles) {
+		yawOffset = angles.getYaw();
 	}
 
 	public String getId() {
@@ -85,6 +88,12 @@ public class BoneRotator {
 		smoothZ += (targetZ - smoothZ) * delta;
 		
 		rotateNoAdd(smoothX, smoothY, smoothZ);
+	}
+
+	public void resetSmoothing() {
+		smoothX = 0;
+		smoothY = 0;
+		smoothZ = 0;
 	}
 	
 	public void rotate(double targetX, double targetY, double targetZ) {

@@ -1,7 +1,7 @@
 main: net.tfminecraft.VehicleFramework.VehicleFramework
 api-version: 1.20
 name: VehicleFramework
-version: 1.0.4
+version: 1.1.11
 author: Drefvelin
 folia-supported: true
 

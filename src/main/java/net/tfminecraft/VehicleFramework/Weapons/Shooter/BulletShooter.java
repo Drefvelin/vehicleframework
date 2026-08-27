@@ -1,94 +1,78 @@
 package net.tfminecraft.VehicleFramework.Weapons.Shooter;
 
 import java.util.List;
+import java.util.Set;
+
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Interface.Shooter;
-import net.tfminecraft.VehicleFramework.Projectiles.HitChecker;
-import net.tfminecraft.VehicleFramework.Util.ExplosionCreator;
+import net.tfminecraft.VehicleFramework.Projectiles.BulletRaycast;
+import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Bullet;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
+import net.tfminecraft.VehicleFramework.Weapons.WeaponEntityFilters;
 
 public class BulletShooter implements Shooter {
-	private HitChecker checker = new HitChecker();
-	
+
+	private static final double MUZZLE_OFFSET = 0.75;
+
 	private ProjectileShooter shooter;
-	
+
 	public BulletShooter(ProjectileShooter p) {
 		shooter = p;
 	}
 
 	@Override
-	public void shoot(List<Player> players, Entity o, Location loc, Vector vector, Ammunition a, ActiveWeapon w) {
-	    AmmunitionData ammoData = a.getData();
-	    Bullet b = (Bullet) a;
-	    Vector direction = vector.clone().setY(vector.getY() - 0.01);
-	    Location startLocation = loc.clone();
-	    
-	    shooter.lightEffect(startLocation);
+	public void shoot(List<Player> players, Entity vehicleRoot, Location loc, Vector vector, Ammunition a, ActiveWeapon w) {
+		AmmunitionData ammoData = a.getData();
+		Bullet bullet = (Bullet) a;
+		Vector direction = vector.clone().normalize();
+		Vector velocity = direction.clone().multiply(bullet.getSpeed());
+		Location start = loc.clone().add(direction.clone().multiply(MUZZLE_OFFSET));
+		double maxRangeSquared = bullet.getRange() * bullet.getRange();
 
-	    new BukkitRunnable() {
-	        double traveledDistance = 0;
+		ActiveVehicle shooterVehicle = VehicleFramework.getVehicleManager().get(vehicleRoot);
+		Set<Entity> ignoreEntities = WeaponEntityFilters.buildShooterIgnoreSet(null, vehicleRoot, shooterVehicle);
 
-	        @Override
-	        public void run() {
-	            Location particle = startLocation.clone().add(direction.clone().multiply(traveledDistance));
+		shooter.lightEffect(start);
 
-	            if (traveledDistance > b.getRange()) {
-	                cancel();
-	                triggerExplosionIfExplosive(particle, b);
-	                return;
-	            }
+		new BukkitRunnable() {
+			Location current = start.clone();
+			int tick = 0;
 
-	            for (int i = 0; i < 10; i++) {
-                    ammoData.fx(players, particle, 1f, i);
-                    particle.add(direction.clone().multiply(0.5));
+			@Override
+			public void run() {
+				Location previous = current.clone();
+				current.add(velocity);
 
-                    if (traveledDistance > 5.0) {
-                        if (handleEntityHit(particle, b, ammoData)) {
-                            cancel();
-                            return;
-                        }
-                    }
-                }
-	            traveledDistance += 5.0;
-	        }
-	    }.runTaskTimer(VehicleFramework.plugin, 0L, 1L);
+				if (BulletRaycast.handleSegment(
+						previous,
+						current,
+						ignoreEntities,
+						shooterVehicle,
+						ammoData,
+						bullet,
+						w,
+						players)) {
+					cancel();
+					return;
+				}
+
+				ammoData.trailSegment(players, previous, current, 1f, tick);
+				velocity.add(new Vector(0, bullet.getGravity(), 0));
+				tick++;
+
+				if (current.distanceSquared(start) > maxRangeSquared) {
+					cancel();
+				}
+			}
+		}.runTaskTimer(VehicleFramework.plugin, 0L, 1L);
 	}
-
-	private boolean handleEntityHit(Location particle, Bullet b, AmmunitionData ammoData) {
-	    if (checker.hasHitLocation(particle)) {
-	        triggerExplosionIfExplosive(particle, b);
-	        return true;
-	    }
-
-	    for (Entity entity : particle.getWorld().getNearbyEntities(particle, 0.5, 0.5, 0.5)) {
-	        if (entity instanceof LivingEntity) {
-	            if (b.getData().isExplosive()) {
-	                triggerExplosionIfExplosive(particle, b);
-	            } else {
-	                ExplosionCreator.applyDamage(entity, ammoData.getDamage(), ammoData.getDamageType());
-	            }
-	            return true;
-	        }
-	    }
-	    return false;
-	}
-
-	private void triggerExplosionIfExplosive(Location loc, Bullet b) {
-	    if (b.getData().isExplosive()) {
-			loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 8, 1);
-	        ExplosionCreator.triggerExplosion(loc, b.getData().getYield(), b.getData().getRadius(), b.getData().getDamage(), b.getData().getDamageType());
-	    }
-	}
-
 }

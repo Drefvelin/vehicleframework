@@ -1,0 +1,38 @@
+gun_turret:
+  name: "§eRear Rifle"
+  head-axis: z
+  rotation-limits:
+    min-roll: -60
+    max-roll: 60
+  reload-time: 5
+  cooldown: 4
+  aim-mode: cursor
+  cursor-range: 120
+  projectile-damage: 12
+  accepted-ammunition:
+    - bullet
+  data:
+    shoot-sounds:
+      sound:
+        sound: "vehicleframework:gun"
+        pitch: 1.0
+        volume: 6.0
+    reload-sounds:
+      sound:
+        sound: "vehicleframework:gun_reload"
+        pitch: 1.0
+        volume: 1.0
+    reload-start-sounds:
+      sound:
+        sound: "vehicleframework:gun_reload"
+        pitch: 1.0
+        volume: 1.0
+    particles:
+      particle1:
+        particle: FLAME
+        amount: 10
+        spread: 0.05
+        speed: 0.3
+  keybinds:
+    RIGHT_CLICK: WEAPON_RELOAD
+    SPACE: WEAPON_SHOOT

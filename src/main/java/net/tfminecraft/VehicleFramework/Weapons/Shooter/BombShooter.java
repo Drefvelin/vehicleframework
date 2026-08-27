@@ -59,7 +59,7 @@ public class BombShooter implements Shooter {
 
 	            // Check if the projectile has hit something or reached the ground
 	            if (i > a.getFuse() && (checker.hasHit(e, projectiles) || e.isOnGround() || e.isDead())) {
-	                shooter.triggerExplosion(players, e.getLocation(), a.getData());
+	                shooter.triggerExplosion(players, e.getLocation(), a.getData(), w);
 	                e.remove();
 	                projectiles.remove(e);
 					Cache.projectiles.remove(e);

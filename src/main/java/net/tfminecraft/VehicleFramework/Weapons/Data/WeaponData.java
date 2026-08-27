@@ -24,6 +24,15 @@ public class WeaponData {
 	private double velocity;
 	
 	public WeaponData(ConfigurationSection config) {
+		if (config == null) {
+			sounds.put(SoundArg.RELOAD, new ArrayList<SoundData>());
+			sounds.put(SoundArg.RELOAD_START, new ArrayList<SoundData>());
+			sounds.put(SoundArg.SHOOT, new ArrayList<SoundData>());
+			reloadAnimation = "none";
+			shootAnimation = "none";
+			velocity = 3.0;
+			return;
+		}
 		if(config.isConfigurationSection("reload-sounds")) {
 			ConfigurationSection soundConfig = config.getConfigurationSection("reload-sounds");
 			sounds.put(SoundArg.RELOAD, SoundLoader.getSoundsFromConfig(soundConfig));

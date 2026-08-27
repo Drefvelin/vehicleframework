@@ -17,6 +17,7 @@ import me.Plugins.TLibs.Objects.API.ItemAPI;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Bones.VectorBone;
+import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Data.ParticleData;
 import net.tfminecraft.VehicleFramework.Data.SoundData;
 import net.tfminecraft.VehicleFramework.Enums.Animation;
@@ -27,6 +28,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 import net.tfminecraft.VehicleFramework.Weapons.Shooter.ProjectileShooter;
+import net.tfminecraft.VehicleFramework.Weapons.WeaponPerformance;
 
 public class AmmunitionHandler {
 	private ProjectileShooter projectileShooter = new ProjectileShooter();
@@ -176,7 +178,8 @@ public class AmmunitionHandler {
 	}
 	
 	public void reloadStart(Player p, Ammunition a) {
-		reloadTime = baseReloadTime;
+		reloadTime = WeaponPerformance.effectiveReloadSeconds(
+				baseReloadTime, w.getHealthData(), Cache.weaponDegradedReloadMultiplier);
 		playSound(exitBones.get(0), SoundArg.RELOAD_START);
 		w.getAnimationHandler().animate(Animation.RELOAD);
 		new BukkitRunnable() {
@@ -268,7 +271,7 @@ public class AmmunitionHandler {
 		if(activeCooldown > System.currentTimeMillis()) {
 			return;
 		}
-		activeCooldown = System.currentTimeMillis()+cooldown+delay*50;
+		activeCooldown = System.currentTimeMillis() + (cooldown + delay) * 50L;
 		shootProjectiles(nearby);
 		if(count > 0) decrease();
 	}

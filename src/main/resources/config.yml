@@ -43,6 +43,12 @@ destroy-item: v.blaze_rod
 allow-whitelist: true
 whitelisted-by-default: true
 
+## At 0% weapon health, reload takes this many times longer than at 100% (linear scale)
+weapon-degraded-reload-multiplier: 2.0
+
+## Show a particle at the resolved cursor aim target for the gunner (debug tuning)
+weapon-aim-debug: false
+
 ##Set this to the ID of the MythicMob, in the free pack this is VehicleFrameworkDummy
 ##You can leave it as "none" if you do not have MythicMobs on your server
 mythicmob: "none"

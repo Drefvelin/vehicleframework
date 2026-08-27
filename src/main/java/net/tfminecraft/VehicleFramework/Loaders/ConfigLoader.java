@@ -74,5 +74,7 @@ public class ConfigLoader {
 		Cache.mythicMob = config.getString("mythicmob", "none");
 		Cache.allowWhitelist = config.getBoolean("allow-whitelist", false);
 		Cache.whitelistedByDefault = config.getBoolean("whitelisted-by-default", false);
+		Cache.weaponDegradedReloadMultiplier = Math.max(1.0, config.getDouble("weapon-degraded-reload-multiplier", 2.0));
+		Cache.weaponAimDebug = config.getBoolean("weapon-aim-debug", false);
 	}
 }

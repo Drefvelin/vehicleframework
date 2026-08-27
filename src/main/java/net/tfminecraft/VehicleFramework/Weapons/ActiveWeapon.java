@@ -15,6 +15,7 @@ import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.InputHandler;
+import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
 import net.tfminecraft.VehicleFramework.Weapons.Controller.WeaponMovementController;
 import net.tfminecraft.VehicleFramework.Weapons.Data.WeaponData;
 import net.tfminecraft.VehicleFramework.Weapons.Handlers.AmmunitionHandler;
@@ -35,6 +36,10 @@ public class ActiveWeapon {
 	protected WeaponMovementController moveControls;
 	
 	protected String seat;
+	protected WeaponAimMode aimMode;
+	
+	protected Integer projectileDamage;
+	protected String projectileDamageType;
 	
 	protected Player controller;
 	
@@ -50,6 +55,9 @@ public class ActiveWeapon {
 		inputHandler = new InputHandler(stored.getInputHandler());
 		moveControls = new WeaponMovementController(vehicle, m, this, stored, stored.getLimits());
 		seat = stored.getSeat();
+		aimMode = stored.getAimMode();
+		projectileDamage = stored.getProjectileDamage();
+		projectileDamageType = stored.getProjectileDamageType();
 		
 	}
 	
@@ -78,8 +86,10 @@ public class ActiveWeapon {
 	}
 	
 	public void tick() {
-		if(!isControlled()) {
+		if (!isControlled()) {
 			moveControls.normalize();
+		} else if (aimMode == WeaponAimMode.CURSOR) {
+			moveControls.trackCursor(controller);
 		}
 		moveControls.move();
 	}
@@ -117,6 +127,14 @@ public class ActiveWeapon {
 
 	public AmmunitionHandler getAmmunitionHandler() {
 		return ammunitionHandler;
+	}
+
+	public int effectiveDamage(AmmunitionData ammo) {
+		return Weapon.effectiveDamage(projectileDamage, ammo);
+	}
+
+	public String effectiveDamageType(AmmunitionData ammo) {
+		return Weapon.effectiveDamageType(projectileDamageType, ammo);
 	}
 	
 	public void damage(String cause, double a) {

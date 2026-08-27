@@ -1,11 +1,18 @@
 package net.tfminecraft.VehicleFramework.Bones;
 
+import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 
 public class ConvertedAngle {
 	private float yaw;
 	private float pitch;
 	private float roll;
+
+	public ConvertedAngle(float yaw, float pitch, float roll) {
+		this.yaw = yaw;
+		this.pitch = pitch;
+		this.roll = roll;
+	}
 	
 	public ConvertedAngle(Quaternionf quaternion) {
 
@@ -40,6 +47,29 @@ public class ConvertedAngle {
 	public float getRoll() {
 		return roll;
 	}
-	
-	
+
+	public static ConvertedAngle fromDirection(Vector direction) {
+		if (direction == null || direction.lengthSquared() < 1e-12) {
+			return new ConvertedAngle(0f, 0f, 0f);
+		}
+		Vector normalized = direction.clone().normalize();
+		double horiz = Math.hypot(normalized.getX(), normalized.getZ());
+		float yaw = (float) Math.toDegrees(Math.atan2(-normalized.getX(), normalized.getZ()));
+		float pitch = (float) Math.toDegrees(Math.atan2(-normalized.getY(), horiz));
+		return new ConvertedAngle(yaw, pitch, 0f);
+	}
+
+	public static float wrapDegrees(float angle) {
+		angle = angle % 360f;
+		if (angle > 180f) {
+			angle -= 360f;
+		} else if (angle <= -180f) {
+			angle += 360f;
+		}
+		return angle;
+	}
+
+	public static float shortestDelta(float from, float to) {
+		return wrapDegrees(to - from);
+	}
 }

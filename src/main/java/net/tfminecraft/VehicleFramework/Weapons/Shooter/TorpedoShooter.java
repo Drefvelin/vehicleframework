@@ -46,7 +46,7 @@ public class TorpedoShooter implements Shooter {
 	        public void run() {   
 	        	i++;
 	        	if (i > 10 && (checker.getHitEntities(torpedo, projectiles, 2.0).size() > 0 || checker.hasHitIgnoreWater(torpedo, projectiles) || torpedo.isOnGround() || torpedo.isDead() || i > a.getFuse())) {
-	        		shooter.triggerExplosion(players, torpedo.getLocation(), a.getData());
+	        		shooter.triggerExplosion(players, torpedo.getLocation(), a.getData(), w);
 	        		torpedo.remove();
 	                projectiles.remove(torpedo);
 					Cache.projectiles.remove(torpedo);

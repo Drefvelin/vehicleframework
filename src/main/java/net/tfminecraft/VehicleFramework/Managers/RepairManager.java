@@ -22,6 +22,7 @@ import me.Plugins.TLibs.Enums.APIType;
 import me.Plugins.TLibs.Objects.API.ItemAPI;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
+import net.tfminecraft.VehicleFramework.Events.VehicleRepairStartEvent;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.State;
@@ -81,6 +82,14 @@ public class RepairManager implements Listener{
 	}
 
 	public void repair(Player p, ActiveVehicle v) {
+		if(p == null || v == null) {
+			return;
+		}
+		VehicleRepairStartEvent startEvent = new VehicleRepairStartEvent(p, v);
+		Bukkit.getPluginManager().callEvent(startEvent);
+		if(startEvent.isCancelled()) {
+			return;
+		}
 		ItemStack i = p.getInventory().getItemInMainHand();
 		if(!api.getChecker().checkItemWithPath(i, Cache.repairItem)) return;
 		if(v.getSeat(p) == null) {

@@ -61,7 +61,7 @@ public class DefaultShooter implements Shooter {
 
 	            // Check if the projectile has hit something or reached the ground
 	            if (i > 5 && (checker.hasHit(e, projectiles) || e.isOnGround() || e.isDead())) {
-	                shooter.triggerExplosion(players, e.getLocation(), ammoData);
+	                shooter.triggerExplosion(players, e.getLocation(), ammoData, w);
 	                e.remove();
 	                projectiles.remove(e);
 					Cache.projectiles.remove(e);
@@ -85,8 +85,8 @@ public class DefaultShooter implements Shooter {
 	            		for(Player p : players) {
 	        				p.spawnParticle(Particle.EXPLOSION_HUGE, e.getLocation(), (int) Math.round(a.getData().getYield()*15), 0, 0, 0, 0);
 	        			}
-						shooter.triggerExplosion(players, e.getLocation(), ammoData);
-	            		sendCluster(e.getLocation(), c, players, projectiles);
+						shooter.triggerExplosion(players, e.getLocation(), ammoData, w);
+	            		sendCluster(e.getLocation(), c, players, projectiles, w);
 	            		e.remove();
 		                projectiles.remove(e);
 						Cache.projectiles.remove(e);
@@ -97,7 +97,7 @@ public class DefaultShooter implements Shooter {
 	    }.runTaskTimer(VehicleFramework.plugin, 0L, 1L);
 	}
 	
-	private void sendCluster(Location original, ClusterBomb a, List<Player> players, List<Entity> projectiles) {
+	private void sendCluster(Location original, ClusterBomb a, List<Player> players, List<Entity> projectiles, ActiveWeapon w) {
 	    World world = original.getWorld();
 	    if (world == null) return;
 	    for (int i = 0; i < a.getAmount(); i++) {
@@ -117,7 +117,7 @@ public class DefaultShooter implements Shooter {
 	        	int i = 5;
 	            public void run() {
 	                if (i > 5 && checker.hasHit(armorStand, projectiles) || armorStand.isOnGround() || armorStand.isDead()) {
-	                    shooter.triggerExplosion(players, armorStand.getLocation(), a.getClusterData()); // Adjust ammunition if needed
+	                    shooter.triggerExplosion(players, armorStand.getLocation(), a.getClusterData(), w);
 	                    armorStand.remove();
 						Cache.projectiles.remove(armorStand);
 	                    cancel();

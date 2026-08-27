@@ -1,8 +1,10 @@
 package net.tfminecraft.VehicleFramework.Managers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +49,8 @@ import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
 import me.Plugins.TLibs.TLibs;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Data.NamingData;
+import net.tfminecraft.VehicleFramework.Data.OwnedVehicleSummary;
+import net.tfminecraft.VehicleFramework.Data.StoredVehicleMeta;
 import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Enums.Component;
@@ -55,6 +59,7 @@ import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Enums.VehicleRemoveReason;
 import net.tfminecraft.VehicleFramework.Events.VFEntityDamageEvent;
+import net.tfminecraft.VehicleFramework.Events.VehicleOwnerClaimedEvent;
 import net.tfminecraft.VehicleFramework.Events.VehiclePreInteractEvent;
 import net.tfminecraft.VehicleFramework.Events.VehicleSpawnEvent;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
@@ -428,6 +433,28 @@ public class VehicleManager implements Listener{
 		}
 	}
 
+	/**
+	 * @return true if ownership was committed to the player
+	 */
+	private boolean claimOwnership(Player player, ActiveVehicle vehicle) {
+		if (player == null || vehicle == null) {
+			return false;
+		}
+		String previous = vehicle.getOwnerData().getOwner();
+		if (previous != null && !previous.equalsIgnoreCase("none")) {
+			return false;
+		}
+		String newOwner = "player_" + player.getName();
+		VehicleOwnerClaimedEvent event =
+				new VehicleOwnerClaimedEvent(player, vehicle, previous, newOwner);
+		Bukkit.getPluginManager().callEvent(event);
+		if (event.isCancelled()) {
+			return false;
+		}
+		vehicle.getOwnerData().setOwner(newOwner);
+		return true;
+	}
+
 	public void towSelect(Player p, ActiveVehicle v) {
 		if(tow.containsKey(p)) {
 			p.sendMessage("§7Deselected "+tow.get(p).getName()+" §7for towing");
@@ -489,9 +516,18 @@ public class VehicleManager implements Listener{
 		// Admin takeover
 		if(pendingTakeover.containsKey(p)) {
 			cancelTakeover(p);
-			v.getOwnerData().setOwner("player_" + p.getName());
-			e.setCancelled(true);
-			p.sendMessage("\u00a7aYou are now the owner of \u00a7e" + v.getName() + "\u00a7a.");
+			String previousOwner = v.getOwnerData().getOwner();
+			boolean claimed;
+			if (previousOwner == null || previousOwner.equalsIgnoreCase("none")) {
+				claimed = claimOwnership(p, v);
+			} else {
+				v.getOwnerData().setOwner("player_" + p.getName());
+				claimed = true;
+			}
+			if (claimed) {
+				e.setCancelled(true);
+				p.sendMessage("\u00a7aYou are now the owner of \u00a7e" + v.getName() + "\u00a7a.");
+			}
 			return;
 		}
 		VehiclePreInteractEvent preInteract = new VehiclePreInteractEvent(p, v);
@@ -511,9 +547,7 @@ public class VehicleManager implements Listener{
 			if(v.getContainerHandler().open(p)) return;
 		}
 		//Set Ownership
-		if(v.getOwnerData().getOwner().equalsIgnoreCase("none")) {
-			v.getOwnerData().setOwner("player_" + p.getName());
-		}
+		claimOwnership(p, v);
 		//Destroy
 		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.destroyItem)) {
 			v.remove(VehicleRemoveReason.PLAYER_DESTROY);
@@ -760,7 +794,7 @@ public class VehicleManager implements Listener{
         	}
         }
 	}
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void damageVehicle(VFEntityDamageEvent e) {
 		Entity entity = e.getEntity();
 		if(vehicles.containsKey(entity)) {
@@ -995,5 +1029,87 @@ public class VehicleManager implements Listener{
 		}
 
 		return owned;
+	}
+
+	public Optional<Location> getOfflineLocation(String vehicleUuid) {
+		if (vehicleUuid == null || vehicleUuid.isBlank()) {
+			return Optional.empty();
+		}
+		ActiveVehicle live = get(vehicleUuid);
+		if (live != null) {
+			return Optional.of(live.getLocation());
+		}
+		Optional<Location> pending = SpawnManager.findSpawnLocation(vehicleUuid);
+		if (pending.isPresent()) {
+			return pending;
+		}
+		return db.getStoredSpawnLocation(vehicleUuid);
+	}
+
+	public List<OwnedVehicleSummary> listOwnedVehicles(String owner) {
+		if (owner == null || owner.isBlank()) {
+			return List.of();
+		}
+		return collectOwnedVehicles(
+				liveOwner -> liveOwner != null && liveOwner.equalsIgnoreCase(owner),
+				db.listStoredVehiclesByOwner(owner));
+	}
+
+	public List<OwnedVehicleSummary> listAllPlayerOwnedVehicles() {
+		return collectOwnedVehicles(Database::isPlayerOwner, db.listStoredPlayerOwnedVehicles());
+	}
+
+	private List<OwnedVehicleSummary> collectOwnedVehicles(
+			java.util.function.Predicate<String> liveOwnerMatch,
+			List<StoredVehicleMeta> stored) {
+		Map<String, OwnedVehicleSummary> byUuid = new LinkedHashMap<>();
+		for (ActiveVehicle vehicle : vehicles.values()) {
+			String liveOwner = vehicle.getOwnerData().getOwner();
+			if (!liveOwnerMatch.test(liveOwner)) {
+				continue;
+			}
+			String uuid = vehicle.getUUID();
+			byUuid.put(
+					uuid.toLowerCase(),
+					new OwnedVehicleSummary(
+							uuid,
+							vehicle.getName(),
+							vehicle.getId(),
+							Optional.of(vehicle.getLocation()),
+							true,
+							liveOwner));
+		}
+		for (StoredVehicleMeta meta : stored) {
+			String key = meta.getUuid().toLowerCase();
+			if (byUuid.containsKey(key)) {
+				continue;
+			}
+			byUuid.put(
+					key,
+					new OwnedVehicleSummary(
+							meta.getUuid(),
+							meta.getName(),
+							meta.getTypeId(),
+							getOfflineLocation(meta.getUuid()),
+							false,
+							meta.getOwner()));
+		}
+		return new ArrayList<>(byUuid.values());
+	}
+
+	public Optional<StoredVehicleMeta> readStoredVehicle(String vehicleUuid) {
+		return db.readStoredVehicle(vehicleUuid);
+	}
+
+	public void clearOwnership(String vehicleUuid) {
+		if (vehicleUuid == null || vehicleUuid.isBlank()) {
+			return;
+		}
+		ActiveVehicle live = get(vehicleUuid);
+		if (live != null) {
+			live.getOwnerData().setOwner("none");
+			live.getOwnerData().setWhiteListed(false);
+		}
+		db.clearStoredOwnership(vehicleUuid);
 	}
 }

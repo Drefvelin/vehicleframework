@@ -2,6 +2,7 @@ package net.tfminecraft.VehicleFramework.Managers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Location;
@@ -28,6 +29,7 @@ import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
 import net.tfminecraft.VehicleFramework.Permissions.Permissions;
 import net.tfminecraft.VehicleFramework.Util.EnumDisplayConverter;
 import net.tfminecraft.VehicleFramework.Util.LocationChecker;
+import net.tfminecraft.VehicleFramework.Data.OwnedVehicleSummary;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
@@ -59,6 +61,25 @@ public class CommandManager implements Listener, CommandExecutor{
 					p.sendMessage("§e" + keybindName + " §f-> §a" + inputName);
 				}
 				p.sendMessage("§c======================================");
+				return true;
+			}
+			if(args.length >= 1 && args[0].equalsIgnoreCase("findvehicles")) {
+				if(!(sender instanceof Player)) {
+					sender.sendMessage("§cOnly players can use this command.");
+					return true;
+				}
+				Player p = (Player) sender;
+				String owner = "player_" + p.getName();
+				List<OwnedVehicleSummary> owned =
+						VehicleFramework.getVehicleManager().listOwnedVehicles(owner);
+				if(owned.isEmpty()) {
+					p.sendMessage("§7You do not own any vehicles.");
+					return true;
+				}
+				p.sendMessage("§bYour vehicles:");
+				for(OwnedVehicleSummary vehicle : owned) {
+					p.sendMessage("§e" + vehicle.getName() + " §7- " + formatVehicleLocation(vehicle.getLocation()));
+				}
 				return true;
 			}
 			if(!Permissions.canSpawn(sender)) {
@@ -166,5 +187,21 @@ public class CommandManager implements Listener, CommandExecutor{
 			}
 		}
 		return false;
+	}
+
+	private static String formatVehicleLocation(Optional<Location> location) {
+		if(location == null || location.isEmpty()) {
+			return "§7location unknown (stored)";
+		}
+		Location loc = location.get();
+		if(loc.getWorld() == null) {
+			return "§7location unknown (stored)";
+		}
+		return String.format(
+				"§f%s %.0f, %.0f, %.0f",
+				loc.getWorld().getName(),
+				loc.getX(),
+				loc.getY(),
+				loc.getZ());
 	}
 }

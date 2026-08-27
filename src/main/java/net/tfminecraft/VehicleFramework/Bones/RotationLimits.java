@@ -88,6 +88,30 @@ public class RotationLimits {
         return Math.max(min, Math.min(max, value));
     }
 
+    public static RotationLimits rollOnly(float min, float max) {
+        RotationLimits limits = new RotationLimits();
+        limits.rollEnabled = true;
+        limits.minRoll = min;
+        limits.maxRoll = max;
+        return limits;
+    }
+
+    public static RotationLimits pitchOnly(float min, float max) {
+        RotationLimits limits = new RotationLimits();
+        limits.pitchEnabled = true;
+        limits.minPitch = min;
+        limits.maxPitch = max;
+        return limits;
+    }
+
+    public static RotationLimits yawOnly(float min, float max) {
+        RotationLimits limits = new RotationLimits();
+        limits.yawEnabled = true;
+        limits.minYaw = min;
+        limits.maxYaw = max;
+        return limits;
+    }
+
     public float getMinYaw() { return minYaw; }
     public float getMaxYaw() { return maxYaw; }
     public float getMinPitch() { return minPitch; }

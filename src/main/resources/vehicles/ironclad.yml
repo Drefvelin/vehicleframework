@@ -34,6 +34,7 @@ ironclad:
             - KELP
     states:
         floating:
+            climb: 1
             animations:
                 default:
                     - float
@@ -218,6 +219,7 @@ ironclad:
               max-pitch: 85
             reload-time: 10
             cooldown: 10
+            projectile-damage: 12
             accepted-ammunition:
                 - bullet
             animations:

@@ -42,6 +42,10 @@ public class ActiveWeapon {
 	protected Integer projectileDamage;
 	protected String projectileDamageType;
 	protected Double projectileSpeed;
+	protected Float projectileYield;
+	protected Integer projectileRadius;
+	protected Boolean projectileExplosive;
+	protected Integer projectileClusterAmount;
 	
 	protected Player controller;
 	
@@ -61,6 +65,10 @@ public class ActiveWeapon {
 		projectileDamage = stored.getProjectileDamage();
 		projectileDamageType = stored.getProjectileDamageType();
 		projectileSpeed = stored.getProjectileSpeed();
+		projectileYield = stored.getProjectileYield();
+		projectileRadius = stored.getProjectileRadius();
+		projectileExplosive = stored.getProjectileExplosive();
+		projectileClusterAmount = stored.getProjectileClusterAmount();
 		
 	}
 	

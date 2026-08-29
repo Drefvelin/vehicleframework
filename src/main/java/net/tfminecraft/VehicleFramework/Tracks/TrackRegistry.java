@@ -371,6 +371,26 @@ public final class TrackRegistry {
 		return next;
 	}
 
+	public void persistPoints(UUID id, List<double[]> points) {
+		TrackSpline current = splines.get(id);
+		if (current == null) {
+			return;
+		}
+		if (points == null || points.size() < 2) {
+			TrackDisplayManager displays = VehicleFramework.getTrackDisplayManager();
+			if (displays != null) {
+				displays.despawnSpline(id);
+			}
+			delete(id);
+			return;
+		}
+		replace(TrackSpline.fromPoints(
+				id,
+				current.getWorld(),
+				TrackSpline.shouldLoop(points, Cache.trackJoinDistance),
+				points));
+	}
+
 	public TrackSpline layBranch(
 			UUID stemId,
 			double s,
@@ -786,6 +806,12 @@ public final class TrackRegistry {
 
 	public Collection<TrackSpline> all() {
 		return List.copyOf(splines.values());
+	}
+
+	public void invalidateAllVisuals() {
+		for (TrackSpline spline : splines.values()) {
+			spline.invalidateVisuals();
+		}
 	}
 
 	public List<TrackSpline> inWorld(String world) {

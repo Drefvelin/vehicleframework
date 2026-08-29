@@ -66,12 +66,12 @@ public final class TrackToolListener implements Listener {
 			return;
 		}
 		if (action == Action.LEFT_CLICK_BLOCK) {
-			if (!TrackCommands.skipDuplicateToolUse(player)) {
-				TrackCommands.markStart(player, at);
+			if (!TrackCommands.skipDuplicateToolUse(player) && TrackCommands.markStart(player, at)) {
+				TrackFx.hit(block);
 			}
 			return;
 		}
-		TrackCommands.markEnd(player, at);
+		TrackCommands.markEnd(player, at, block);
 	}
 
 	static Location clickLocation(Player player, Block block) {

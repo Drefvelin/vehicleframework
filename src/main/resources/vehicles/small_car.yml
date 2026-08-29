@@ -6,14 +6,7 @@ small_car:
             name: "Small Car"
             model: small_car
     death:
-        explode:
-            fragments: 10
-            duration: 320
-            sounds:
-                explode:
-                    sound: "vehicleframework:explosion"
-                    pitch: 1.0
-                    volume: 8.0
+        template: explode_medium
     behaviour:
         turn-scaling: false
         rotator: body_controller
@@ -156,15 +149,8 @@ small_car:
             fuel: arcane_fuel
             fuel-capacity: 500
             damage-chance: 0.7
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.2)
-                - bullet(0.6)
-                - entity_explosion(1.5)
-                - small_bomb(6.0)
-                - cannonball(1.3)
-                - torpedo(5.0)
+            armor: armored
+            role: engine_armored
             turn-rate: 0.7
             vfx:
                 - body
@@ -172,14 +158,8 @@ small_car:
             health: 150.0
             repair-time: 100
             damage-chance: 1.0
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.2)
-                - bullet(0.6)
-                - entity_explosion(1.5)
-                - small_bomb(3.0)
-                - cannonball(1.3)
+            armor: wagon
+            role: hull_wagon
             vfx:
                 - body
     seats:

@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -27,12 +28,15 @@ public final class TrackCommands {
 			sender.sendMessage("§cNo permission.");
 			return true;
 		}
+		if (args.length >= 2 && args[1].equalsIgnoreCase("resync")) {
+			return resync(sender);
+		}
 		if (!(sender instanceof Player player)) {
 			sender.sendMessage("§cOnly players can use track commands.");
 			return true;
 		}
 		if (args.length < 2) {
-			player.sendMessage("§e/vf track start|end|list|info|particles|dump|delete|bind|unbind");
+			player.sendMessage("§e/vf track start|end|list|info|particles|dump|delete|bind|unbind|resync");
 			return true;
 		}
 		String sub = args[1];
@@ -94,7 +98,17 @@ public final class TrackCommands {
 		if (sub.equalsIgnoreCase("unbind")) {
 			return unbindTrain(player);
 		}
-		player.sendMessage("§e/vf track start|end|list|info|particles|dump|delete|bind|unbind");
+		player.sendMessage("§e/vf track start|end|list|info|particles|dump|delete|bind|unbind|resync");
+		return true;
+	}
+
+	private static boolean resync(CommandSender sender) {
+		TrackDisplayManager displays = VehicleFramework.getTrackDisplayManager();
+		if (displays == null) {
+			sender.sendMessage("§cTrack displays are not running.");
+			return true;
+		}
+		displays.startRailResync(sender);
 		return true;
 	}
 
@@ -175,25 +189,31 @@ public final class TrackCommands {
 		return loco;
 	}
 
-	public static void markStart(Player player, Location at) {
+	public static boolean markStart(Player player, Location at) {
 		TrackJunctionSession.clear(player);
 		Location snapped = snapClick(player, at);
 		if (snapped == null) {
-			return;
+			return false;
 		}
 		lastToolMs.put(player.getUniqueId(), System.currentTimeMillis());
 		TrackAnchorSession.setStart(player, snapped);
 		player.sendMessage("§aStart location set.");
 		TrackLog.start(player.getName(), snapped.getX(), snapped.getY(), snapped.getZ());
+		return true;
 	}
 
 	public static void markEnd(Player player, Location at) {
+		markEnd(player, at, null);
+	}
+
+	public static void markEnd(Player player, Location at, Block hitBlock) {
 		TrackJunctionSession.Pending pending = TrackJunctionSession.get(player);
 		if (pending != null) {
 			Location snapped = snapClick(player, at);
 			if (snapped == null) {
 				return;
 			}
+			playHit(hitBlock, snapped);
 			finishBranch(player, pending, snapped);
 			return;
 		}
@@ -206,7 +226,16 @@ public final class TrackCommands {
 		if (snapped == null) {
 			return;
 		}
+		playHit(hitBlock, snapped);
 		finish(player, start, snapped);
+	}
+
+	private static void playHit(Block hitBlock, Location snapped) {
+		if (hitBlock != null) {
+			TrackFx.hit(hitBlock);
+			return;
+		}
+		TrackFx.hitNear(snapped);
 	}
 
 	public static void startJunction(Player player, Location at) {
@@ -242,6 +271,10 @@ public final class TrackCommands {
 		if (at.getWorld() == null) {
 			return;
 		}
+		if (!TrackPieces.canAffordFirst(player)) {
+			player.sendMessage("§cYou need track in your inventory to lay rail.");
+			return;
+		}
 		try {
 			TrackSpline branch = registry().layBranch(
 					pending.stemId,
@@ -251,8 +284,10 @@ public final class TrackCommands {
 					at.getWorld(),
 					at.getX(), at.getY(), at.getZ());
 			TrackJunctionSession.clear(player);
-			presentLay(player, TrackLayResult.of(TrackLayResult.Kind.NEW, branch, branch.xyz(), 0));
-			player.sendMessage("§aLaid branch. Length " + String.format("%.1f", branch.length()) + ".");
+			TrackLayResult result = TrackLayResult.of(
+					TrackLayResult.Kind.NEW, branch, branch.xyz(), 0);
+			Presented presented = presentLay(player, result);
+			announceLay(player, result, presented, true);
 		} catch (TrackLayException e) {
 			player.sendMessage("§c" + e.getMessage());
 			if (e.hasBlock()) {
@@ -283,21 +318,18 @@ public final class TrackCommands {
 			TrackLog.append("LAY_FAIL player=" + player.getName() + " different worlds");
 			return;
 		}
+		if (!TrackPieces.canAffordFirst(player)) {
+			player.sendMessage("§cYou need track in your inventory to lay rail.");
+			return;
+		}
 		try {
 			TrackLayResult result = registry().lay(
 					a.getWorld().getName(),
 					a.getWorld(),
 					a.getX(), a.getY(), a.getZ(),
 					b.getX(), b.getY(), b.getZ());
-			TrackSpline spline = result.spline();
 			TrackAnchorSession.clear(player);
-			presentLay(player, result);
-			String length = String.format("%.1f", spline.length());
-			if (result.kind == TrackLayResult.Kind.CONNECT) {
-				player.sendMessage("§aConnected two tracks. Length " + length + ".");
-			} else {
-				player.sendMessage("§aLaid track from start to end. Length " + length + ".");
-			}
+			announceLay(player, result, presentLay(player, result), false);
 		} catch (TrackLayException e) {
 			player.sendMessage("§c" + e.getMessage());
 			if (e.hasBlock()) {
@@ -397,16 +429,92 @@ public final class TrackCommands {
 		}
 	}
 
-	private static void presentLay(Player player, TrackLayResult result) {
+	private static Presented presentLay(Player player, TrackLayResult result) {
 		if (result == null || result.spline() == null) {
-			return;
+			return Presented.none();
 		}
+		int cost = TrackPieces.cost(result.stroke);
 		if (result.sequential() && TrackBuildAnimator.sequential(player)) {
-			TrackBuildAnimator.start(player, result.spline(), result.keepPoints(), result.stroke);
-			return;
+			boolean started = TrackBuildAnimator.start(
+					player, result.spline(), result.keepPoints(), result.stroke);
+			int paid = TrackPieces.pays(player) ? (started ? 1 : 0) : cost;
+			return new Presented(remaining(result), paid, cost, true);
+		}
+		int paid = TrackPieces.consumeUpTo(player, cost);
+		if (result.kind != TrackLayResult.Kind.CONNECT
+				&& TrackPieces.pays(player)
+				&& paid < cost) {
+			boolean append = result.kind == TrackLayResult.Kind.APPEND;
+			registry().persistPoints(
+					result.spline().getId(),
+					TrackPieces.persistPoints(result.keepPoints(), result.stroke, append, paid));
 		}
 		rebake(result.spline().getId());
 		burstPlace(player, result);
+		return new Presented(remaining(result), paid, cost, false);
+	}
+
+	private static Optional<TrackSpline> remaining(TrackLayResult result) {
+		if (result == null || result.spline() == null) {
+			return Optional.empty();
+		}
+		return registry().get(result.spline().getId())
+				.filter(spline -> spline.getSamples().size() >= 2);
+	}
+
+	private static void announceLay(
+			Player player,
+			TrackLayResult result,
+			Presented presented,
+			boolean branch) {
+		if (player == null || result == null || presented == null) {
+			return;
+		}
+		Optional<TrackSpline> now = presented.spline;
+		if (now.isPresent()) {
+			TrackSpline spline = now.get();
+			if (TrackLayResult.shouldAnnounce(result.kind, result.previousCount, spline.getSamples().size())) {
+				String length = String.format("%.1f", spline.length());
+				if (result.kind == TrackLayResult.Kind.CONNECT) {
+					player.sendMessage("§aConnected two tracks. Length " + length + ".");
+				} else if (branch) {
+					player.sendMessage("§aLaid branch. Length " + length + ".");
+				} else {
+					player.sendMessage("§aLaid track from start to end. Length " + length + ".");
+				}
+			}
+		}
+		if (presented.sequential) {
+			return;
+		}
+		if (!TrackPieces.pays(player) || presented.paid >= presented.cost) {
+			return;
+		}
+		if (now.isEmpty()
+				|| !TrackLayResult.shouldAnnounce(
+						result.kind, result.previousCount, now.get().getSamples().size())) {
+			player.sendMessage("§cYou need track in your inventory to lay rail.");
+			return;
+		}
+		player.sendMessage("§cNot enough track to finish.");
+	}
+
+	private static final class Presented {
+		private final Optional<TrackSpline> spline;
+		private final int paid;
+		private final int cost;
+		private final boolean sequential;
+
+		private Presented(Optional<TrackSpline> spline, int paid, int cost, boolean sequential) {
+			this.spline = spline == null ? Optional.empty() : spline;
+			this.paid = paid;
+			this.cost = cost;
+			this.sequential = sequential;
+		}
+
+		private static Presented none() {
+			return new Presented(Optional.empty(), 0, 0, false);
+		}
 	}
 
 	private static void burstPlace(Player player, TrackLayResult result) {

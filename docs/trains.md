@@ -53,7 +53,9 @@ Reuse `behaviour.train` front/back connector bones ([`Connector`](../src/main/ja
 - **Later in phase 1 (optional batch):** merge long collinear, same-grade runs into 2x3 / 3x3 (cap at whatever the model allows; 3x3 is the expected max). 1x3 remains for turns and grade changes.
 - Spawn displays when the **chunk loads**; remove when it unloads. No custom proximity streamer in phase 1.
 - Bake is **cached** on the spline (`visuals()`). Chunk spawn iterates that list; it does not rebake per chunk. `replace` invalidates the cache.
-- `/vf reload` reloads spline JSON and vehicle configs. It does **not** despawn or respawn track displays. Lay, join, dig, and break still rebake.
+- `/vf reload` reloads spline JSON and vehicle configs, then **respawns railroad switches** in loaded chunks from live `trains.yml`. Rail ItemDisplays keep the last **applied** style (`item-small` / `medium` / `large`, `display-y-offset`) until `/vf track resync`.
+- `/vf track resync` copies live rail style to applied, invalidates bake caches, and respawns **rails only** in currently loaded chunks (`resync-chunks-per-tick`, default 2). Unloaded track is not spawned; it uses the new applied style the next time that chunk loads. Console can run this command.
+- Lay, join, dig, and break still rebake loaded pieces using the **applied** rail style. Preview new rail models with reload then resync.
 - Target: a player at max render distance might see a few hundred 1x3 displays. If that hitchs, merge straights before changing spawn rules.
 
 ## Authoring (phase 1)
@@ -76,8 +78,11 @@ One spline per track (no stored sections). A **stroke** is one lay with the conf
 - `max-turn-degrees` (default 25) and `min-lay-distance` (default 8): refuse if the stroke is too short, or if a **join** turn (heading change from the existing end) is too sharp.
 - Grade: stay **flat** as long as possible, then climb at `desired-grade-degrees` (default 6), never steeper than `max-grade-degrees` (default 10). Chat says **slope is too steep** if the end is too high for the run.
 - Clearance: a 3-wide by 3-tall corridor must be passable (air and plants are fine; solids and overlapping tracks are not).
+- Punching track in survival or adventure, and explosions (TNT, creepers, VF ammunition), mark edges broken and drop one `item-track` per newly broken edge. Creative punch and the remover dig do not drop.
+- `place-keepout-radius` (default 1.5): cannot place blocks or empty buckets within that XZ distance of a sample at the rail's block Y or above. Blocks strictly below that Y (new ground under the rails) are allowed.
 - Moving trains spawn `fx` gravel `BLOCK_CRACK` crumbs on that 3-wide ballast (rotated with the rail yaw). `fx.sound` is a string (vanilla `minecraft:block.stone.break` or a custom namespaced sound). Copy `fx` and `build` into an existing `plugins/VehicleFramework/trains.yml`.
 - `/vf track delete <uuid>` removes the whole track. `/vf track start` and `/vf track end` use your current position.
+- `/vf track resync` applies rail item paths and `display-y-offset` from `trains.yml` to loaded chunks (throttled). Switches follow `/vf reload` and chunk load without this command.
 - `/vf track dump` appends a network snapshot to `logs/track.log` (`DUMP`, `SPLINE`, `PT` every 32 along `s`, then `JUNCTION` frogs including `thrown`). The same dump runs on plugin load. `JUNCTION_DROP` is written if a junction JSON is skipped (`no-stem` / `no-branch`) or cancelled as incomplete.
 
 No free-walk recorder tape in phase 1.

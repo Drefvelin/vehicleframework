@@ -1,0 +1,6 @@
+wagon:
+  FALL: 0.0
+  entity_attack: 0.1
+  entity_explosion: 1.5
+  small_bomb: 3.0
+  cannonball: 1.3

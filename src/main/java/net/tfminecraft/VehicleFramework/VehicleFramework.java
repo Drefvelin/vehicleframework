@@ -18,6 +18,8 @@ import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
 import net.tfminecraft.VehicleFramework.Loaders.TrainsLoader;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Loaders.WeaponTemplateLoader;
+import net.tfminecraft.VehicleFramework.Loaders.ArmorTemplateLoader;
+import net.tfminecraft.VehicleFramework.Loaders.DeathTemplateLoader;
 import net.tfminecraft.VehicleFramework.Managers.CommandManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
 import net.tfminecraft.VehicleFramework.Protocol.VehiclePacketListener;
@@ -47,6 +49,8 @@ public class VehicleFramework extends JavaPlugin{
 	private final AmmunitionLoader ammunitionLoader = new AmmunitionLoader();
 	private final VehicleLoader vehicleLoader = new VehicleLoader();
 	private final WeaponTemplateLoader weaponTemplateLoader = new WeaponTemplateLoader();
+	private final ArmorTemplateLoader armorTemplateLoader = new ArmorTemplateLoader();
+	private final DeathTemplateLoader deathTemplateLoader = new DeathTemplateLoader();
 	private final FuelLoader fuelLoader = new FuelLoader();
 	private final Database db = new Database();
 	private static TrackRegistry trackRegistry;
@@ -64,6 +68,7 @@ public class VehicleFramework extends JavaPlugin{
 		createFolders();
 		createConfigs();
 		loadConfigs();
+		Cache.applyTrackDisplayStyle();
 		VFLogger.info("Starting systems...");
 		registerListeners();
 		startManagers();
@@ -119,6 +124,12 @@ public class VehicleFramework extends JavaPlugin{
 		if(!subFolder.exists()) subFolder.mkdir();
 		subFolder = new File(getDataFolder(), "templates/weapons");
 		if(!subFolder.exists()) subFolder.mkdir();
+		subFolder = new File(getDataFolder(), "templates/armor");
+		if(!subFolder.exists()) subFolder.mkdir();
+		subFolder = new File(getDataFolder(), "templates/roles");
+		if(!subFolder.exists()) subFolder.mkdir();
+		subFolder = new File(getDataFolder(), "templates/death");
+		if(!subFolder.exists()) subFolder.mkdir();
 	}
 	public void loadConfigs() {
 		configLoader.load(new File(getDataFolder(), "config.yml"));
@@ -128,6 +139,14 @@ public class VehicleFramework extends JavaPlugin{
 		weaponTemplateLoader.clear();
 		VFLogger.info("Loading weapon templates...");
 		weaponTemplateLoader.loadFolder(new File(getDataFolder(), "templates/weapons"));
+		armorTemplateLoader.clear();
+		VFLogger.info("Loading armor templates...");
+		armorTemplateLoader.loadArmorFolder(new File(getDataFolder(), "templates/armor"));
+		VFLogger.info("Loading role templates...");
+		armorTemplateLoader.loadRoleFolder(new File(getDataFolder(), "templates/roles"));
+		deathTemplateLoader.clear();
+		VFLogger.info("Loading death templates...");
+		deathTemplateLoader.loadFolder(new File(getDataFolder(), "templates/death"));
 		File folder = new File(getDataFolder(), "vehicles");
 		VFLogger.info("Loading vehicles...");
     	for (final File file : folder.listFiles()) {
@@ -157,7 +176,22 @@ public class VehicleFramework extends JavaPlugin{
 				"config.yml",
 				"trains.yml",
 				"fuel.yml",
-				"templates/weapons/gun_turret.yml"
+				"templates/weapons/gun_turret.yml",
+				"templates/weapons/aa_turret.yml",
+				"templates/weapons/naval_cannon.yml",
+				"templates/weapons/flak_cannon.yml",
+				"templates/weapons/autocannon.yml",
+				"templates/armor/wooden.yml",
+				"templates/armor/airship.yml",
+				"templates/armor/armored.yml",
+				"templates/armor/aircraft.yml",
+				"templates/armor/emplacement.yml",
+				"templates/armor/wagon.yml",
+				"templates/roles/roles.yml",
+				"templates/death/explode_small.yml",
+				"templates/death/explode_medium.yml",
+				"templates/death/explode_large.yml",
+				"templates/death/ship.yml"
 				};
 		for(String s : files) {
 			File newConfigFile = new File(getDataFolder(), s);
@@ -215,6 +249,9 @@ public class VehicleFramework extends JavaPlugin{
 		Cache.removeProjectiles();
 		loadConfigs();
 		vehicleManager.reload();
+		if (trackDisplayManager != null) {
+			trackDisplayManager.reloadSwitches();
+		}
 		PersistenceLog.append("RELOAD_END pendingSpawns cycle=" + PersistenceLog.spawnCycle());
 	}
 	

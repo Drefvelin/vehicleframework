@@ -9,12 +9,14 @@ item-remover: v.iron_pickaxe
 item-recorder: v.clock
 item-junction: v.diamond_shovel
 item-switch: ia.tfmc:railroad_switch
+item-track: ia.tfmc:train_track
 snap-distance: 3
-display-y-offset: 0.5
-vehicle-y-offset: 0.5
+display-y-offset: 0.51
+vehicle-y-offset: 0.51
 max-turn-degrees: 35
 min-lay-distance: 8
 join-distance: 1.5
+place-keepout-radius: 1.5
 min-junction-spacing: 16
 max-junction-length: 32
 junction-arm-distance: 16
@@ -28,8 +30,10 @@ switch:
   throw-degrees-per-second: 90
 desired-grade-degrees: 6
 max-grade-degrees: 10
+# Loaded chunks only. Unloaded track uses this style the next time its chunk loads.
+resync-chunks-per-tick: 2
 
-# Moving trains: gravel crumbs across the 3-wide ballast, plus a break sound
+# Moving trains: crumbs and clack while rolling. Does not affect layer clicks or placing 1x3s.
 fx:
   particle: BLOCK_CRACK
   particle-block: GRAVEL
@@ -44,17 +48,22 @@ fx:
 
 # Survival / adventure: grow the stroke one sample at a time (small -> medium -> large).
 # Creative / spectator (or interval-ticks 0) still rebakes the whole stroke at once, with one sound + particles at the end.
+# Layer left/right clicks use the same sound and particles.
 build:
   interval-ticks: 4
   swing: true
   sound: minecraft:block.gravel.break
   sound-volume: 0.55
   sound-pitch: 0.9
+  sound-2: minecraft:block.iron.place
+  sound-2-volume: 1.0
+  sound-2-pitch: 2.0
   particle: BLOCK_CRACK
   particle-block: GRAVEL
   count: 6
   width: 1
   extra: 0.08
+  y-offset: 0.08
 
 # One switch for logs/track.log, logs/persistence.log, and logs/recorder.log
 debug-logging: true

@@ -1,6 +1,8 @@
 package net.tfminecraft.VehicleFramework.Tracks;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -13,15 +15,19 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Display.Billboard;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -42,12 +48,15 @@ public final class TrackDisplayManager implements Listener {
 
 	private final List<ItemDisplay> live = new ArrayList<>();
 	private final Set<TrackVisual.Type> missingLogged = new HashSet<>();
+	private final Deque<ChunkRef> resyncQueue = new ArrayDeque<>();
+	private CommandSender resyncNotify;
 	private boolean missingSwitchLogged;
 
 	public TrackDisplayManager() {
 		VehicleFramework plugin = VehicleFramework.getInstance();
 		if (plugin != null) {
 			plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+				tickResync();
 				tickSwitches();
 				TrackBuildAnimator.tick();
 			}, 1L, 1L);
@@ -76,6 +85,39 @@ public final class TrackDisplayManager implements Listener {
 				spawnChunk(chunk);
 			}
 		}
+	}
+
+	public void reloadSwitches() {
+		despawnAllSwitches();
+		missingSwitchLogged = false;
+		for (World world : Bukkit.getWorlds()) {
+			for (Chunk chunk : world.getLoadedChunks()) {
+				spawnSwitchesInChunk(chunk);
+			}
+		}
+	}
+
+	public void startRailResync(CommandSender sender) {
+		Cache.applyTrackDisplayStyle();
+		missingLogged.clear();
+		TrackRegistry registry = VehicleFramework.getTrackRegistry();
+		if (registry != null) {
+			registry.invalidateAllVisuals();
+		}
+		resyncQueue.clear();
+		for (World world : Bukkit.getWorlds()) {
+			for (Chunk chunk : world.getLoadedChunks()) {
+				resyncQueue.add(new ChunkRef(world.getName(), chunk.getX(), chunk.getZ()));
+			}
+		}
+		int pending = resyncQueue.size();
+		if (pending == 0) {
+			sender.sendMessage("§aTrack displays already match config (no loaded chunks).");
+			resyncNotify = null;
+			return;
+		}
+		resyncNotify = sender;
+		sender.sendMessage("§aResyncing track displays in " + pending + " loaded chunks.");
 	}
 
 	public void spawnSpline(TrackSpline spline) {
@@ -173,6 +215,8 @@ public final class TrackDisplayManager implements Listener {
 	}
 
 	public void despawnAll() {
+		resyncQueue.clear();
+		resyncNotify = null;
 		for (ItemDisplay display : live) {
 			if (display != null && !display.isDead()) {
 				display.remove();
@@ -227,7 +271,9 @@ public final class TrackDisplayManager implements Listener {
 					continue;
 				}
 				current = current.withSegment(edge, current.segment(edge).withBroken(true));
-				edges.add(edge);
+				if (edges.add(edge)) {
+					TrackPieces.dropAt(center.getWorld(), sample.x, sample.y, sample.z);
+				}
 			}
 			if (edges.isEmpty()) {
 				continue;
@@ -275,8 +321,9 @@ public final class TrackDisplayManager implements Listener {
 		Player player = (Player) event.getDamager();
 		ItemStack hand = player.getInventory().getItemInMainHand();
 		if (TrackTools.isLayer(hand)) {
-			if (!TrackCommands.skipDuplicateToolUse(player)) {
-				TrackCommands.markStart(player, aimedLocation(player, display));
+			if (!TrackCommands.skipDuplicateToolUse(player)
+					&& TrackCommands.markStart(player, aimedLocation(player, display))) {
+				TrackFx.hitNear(display.getLocation());
 			}
 			return;
 		}
@@ -289,7 +336,7 @@ public final class TrackDisplayManager implements Listener {
 			}
 			return;
 		}
-		breakFromDisplay(display);
+		breakFromDisplay(player, display);
 	}
 
 	@EventHandler
@@ -326,6 +373,21 @@ public final class TrackDisplayManager implements Listener {
 		at.setYaw(player.getLocation().getYaw());
 		at.setPitch(player.getLocation().getPitch());
 		return at;
+	}
+
+	@EventHandler
+	public void onBlockPlace(BlockPlaceEvent event) {
+		if (TrackPlaceKeepout.blocked(event.getBlock())) {
+			event.setCancelled(true);
+		}
+	}
+
+	@EventHandler
+	public void onBucketEmpty(PlayerBucketEmptyEvent event) {
+		Block dest = event.getBlockClicked().getRelative(event.getBlockFace());
+		if (TrackPlaceKeepout.blocked(dest)) {
+			event.setCancelled(true);
+		}
 	}
 
 	@EventHandler
@@ -533,7 +595,7 @@ public final class TrackDisplayManager implements Listener {
 		if (item == null) {
 			return;
 		}
-		Location loc = new Location(world, visual.x, visual.y + Cache.trackDisplayYOffset, visual.z, visual.yaw, visual.pitch);
+		Location loc = new Location(world, visual.x, visual.y + Cache.appliedTrackDisplayYOffset, visual.z, visual.yaw, visual.pitch);
 		ItemDisplay display = world.spawn(loc, ItemDisplay.class, spawned -> {
 			spawned.setPersistent(false);
 			spawned.setGravity(false);
@@ -555,23 +617,23 @@ public final class TrackDisplayManager implements Listener {
 		}
 		logMissing(type, path);
 		if (type != TrackVisual.Type.SMALL) {
-			ItemStack small = itemFromPath(Cache.trackItemSmall);
+			ItemStack small = itemFromPath(Cache.appliedTrackItemSmall);
 			if (small != null) {
 				return small;
 			}
-			logMissing(TrackVisual.Type.SMALL, Cache.trackItemSmall);
+			logMissing(TrackVisual.Type.SMALL, Cache.appliedTrackItemSmall);
 		}
 		return null;
 	}
 
 	private static String pathFor(TrackVisual.Type type) {
 		if (type == TrackVisual.Type.LARGE) {
-			return Cache.trackItemLarge;
+			return Cache.appliedTrackItemLarge;
 		}
 		if (type == TrackVisual.Type.MEDIUM) {
-			return Cache.trackItemMedium;
+			return Cache.appliedTrackItemMedium;
 		}
-		return Cache.trackItemSmall;
+		return Cache.appliedTrackItemSmall;
 	}
 
 	private ItemStack itemFromPath(String path) {
@@ -596,7 +658,7 @@ public final class TrackDisplayManager implements Listener {
 		VFLogger.log("Track display item is missing: " + path);
 	}
 
-	private void breakFromDisplay(ItemDisplay display) {
+	private void breakFromDisplay(Player player, ItemDisplay display) {
 		UUID id = readId(display);
 		Integer edge = readEdge(display);
 		if (id == null || edge == null) {
@@ -616,6 +678,9 @@ public final class TrackDisplayManager implements Listener {
 		int edgeCount = Math.max(1, spline.edgeCount());
 		TrackSpline current = spline;
 		boolean changed = false;
+		boolean drop = TrackPieces.pays(player);
+		World world = Bukkit.getWorld(spline.getWorld());
+		List<TrackSample> samples = spline.getSamples();
 		for (int k = 0; k < span; k++) {
 			int covered = Math.floorMod(edge + k, edgeCount);
 			if (current.segment(covered).broken) {
@@ -623,6 +688,11 @@ public final class TrackDisplayManager implements Listener {
 			}
 			current = current.withSegment(covered, current.segment(covered).withBroken(true));
 			changed = true;
+			if (drop && world != null && !samples.isEmpty()) {
+				int sampleIndex = Math.min(covered, samples.size() - 1);
+				TrackSample sample = samples.get(sampleIndex);
+				TrackPieces.dropAt(world, sample.x, sample.y, sample.z);
+			}
 		}
 		if (changed) {
 			registry.replace(current);
@@ -636,6 +706,63 @@ public final class TrackDisplayManager implements Listener {
 			return 1;
 		}
 		return span;
+	}
+
+	private void despawnAllSwitches() {
+		Iterator<ItemDisplay> it = live.iterator();
+		while (it.hasNext()) {
+			ItemDisplay display = it.next();
+			if (isSwitchDisplay(display)) {
+				display.remove();
+				it.remove();
+			}
+		}
+	}
+
+	private void tickResync() {
+		if (resyncQueue.isEmpty()) {
+			return;
+		}
+		int budget = Math.max(1, Cache.trackResyncChunksPerTick);
+		while (budget-- > 0 && !resyncQueue.isEmpty()) {
+			ChunkRef ref = resyncQueue.poll();
+			World world = Bukkit.getWorld(ref.world);
+			if (world == null || !world.isChunkLoaded(ref.x, ref.z)) {
+				continue;
+			}
+			resyncRailsInChunk(world.getChunkAt(ref.x, ref.z));
+		}
+		if (resyncQueue.isEmpty() && resyncNotify != null) {
+			resyncNotify.sendMessage("§aTrack display resync finished.");
+			resyncNotify = null;
+		}
+	}
+
+	private void resyncRailsInChunk(Chunk chunk) {
+		removeTrackDisplaysInChunk(chunk);
+		TrackRegistry registry = VehicleFramework.getTrackRegistry();
+		if (registry == null) {
+			return;
+		}
+		for (TrackSpline spline : registry.inWorld(chunk.getWorld().getName())) {
+			if (TrackBuildAnimator.isBuilding(spline.getId())) {
+				TrackBuildAnimator.spawnIntoChunk(spline, chunk);
+			} else {
+				spawnSplineInChunk(spline, chunk);
+			}
+		}
+	}
+
+	private void removeTrackDisplaysInChunk(Chunk chunk) {
+		for (Entity entity : chunk.getEntities()) {
+			if (!(entity instanceof ItemDisplay display)) {
+				continue;
+			}
+			if (isTrackDisplay(display)) {
+				display.remove();
+			}
+		}
+		live.removeIf(display -> display == null || display.isDead() || !display.isValid());
 	}
 
 	private void removeTaggedInChunk(Chunk chunk) {
@@ -713,5 +840,8 @@ public final class TrackDisplayManager implements Listener {
 
 	private static long chunkKey(int cx, int cz) {
 		return ((long) cx << 32) ^ (cz & 0xffffffffL);
+	}
+
+	private record ChunkRef(String world, int x, int z) {
 	}
 }

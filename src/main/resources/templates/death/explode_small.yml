@@ -1,0 +1,9 @@
+explode_small:
+  explode:
+    fragments: 4
+    duration: 320
+    sounds:
+      explode:
+        sound: "vehicleframework:explosion"
+        pitch: 1.0
+        volume: 8.0

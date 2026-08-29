@@ -83,8 +83,9 @@ public class DefaultShooter implements Shooter {
 	            if(a instanceof ClusterBomb) {
 	            	ClusterBomb c = (ClusterBomb) a;
 	            	if(i >= c.getFuse()) {
+	            		int particleCount = (int) Math.round(Weapon.effectiveYield(w, ammoData) * 15);
 	            		for(Player p : players) {
-	        				p.spawnParticle(Particle.EXPLOSION_HUGE, e.getLocation(), (int) Math.round(a.getData().getYield()*15), 0, 0, 0, 0);
+	        				p.spawnParticle(Particle.EXPLOSION_HUGE, e.getLocation(), particleCount, 0, 0, 0, 0);
 	        			}
 						shooter.triggerExplosion(players, e.getLocation(), ammoData, w);
 	            		sendCluster(e.getLocation(), c, players, projectiles, w);
@@ -101,7 +102,8 @@ public class DefaultShooter implements Shooter {
 	private void sendCluster(Location original, ClusterBomb a, List<Player> players, List<Entity> projectiles, ActiveWeapon w) {
 	    World world = original.getWorld();
 	    if (world == null) return;
-	    for (int i = 0; i < a.getAmount(); i++) {
+	    int count = Weapon.effectiveClusterAmount(w, a);
+	    for (int i = 0; i < count; i++) {
 	        Entity armorStand = a.getClusterData().spawn(original);
 	        projectiles.add(armorStand);
 			Cache.projectiles.add(armorStand);

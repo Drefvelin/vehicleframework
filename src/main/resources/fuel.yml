@@ -2,6 +2,10 @@ coal:
     name: "#524f49Coal Blocks"
     item: v.coal_block
     amount: 100
+    refuel-while-running: true
+    sound: minecraft:block.lava.extinguish
+    sound-volume: 1.0
+    sound-pitch: 1.0
 arcane_fuel:
     name: "#c4b99fArcane Fuel"
     item: m.utils.arcane_fuel

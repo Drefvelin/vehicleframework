@@ -36,9 +36,9 @@ public final class TrackBuildAnimator {
 		return Cache.trackBuildIntervalTicks > 0;
 	}
 
-	public static void start(Player player, TrackSpline spline, List<double[]> keep, List<double[]> stroke) {
+	public static boolean start(Player player, TrackSpline spline, List<double[]> keep, List<double[]> stroke) {
 		if (spline == null) {
-			return;
+			return false;
 		}
 		cancel(spline.getId());
 		List<double[]> strokeCopy = copy(stroke);
@@ -47,7 +47,11 @@ public final class TrackBuildAnimator {
 			if (displays != null) {
 				displays.rebakeSpline(spline.getId());
 			}
-			return;
+			return false;
+		}
+		if (TrackPieces.pays(player) && !TrackPieces.consumeOne(player)) {
+			rollback(spline.getId(), keep, strokeCopy);
+			return false;
 		}
 		Job job = new Job(
 				spline.getId(),
@@ -61,6 +65,7 @@ public final class TrackBuildAnimator {
 			job.sync(displays, null);
 			job.fx();
 		}
+		return true;
 	}
 
 	public static void tick() {
@@ -78,6 +83,15 @@ public final class TrackBuildAnimator {
 			job.ticksLeft = Math.max(1, Cache.trackBuildIntervalTicks);
 			if (job.revealed >= job.stroke.size()) {
 				it.remove();
+				continue;
+			}
+			Player payer = job.playerId == null ? null : Bukkit.getPlayer(job.playerId);
+			if (TrackPieces.pays(payer) && !TrackPieces.consumeOne(payer)) {
+				it.remove();
+				persist(job);
+				if (payer != null && payer.isOnline()) {
+					payer.sendMessage("§cNot enough track to finish.");
+				}
 				continue;
 			}
 			job.revealed = nextReveal(job);
@@ -116,6 +130,37 @@ public final class TrackBuildAnimator {
 		for (UUID id : List.copyOf(jobs.keySet())) {
 			finish(id);
 		}
+	}
+
+	private static void rollback(UUID splineId, List<double[]> keep, List<double[]> stroke) {
+		boolean append = joins(keep, stroke);
+		persistPoints(splineId, TrackPieces.persistPoints(keep, stroke, append, 0));
+	}
+
+	private static void persist(Job job) {
+		int paid = Math.max(0, job.revealed - 1);
+		persistPoints(
+				job.splineId,
+				TrackPieces.persistPoints(job.keep, job.stroke, job.joinsAtKeepEnd(), paid));
+	}
+
+	private static void persistPoints(UUID splineId, List<double[]> points) {
+		TrackRegistry registry = VehicleFramework.getTrackRegistry();
+		if (registry != null) {
+			registry.persistPoints(splineId, points);
+		}
+	}
+
+	private static boolean joins(List<double[]> keep, List<double[]> stroke) {
+		if (keep == null || keep.isEmpty() || stroke == null || stroke.size() < 2) {
+			return false;
+		}
+		double[] a = keep.get(keep.size() - 1);
+		double[] b = stroke.get(0);
+		double dx = a[0] - b[0];
+		double dy = a[1] - b[1];
+		double dz = a[2] - b[2];
+		return dx * dx + dy * dy + dz * dz < 0.01;
 	}
 
 	private static int nextReveal(Job job) {

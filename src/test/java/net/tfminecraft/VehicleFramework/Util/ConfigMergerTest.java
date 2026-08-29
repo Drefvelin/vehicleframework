@@ -78,6 +78,36 @@ class ConfigMergerTest {
 	}
 
 	@Test
+	void deathOverlay_keepsExplodeSoundsAndAddsCrash() {
+		Map<String, Object> template = map(
+				"explode", map(
+						"fragments", 10,
+						"sounds", map("explode", map("sound", "vehicleframework:explosion"))));
+		Map<String, Object> overlay = map(
+				"explode", map(
+						"overrides", map(
+								"crashing", map("type", "crash"))),
+				"crash", map("nop", true));
+
+		Map<String, Object> merged = ConfigMerger.overlay(template, overlay);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> explode = (Map<String, Object>) merged.get("explode");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> sounds = (Map<String, Object>) explode.get("sounds");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> explodeSound = (Map<String, Object>) sounds.get("explode");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> overrides = (Map<String, Object>) explode.get("overrides");
+		@SuppressWarnings("unchecked")
+		Map<String, Object> crash = (Map<String, Object>) merged.get("crash");
+		assertEquals("vehicleframework:explosion", explodeSound.get("sound"));
+		assertEquals(10, explode.get("fragments"));
+		assertEquals("crash", ((Map<?, ?>) overrides.get("crashing")).get("type"));
+		assertEquals(true, crash.get("nop"));
+	}
+
+	@Test
 	void overlay_doesNotMutateTemplateMap() {
 		Map<String, Object> template = map("cooldown", 10);
 		Map<String, Object> overlay = map("cooldown", 4);

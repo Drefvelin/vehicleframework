@@ -6,14 +6,7 @@ wooden_cart:
             name: "Wooden Cart"
             model: wooden_cart
     death:
-        explode:
-            fragments: 10
-            duration: 320
-            sounds:
-                explode:
-                    sound: "vehicleframework:explosion"
-                    pitch: 1.0
-                    volume: 8.0
+        template: explode_medium
     towing:
         bone: tow_connection
         reversed: true
@@ -77,14 +70,8 @@ wooden_cart:
             health: 100.0
             repair-time: 60
             damage-chance: 0.8
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.2)
-                - bullet(0.6)
-                - entity_explosion(1.5)
-                - small_bomb(3.0)
-                - cannonball(1.3)
+            armor: wagon
+            role: hull_wagon
             turn-rate: 0.4
             mount-bones:
                 - horse_mount1
@@ -95,14 +82,8 @@ wooden_cart:
             health: 150.0
             repair-time: 100
             damage-chance: 1.0
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.2)
-                - bullet(0.6)
-                - entity_explosion(1.5)
-                - small_bomb(3.0)
-                - cannonball(1.3)
+            armor: wagon
+            role: hull_wagon
             vfx:
                 - vfx1
                 - vfx2

@@ -1,0 +1,50 @@
+naval_cannon:
+  name: "Naval Cannon"
+  head-axis: x
+  reload-time: 5
+  cooldown: 5
+  accepted-ammunition:
+    - cannonball
+  data:
+    shoot-sounds:
+      sound:
+        sound: "minecraft:entity.generic.explode"
+        pitch: 1.0
+        volume: 6.0
+    reload-sounds:
+      sound:
+        sound: "minecraft:block.anvil.land"
+        pitch: 1.0
+        volume: 1.0
+    reload-start-sounds:
+      sound:
+        sound: "minecraft:block.anvil.land"
+        pitch: 1.0
+        volume: 1.0
+    particles:
+      particle1:
+        particle: FLAME
+        amount: 70
+        spread: 0.2
+        speed: 1.2
+      particle2:
+        particle: CAMPFIRE_COSY_SMOKE
+        amount: 60
+        spread: 1.0
+        speed: 0.2
+      particle3:
+        particle: CAMPFIRE_COSY_SMOKE
+        amount: 20
+        spread: 0.5
+        speed: 0.4
+  keybinds:
+    W: WEAPON_UP
+    S: WEAPON_DOWN
+    A: WEAPON_LEFT
+    D: WEAPON_RIGHT
+    SPACE_W: WEAPON_UP
+    SPACE_S: WEAPON_DOWN
+    SPACE_A: WEAPON_LEFT
+    SPACE_D: WEAPON_RIGHT
+    RIGHT_CLICK: WEAPON_RELOAD
+    SPACE: WEAPON_SHOOT

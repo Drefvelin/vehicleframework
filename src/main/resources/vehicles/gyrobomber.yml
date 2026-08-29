@@ -9,14 +9,7 @@ gyrobomber:
             name: "Gyrobomber (Prism)"
             model: gyrobomber_prism
     death:
-        explode:
-            fragments: 30
-            duration: 320
-            sounds:
-                explode:
-                    sound: "vehicleframework:explosion"
-                    pitch: 1.0
-                    volume: 8.0
+        template: explode_large
     behaviour:
         turn-scaling: false
         rotator: body_controller
@@ -138,16 +131,8 @@ gyrobomber:
             refuel-states:
                 - GROUND
             damage-chance: 0.7
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.3)
-                - bullet(0.6)
-                - entity_explosion(2.0)
-                - small_bomb(10.0)
-                - cannonball(1.8)
-                - torpedo(7.0)
-                - flak_bullet(2.0)
+            armor: airship
+            role: engine_airship
             max: 100
             min: -20
             speed: 0.15
@@ -159,16 +144,8 @@ gyrobomber:
             health: 900.0
             repair-time: 100
             damage-chance: 1.0
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.3)
-                - bullet(0.1)
-                - entity_explosion(2.0)
-                - small_bomb(10.0)
-                - cannonball(1.8)
-                - torpedo(7.0)
-                - flak_bullet(2.0)
+            armor: airship
+            role: hull_airship
             vfx:
                 - hull_vfx_1
                 - hull_vfx_2
@@ -178,16 +155,8 @@ gyrobomber:
             repair-time: 160
             damage-chance: 1.0
             lift: 0.1
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.3)
-                - bullet(1.2)
-                - entity_explosion(2.0)
-                - small_bomb(10.0)
-                - cannonball(1.8)
-                - torpedo(7.0)
-                - flak_bullet(2.0)
+            armor: airship
+            role: balloon_gyro
             vfx:
                 - balloon_vfx_1
                 - balloon_vfx_2
@@ -271,193 +240,33 @@ gyrobomber:
                 LEFT_CLICK: WEAPON_SWITCH
         rear_gun:
             name: "§eRear Rifle"
+            template: gun_turret
             seat: gunner_1
             body-bone: "gunturret"
             head-bone: "gunrotator"
-            head-axis: z
-            rotation-limits:
-              min-roll: -60
-              max-roll: 60
-            reload-time: 5
-            cooldown: 4
-            accepted-ammunition:
-                - bullet
             bones:
                 - exit2.exitalign2
-            data:
-                shoot-sounds:
-                    sound:
-                        sound: "vehicleframework:gun"
-                        pitch: 1.0
-                        volume: 6.0
-                reload-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                reload-start-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                particles:
-                    particle1:
-                        particle: FLAME
-                        amount: 10
-                        spread: 0.05
-                        speed: 0.3
-            keybinds:
-                W: WEAPON_DOWN
-                S: WEAPON_UP
-                A: WEAPON_LEFT
-                D: WEAPON_RIGHT
-                SPACE_W: WEAPON_DOWN
-                SPACE_S: WEAPON_UP
-                SPACE_A: WEAPON_LEFT
-                SPACE_D: WEAPON_RIGHT
-                RIGHT_CLICK: WEAPON_RELOAD
-                SPACE: WEAPON_SHOOT
         front_gun:
             name: "§eFront Rifle"
+            template: gun_turret
             seat: gunner_2
             body-bone: "gunturret2"
             head-bone: "gunrotator2"
-            head-axis: z
-            rotation-limits:
-              min-roll: -60
-              max-roll: 60
-            reload-time: 5
-            cooldown: 4
-            accepted-ammunition:
-                - bullet
             bones:
                 - exit3.exitalign3
-            data:
-                shoot-sounds:
-                    sound:
-                        sound: "vehicleframework:gun"
-                        pitch: 1.0
-                        volume: 6.0
-                reload-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                reload-start-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                particles:
-                    particle1:
-                        particle: FLAME
-                        amount: 10
-                        spread: 0.05
-                        speed: 0.3
-            keybinds:
-                W: WEAPON_DOWN
-                S: WEAPON_UP
-                A: WEAPON_LEFT
-                D: WEAPON_RIGHT
-                SPACE_W: WEAPON_DOWN
-                SPACE_S: WEAPON_UP
-                SPACE_A: WEAPON_LEFT
-                SPACE_D: WEAPON_RIGHT
-                RIGHT_CLICK: WEAPON_RELOAD
-                SPACE: WEAPON_SHOOT
         left_gun:
             name: "§eLeft Rifle"
+            template: gun_turret
             seat: gunner_3
             body-bone: "gunturret3"
             head-bone: "gunrotator3"
-            head-axis: z
-            rotation-limits:
-              min-roll: -60
-              max-roll: 60
-            reload-time: 5
-            cooldown: 4
-            accepted-ammunition:
-                - bullet
             bones:
                 - exit4.exitalign4
-            data:
-                shoot-sounds:
-                    sound:
-                        sound: "vehicleframework:gun"
-                        pitch: 1.0
-                        volume: 6.0
-                reload-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                reload-start-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                particles:
-                    particle1:
-                        particle: FLAME
-                        amount: 10
-                        spread: 0.05
-                        speed: 0.3
-            keybinds:
-                W: WEAPON_DOWN
-                S: WEAPON_UP
-                A: WEAPON_LEFT
-                D: WEAPON_RIGHT
-                SPACE_W: WEAPON_DOWN
-                SPACE_S: WEAPON_UP
-                SPACE_A: WEAPON_LEFT
-                SPACE_D: WEAPON_RIGHT
-                RIGHT_CLICK: WEAPON_RELOAD
-                SPACE: WEAPON_SHOOT
         right_gun:
             name: "§eRight Rifle"
+            template: gun_turret
             seat: gunner_4
             body-bone: "gunturret4"
             head-bone: "gunrotator4"
-            head-axis: z
-            rotation-limits:
-              min-roll: -60
-              max-roll: 60
-            reload-time: 5
-            cooldown: 4
-            accepted-ammunition:
-                - bullet
             bones:
                 - exit5.exitalign5
-            data:
-                shoot-sounds:
-                    sound:
-                        sound: "vehicleframework:gun"
-                        pitch: 1.0
-                        volume: 6.0
-                reload-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                reload-start-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                particles:
-                    particle1:
-                        particle: FLAME
-                        amount: 10
-                        spread: 0.05
-                        speed: 0.3
-            keybinds:
-                W: WEAPON_DOWN
-                S: WEAPON_UP
-                A: WEAPON_LEFT
-                D: WEAPON_RIGHT
-                SPACE_W: WEAPON_DOWN
-                SPACE_S: WEAPON_UP
-                SPACE_A: WEAPON_LEFT
-                SPACE_D: WEAPON_RIGHT
-                RIGHT_CLICK: WEAPON_RELOAD
-                SPACE: WEAPON_SHOOT

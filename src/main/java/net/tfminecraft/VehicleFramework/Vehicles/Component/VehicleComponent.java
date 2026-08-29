@@ -11,6 +11,7 @@ import com.ticxo.modelengine.api.model.ActiveModel;
 
 import net.tfminecraft.VehicleFramework.Util.Text;
 import net.tfminecraft.VehicleFramework.Data.DamageData;
+import net.tfminecraft.VehicleFramework.Loaders.ArmorTemplateLoader;
 import net.tfminecraft.VehicleFramework.Data.HealthData;
 import net.tfminecraft.VehicleFramework.Database.IncompleteComponent;
 import net.tfminecraft.VehicleFramework.Enums.Component;
@@ -50,7 +51,7 @@ public class VehicleComponent {
 		}
 		fatal = config.getBoolean("fatal", fatal);
 		healthData = new HealthData(config.getDouble("health"), 0, config.getInt("repair-time"));
-		damageData = new DamageData((List<String>) config.getList("damage", new ArrayList<String>()));
+		damageData = ArmorTemplateLoader.resolve(type.toString().toLowerCase(), config);
 		damageChance = config.getDouble("damage-chance");
 		vfx = new VFX(config.getStringList("vfx"));
 	}

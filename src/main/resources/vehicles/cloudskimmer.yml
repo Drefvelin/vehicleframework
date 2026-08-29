@@ -12,14 +12,7 @@ cloudskimmer:
             name: "Cloudskimmer (Norain)"
             model: cloudskimmer_norain
     death:
-        explode:
-            fragments: 30
-            duration: 320
-            sounds:
-                explode:
-                    sound: "vehicleframework:explosion"
-                    pitch: 1.0
-                    volume: 8.0
+        template: explode_large
     behaviour:
         turn-scaling: false
         rotator: body_controller
@@ -137,16 +130,10 @@ cloudskimmer:
             refuel-states:
                 - GROUND
             damage-chance: 0.7
+            armor: airship
+            role: engine_airship
             damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.3)
-                - bullet(1.1)
-                - entity_explosion(2.0)
-                - small_bomb(10.0)
-                - cannonball(1.8)
-                - torpedo(7.0)
-                - flak_bullet(2.0)
+                bullet: 1.1
             max: 100
             min: -20
             speed: 0.37
@@ -157,16 +144,8 @@ cloudskimmer:
             health: 290.0
             repair-time: 100
             damage-chance: 1.0
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.3)
-                - bullet(0.2)
-                - entity_explosion(2.0)
-                - small_bomb(10.0)
-                - cannonball(1.8)
-                - torpedo(7.0)
-                - flak_bullet(2.0)
+            armor: airship
+            role: hull_wood
             vfx:
                 - hull_vfx
                 - hull_vfx2
@@ -176,16 +155,8 @@ cloudskimmer:
             repair-time: 160
             damage-chance: 1.0
             lift: 0.2
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.3)
-                - bullet(0.9)
-                - entity_explosion(2.0)
-                - small_bomb(10.0)
-                - cannonball(1.8)
-                - torpedo(7.0)
-                - flak_bullet(2.0)
+            armor: airship
+            role: balloon_light
             vfx:
                 - balloon
     seats:
@@ -197,17 +168,13 @@ cloudskimmer:
     weapons:
         aa_turret:
             name: "§eAnti-Air Turret"
+            template: aa_turret
             seat: aa_turret_gunner
             body-bone: "aa_turret_body"
             head-bone: "gun"
-            head-axis: x
             rotation-limits:
               min-pitch: -85
               max-pitch: 20
-            reload-time: 10
-            cooldown: 10
-            accepted-ammunition:
-                - bullet
             animations:
                 shoot:
                     - shoot
@@ -215,39 +182,11 @@ cloudskimmer:
             bones:
                 - exit1.exit_align1
                 - exit2.exit_align2
-            data:
-                shoot-sounds:
-                    sound:
-                        sound: "minecraft:guns.musket_1"
-                        pitch: 1.0
-                        volume: 6.0
-                reload-sounds:
-                    sound:
-                        sound: "minecraft:block.anvil.land"
-                        pitch: 1.0
-                        volume: 1.0
-                reload-start-sounds:
-                    sound:
-                        sound: "minecraft:block.anvil.land"
-                        pitch: 1.0
-                        volume: 1.0
-                particles:
-                    particle1:
-                        particle: FLAME
-                        amount: 4
-                        spread: 0.1
-                        speed: 1.2
             keybinds:
                 W: WEAPON_UP
                 S: WEAPON_DOWN
-                A: WEAPON_LEFT
-                D: WEAPON_RIGHT
                 SPACE_W: WEAPON_UP
                 SPACE_S: WEAPON_DOWN
-                SPACE_A: WEAPON_LEFT
-                SPACE_D: WEAPON_RIGHT
-                RIGHT_CLICK: WEAPON_RELOAD
-                SPACE: WEAPON_SHOOT
         bomb_bay:
             name: "§eBomb Bay"
             seat: bombardier

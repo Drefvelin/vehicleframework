@@ -6,25 +6,7 @@ gunboat:
             name: "Guboat"
             model: gunboat
     death:
-        explode:
-            fragments: 30
-            duration: 320
-            sounds:
-                sink:
-                    sound: "vehicleframework:ship_sinking"
-                    pitch: 1.0
-                    volume: 5.0
-                explode:
-                    sound: "vehicleframework:explosion"
-                    pitch: 1.0
-                    volume: 8.0
-        sink:
-            duration: 320
-            sounds:
-                sink:
-                    sound: "vehicleframework:ship_sinking"
-                    pitch: 1.0
-                    volume: 5.0
+        template: ship
     behaviour:
         rotator: body_controller
         vector: move.movealign
@@ -67,15 +49,8 @@ gunboat:
             health: 140.0
             repair-time: 60
             damage-chance: 0.7
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.3)
-                - bullet(0.9)
-                - entity_explosion(2.0)
-                - small_bomb(10.0)
-                - cannonball(1.8)
-                - torpedo(7.0)
+            armor: wooden
+            role: engine_wood
             max: 100
             min: -5
             speed: 0.37
@@ -87,15 +62,8 @@ gunboat:
             health: 290.0
             repair-time: 100
             damage-chance: 1.0
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.3)
-                - bullet(0.2)
-                - entity_explosion(2.0)
-                - small_bomb(10.0)
-                - cannonball(1.8)
-                - torpedo(7.0)
+            armor: wooden
+            role: hull_wood
             vfx:
                 - hull_vfx1
                 - hull_vfx2
@@ -108,63 +76,17 @@ gunboat:
     weapons:
         naval_gun:
             name: "§eFront Cannon"
+            template: naval_cannon
             seat: front_gunner
             body-bone: "gun_body"
             head-bone: "gun_rotator"
-            head-axis: x
             rotation-limits:
               min-yaw: -120
               max-yaw: 120
               min-pitch: -60
               max-pitch: 20
-            reload-time: 5
-            accepted-ammunition:
-                - cannonball
-            bones:
-                - exit.exitalign
             animations:
                 shoot:
                     - shoot
-            data:
-                shoot-sounds:
-                    sound:
-                        sound: "minecraft:entity.generic.explode"
-                        pitch: 1.0
-                        volume: 6.0
-                reload-sounds:
-                    sound:
-                        sound: "minecraft:block.anvil.land"
-                        pitch: 1.0
-                        volume: 1.0
-                reload-start-sounds:
-                    sound:
-                        sound: "minecraft:block.anvil.land"
-                        pitch: 1.0
-                        volume: 1.0
-                particles:
-                    particle1:
-                        particle: FLAME
-                        amount: 70
-                        spread: 0.2
-                        speed: 1.2
-                    particle2:
-                        particle: CAMPFIRE_COSY_SMOKE
-                        amount: 60
-                        spread: 1.0
-                        speed: 0.2
-                    particle3:
-                        particle: CAMPFIRE_COSY_SMOKE
-                        amount: 20
-                        spread: 0.5
-                        speed: 0.4
-            keybinds:
-                W: WEAPON_UP
-                S: WEAPON_DOWN
-                A: WEAPON_LEFT
-                D: WEAPON_RIGHT
-                SPACE_W: WEAPON_UP
-                SPACE_S: WEAPON_DOWN
-                SPACE_A: WEAPON_LEFT
-                SPACE_D: WEAPON_RIGHT
-                RIGHT_CLICK: WEAPON_RELOAD
-                SPACE: WEAPON_SHOOT
+            bones:
+                - exit.exitalign

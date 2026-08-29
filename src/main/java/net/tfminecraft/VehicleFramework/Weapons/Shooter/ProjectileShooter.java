@@ -17,6 +17,7 @@ import net.tfminecraft.VehicleFramework.Interface.Shooter;
 import net.tfminecraft.VehicleFramework.Util.ExplosionCreator;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 import net.tfminecraft.VehicleFramework.Weapons.Weapon;
+import net.tfminecraft.VehicleFramework.Weapons.Ammunition.ClusterBomb;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
 
@@ -78,12 +79,12 @@ public class ProjectileShooter implements Shooter {
 	}
 	
 	public void triggerExplosion(List<Player> players, Location explosionCenter, AmmunitionData a, ActiveWeapon w) {
-		if (a.isExplosive()) {
+		if (Weapon.effectiveExplosive(w, a)) {
 			explosionCenter.getWorld().playSound(explosionCenter, Sound.ENTITY_GENERIC_EXPLODE, 8, 1);
 	    	ExplosionCreator.triggerExplosion(
 	    			explosionCenter,
-	    			a.getYield(),
-	    			a.getRadius(),
+	    			Weapon.effectiveYield(w, a),
+	    			Weapon.effectiveRadius(w, a),
 	    			Weapon.effectiveDamage(w, a),
 	    			Weapon.effectiveDamageType(w, a),
 	    			a.isFire()
@@ -92,7 +93,7 @@ public class ProjectileShooter implements Shooter {
 
 		if (!a.getPotionEffects().isEmpty()) {
 			for (AmmunitionData.LingeringCloudData cloudData : a.getLingeringClouds()) {
-				spawnLingeringCloud(explosionCenter, cloudData, a.getRadius());
+				spawnLingeringCloud(explosionCenter, cloudData, Weapon.effectiveRadius(w, a));
 			}
 		}
 

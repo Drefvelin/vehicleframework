@@ -19,6 +19,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.StateHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.UtilityHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.ContainerHandler;
+import net.tfminecraft.VehicleFramework.Loaders.DeathTemplateLoader;
 import net.tfminecraft.VehicleFramework.Loaders.WeaponTemplateLoader;
 import net.tfminecraft.VehicleFramework.Weapons.Weapon;
 
@@ -115,7 +116,7 @@ public class Vehicle {
 			}
 		}
 		if(!config.isConfigurationSection("death")) VFLogger.log(key+" has death section");
-		loadDeathData(config.getConfigurationSection("death"));
+		loadDeathData(DeathTemplateLoader.resolve(key, config.getConfigurationSection("death")));
 		
 		if(config.isConfigurationSection("towing")) {
 			towHandler = new TowHandler(config.getConfigurationSection("towing"));
@@ -132,6 +133,9 @@ public class Vehicle {
 	}
 	
 	private void loadDeathData(ConfigurationSection config) {
+		if (config == null) {
+			return;
+		}
 		if(config.isConfigurationSection("explode")) {
 			ConfigurationSection explode = config.getConfigurationSection("explode");
 			deathData.add(new DeathData(VehicleDeath.EXPLODE, explode));

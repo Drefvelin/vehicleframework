@@ -9,7 +9,6 @@ gun_turret:
   aim-mode: cursor
   cursor-range: 120
   projectile-damage: 12
-  projectile-speed: 9.0
   accepted-ammunition:
     - bullet
   data:

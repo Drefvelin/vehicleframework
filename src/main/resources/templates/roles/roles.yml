@@ -1,0 +1,47 @@
+hull_wood:
+  projectile: 0.3
+  bullet: 0.2
+hull_armored:
+  projectile: 0.1
+  bullet: 0.1
+hull_airship:
+  projectile: 0.3
+  bullet: 0.1
+hull_aircraft:
+  projectile: 0.5
+  bullet: 1.2
+hull_emplacement:
+  projectile: 0.3
+  bullet: 0.4
+hull_wagon:
+  projectile: 0.2
+  bullet: 0.6
+engine_wood:
+  projectile: 0.3
+  bullet: 0.9
+engine_armored:
+  projectile: 0.2
+  bullet: 0.6
+engine_airship:
+  projectile: 0.3
+  bullet: 0.6
+engine_aircraft:
+  projectile: 0.5
+  bullet: 1.5
+pump_wood:
+  projectile: 0.3
+  bullet: 0.8
+  small_bomb: 15.0
+pump_armored:
+  projectile: 0.7
+  bullet: 0.7
+  small_bomb: 10.0
+balloon_light:
+  projectile: 0.3
+  bullet: 0.9
+balloon_gyro:
+  projectile: 0.3
+  bullet: 1.2
+wings:
+  projectile: 0.5
+  bullet: 1.5

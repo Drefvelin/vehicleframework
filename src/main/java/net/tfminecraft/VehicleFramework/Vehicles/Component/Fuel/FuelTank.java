@@ -3,7 +3,9 @@ package net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.joml.Math;
@@ -114,16 +116,33 @@ public class FuelTank {
             return;
         }
         Throttle t = v.getThrottle();
-        if(t != null && t.getCurrent() != 0) {
+        int throttle = t == null ? 0 : t.getCurrent();
+        if (engineBlocksRefuel(input != null && input.refuelWhileRunning(), throttle)) {
             if(p != null) p.sendMessage("§cCannot refuel while the engine is on");
             return;
         }
         if(amount < 0) return;
         current+=amount;
         if(current > capacity) current = capacity;
-        p.getWorld().playSound(v.getEntity().getLocation(), Sound.ITEM_BUCKET_FILL, 1f, 0.8f);
+        playRefuelSound(p, v);
         p.sendMessage("§aFuel: §e"+Math.round(current)+"/"+Math.round(capacity));
         p.getInventory().getItemInMainHand().setAmount(p.getInventory().getItemInMainHand().getAmount()-1);
+    }
+
+    public static boolean engineBlocksRefuel(boolean refuelWhileRunning, int throttle) {
+        return throttle != 0 && !refuelWhileRunning;
+    }
+
+    private void playRefuelSound(Player p, ActiveVehicle v) {
+        if (p == null || p.getWorld() == null || v.getEntity() == null) {
+            return;
+        }
+        Location loc = v.getEntity().getLocation();
+        if (input != null && input.getSound() != null && !input.getSound().isBlank()) {
+            p.getWorld().playSound(loc, input.getSound(), SoundCategory.BLOCKS, input.getSoundVolume(), input.getSoundPitch());
+            return;
+        }
+        p.getWorld().playSound(loc, Sound.ITEM_BUCKET_FILL, 1f, 0.8f);
     }
 
     public void tick(Throttle throttle) {

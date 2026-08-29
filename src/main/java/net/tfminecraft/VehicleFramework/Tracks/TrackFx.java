@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 
 import net.tfminecraft.VehicleFramework.Cache.Cache;
@@ -40,7 +41,8 @@ public final class TrackFx {
 				Cache.trackFxBlock,
 				Cache.trackFxCount,
 				Cache.trackFxWidth,
-				Cache.trackFxExtra);
+				Cache.trackFxExtra,
+				Cache.trackFxYOffset);
 	}
 
 	public static void place(World world, TrackPose pose) {
@@ -48,6 +50,25 @@ public final class TrackFx {
 		if (pose != null) {
 			placeSound(world, pose.x, pose.y, pose.z);
 		}
+	}
+
+	public static void hit(Block block) {
+		if (block == null || block.getWorld() == null) {
+			return;
+		}
+		place(block.getWorld(), new TrackPose(
+				block.getX() + 0.5,
+				block.getY() + 1.05,
+				block.getZ() + 0.5,
+				0,
+				0));
+	}
+
+	public static void hitNear(Location at) {
+		if (at == null || at.getWorld() == null) {
+			return;
+		}
+		place(at.getWorld(), new TrackPose(at.getX(), at.getY(), at.getZ(), 0, 0));
 	}
 
 	public static void placeCrumbs(World world, TrackPose pose) {
@@ -58,7 +79,8 @@ public final class TrackFx {
 				Cache.trackBuildBlock,
 				Cache.trackBuildCount,
 				Cache.trackBuildWidth,
-				Cache.trackBuildExtra);
+				Cache.trackBuildExtra,
+				Cache.trackBuildYOffset);
 	}
 
 	private static void spawnCrumbs(
@@ -68,14 +90,15 @@ public final class TrackFx {
 			Material block,
 			int count,
 			int width,
-			double extra) {
+			double extra,
+			double yOffset) {
 		if (world == null || pose == null || particle == null || count <= 0) {
 			return;
 		}
 		double[] right = rightOf(pose.yaw);
 		int n = Math.max(1, count);
 		Object data = blockData(particle, block);
-		double y = pose.y + Cache.trackFxYOffset;
+		double y = pose.y + yOffset;
 		for (int side : laneOffsets(width)) {
 			double x = pose.x + right[0] * side;
 			double z = pose.z + right[1] * side;
@@ -105,17 +128,16 @@ public final class TrackFx {
 		if (world == null) {
 			return;
 		}
-		String sound = Cache.trackBuildSound;
+		Location loc = new Location(world, x, y + Cache.trackBuildYOffset, z);
+		play(world, loc, Cache.trackBuildSound, Cache.trackBuildSoundVolume, Cache.trackBuildSoundPitch);
+		play(world, loc, Cache.trackBuildSound2, Cache.trackBuildSound2Volume, Cache.trackBuildSound2Pitch);
+	}
+
+	private static void play(World world, Location loc, String sound, float volume, float pitch) {
 		if (sound == null || sound.isBlank()) {
 			return;
 		}
-		Location loc = new Location(world, x, y + Cache.trackFxYOffset, z);
-		world.playSound(
-				loc,
-				sound,
-				SoundCategory.BLOCKS,
-				Cache.trackBuildSoundVolume,
-				Cache.trackBuildSoundPitch);
+		world.playSound(loc, sound, SoundCategory.BLOCKS, volume, pitch);
 	}
 
 	private static BlockData blockData(Particle particle, Material block) {

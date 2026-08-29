@@ -50,9 +50,11 @@ public class TabCompletion implements TabCompleter {
                     completions.add("list");
                     completions.add("info");
                     completions.add("particles");
+                    completions.add("dump");
                     completions.add("delete");
                     completions.add("bind");
                     completions.add("unbind");
+                    completions.add("resync");
                     return completions;
                 }
                 if (args.length == 3 && args[1].equalsIgnoreCase("delete")) {

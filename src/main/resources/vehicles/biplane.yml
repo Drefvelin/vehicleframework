@@ -42,19 +42,13 @@ biplane:
             name: "Biplane (Oseni)"
             model: biplane_oseni
     death:
+        template: explode_medium
         explode:
-            fragments: 10
-            duration: 320
             overrides:
                 crashing:
                     type: crash
                     conditions:
                         - state(flying)
-            sounds:
-                explode:
-                    sound: "vehicleframework:explosion"
-                    pitch: 1.0
-                    volume: 8.0
         crash:
             nop: true
     behaviour:
@@ -160,15 +154,8 @@ biplane:
             refuel-states:
                 - GROUND
             damage-chance: 0.7
-            damage:
-                - fall(0.0)
-                - entity_attack(0.1)
-                - projectile(0.5)
-                - entity_explosion(1.3)
-                - small_bomb(5.0)
-                - cannonball(5.0)
-                - bullet(1.5)
-                - flak_bullet(5.0)
+            armor: aircraft
+            role: engine_aircraft
             max: 100
             min: -10
             speed: 0.8
@@ -179,15 +166,8 @@ biplane:
             health: 400.0
             repair-time: 100
             damage-chance: 1.0
-            damage:
-                - fall(0.0)
-                - entity_attack(0.1)
-                - projectile(0.5)
-                - entity_explosion(1.3)
-                - small_bomb(5.0)
-                - cannonball(5.0)
-                - bullet(1.2)
-                - flak_bullet(5.0)
+            armor: aircraft
+            role: hull_aircraft
             vfx:
                 - move
         wings:
@@ -196,15 +176,8 @@ biplane:
             health: 200.0
             repair-time: 100
             damage-chance: 1.0
-            damage:
-                - FALL(0.0)
-                - entity_attack(0.1)
-                - projectile(0.5)
-                - entity_explosion(1.3)
-                - small_bomb(5.0)
-                - cannonball(5.0)
-                - bullet(1.5)
-                - flak_bullet(5.0)
+            armor: aircraft
+            role: wings
             vfx:
                 - move
     seats:
@@ -213,52 +186,12 @@ biplane:
     weapons:
         rear_gun:
             name: "§eRear Rifle"
+            template: gun_turret
             seat: gunner
             body-bone: "gunturret"
             head-bone: "gunrotator"
-            head-axis: z
-            rotation-limits:
-              min-roll: -60
-              max-roll: 60
-            reload-time: 5
-            cooldown: 4
-            accepted-ammunition:
-                - bullet
             bones:
                 - exit2.exitalign2
-            data:
-                shoot-sounds:
-                    sound:
-                        sound: "vehicleframework:gun"
-                        pitch: 1.0
-                        volume: 6.0
-                reload-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                reload-start-sounds:
-                    sound:
-                        sound: "vehicleframework:gun_reload"
-                        pitch: 1.0
-                        volume: 1.0
-                particles:
-                    particle1:
-                        particle: FLAME
-                        amount: 4
-                        spread: 0.05
-                        speed: 0.3
-            keybinds:
-                W: WEAPON_DOWN
-                S: WEAPON_UP
-                A: WEAPON_LEFT
-                D: WEAPON_RIGHT
-                SPACE_W: WEAPON_DOWN
-                SPACE_S: WEAPON_UP
-                SPACE_A: WEAPON_LEFT
-                SPACE_D: WEAPON_RIGHT
-                RIGHT_CLICK: WEAPON_RELOAD
-                SPACE: WEAPON_SHOOT
         machine_guns:
             name: "§eFront Rifles"
             seat: pilot

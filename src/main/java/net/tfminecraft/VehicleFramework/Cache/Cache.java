@@ -33,11 +33,17 @@ public class Cache {
 	public static String trackItemSmall;
 	public static String trackItemMedium;
 	public static String trackItemLarge;
+	public static String appliedTrackItemSmall;
+	public static String appliedTrackItemMedium;
+	public static String appliedTrackItemLarge;
+	public static double appliedTrackDisplayYOffset = 0.5;
+	public static int trackResyncChunksPerTick = 2;
 	public static String trackLayerItem;
 	public static String trackRemoverItem;
 	public static String trackRecorderItem;
 	public static String trackJunctionItem;
 	public static String trackSwitchItem;
+	public static String trackItem;
 	public static double trackSwitchOffsetAlong = -1.2;
 	public static double trackSwitchOffsetOut = 2.4;
 	public static double trackSwitchOffsetY = 0;
@@ -50,6 +56,7 @@ public class Cache {
 	public static double trackMaxTurnDegrees = 25;
 	public static double trackMinLayDistance = 8;
 	public static double trackJoinDistance = 1.5;
+	public static double trackPlaceKeepoutRadius = 1.5;
 	public static double trackMinJunctionSpacing = 16;
 	public static double trackMaxJunctionLength = 32;
 	public static double trackJunctionArmDistance = 16;
@@ -70,11 +77,15 @@ public class Cache {
 	public static String trackBuildSound = "minecraft:block.gravel.break";
 	public static float trackBuildSoundVolume = 0.55f;
 	public static float trackBuildSoundPitch = 0.9f;
+	public static String trackBuildSound2 = "minecraft:block.iron.place";
+	public static float trackBuildSound2Volume = 1.0f;
+	public static float trackBuildSound2Pitch = 2.0f;
 	public static Particle trackBuildParticle;
 	public static Material trackBuildBlock;
 	public static int trackBuildCount = 6;
 	public static int trackBuildWidth = 1;
 	public static double trackBuildExtra = 0.08;
+	public static double trackBuildYOffset = 0.08;
 
 	public static boolean enableLogging;
 	public static String mythicMob;
@@ -92,6 +103,13 @@ public class Cache {
 	//Plugins
 	public static boolean coreProtect = false;
 	
+	public static void applyTrackDisplayStyle() {
+		appliedTrackItemSmall = trackItemSmall;
+		appliedTrackItemMedium = trackItemMedium;
+		appliedTrackItemLarge = trackItemLarge;
+		appliedTrackDisplayYOffset = trackDisplayYOffset;
+	}
+
 	public static void removeProjectiles() {
 		for(Entity e : projectiles) {
 			if(e == null) continue;

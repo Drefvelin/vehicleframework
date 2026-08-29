@@ -39,6 +39,16 @@ public final class TrackLayResult {
 		return kind == Kind.NEW || kind == Kind.APPEND || kind == Kind.PREPEND;
 	}
 
+	public static boolean shouldAnnounce(Kind kind, int previousCount, int remainingSamples) {
+		if (remainingSamples < 2) {
+			return false;
+		}
+		if (kind == Kind.CONNECT || kind == Kind.NEW) {
+			return true;
+		}
+		return remainingSamples > previousCount;
+	}
+
 	public List<double[]> keepPoints() {
 		if (spline == null || previousCount <= 0) {
 			return List.of();

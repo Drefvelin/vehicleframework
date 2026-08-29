@@ -57,7 +57,10 @@ For architecture, class design, and the overall structure of the plugin, I relie
 Most of the plugin was written manually for efficiency and to maintain full control over the design. **ChatGPT** was also used to help format and refine this README.
 
 ## Configuration
-The framework uses YAML files to define vehicle behavior, components, seats, and weapons.  
+The framework uses YAML files to define vehicle behavior, components, seats, and weapons.
+
+Fuel types are in `fuel.yml`. Optional `sound` (namespaced key, volume, pitch) plays on click-refuel. `refuel-while-running: true` lets you add fuel while throttle is up (coal). Omit both to keep bucket-fill and idle-engine. Engine `refuel-states` still limits which vehicle states accept fuel.
+
 Here is a short example excerpt from the configuration of the first vehicle I made, a fixed artillery piece:
 
 ```yaml
@@ -177,7 +180,26 @@ Shared turrets live in `plugins/VehicleFramework/templates/weapons/*.yml`. Root 
 
 Unknown `template` ids skip that weapon and log an error. `/vf reload` reloads templates before vehicles. Templates cannot reference other templates.
 
-Balance cooldown, `projectile-damage`, `projectile-speed`, sounds, and limits in the template. Leave seat, bones, and barrel vector on the vehicle:
+**Built-in template ids**
+
+| Template | Aim | Ammo | Notes |
+|---|---|---|---|
+| `gun_turret` | cursor | bullet | Light rifle turret, cursor-tracked |
+| `aa_turret` | WASD | bullet | Anti-air, WASD-controlled |
+| `naval_cannon` | WASD | cannonball | Cannon base, `head-axis: x` default |
+| `flak_cannon` | WASD | flak_bullet | Emplacement flak, cooldown 15 |
+| `autocannon` | WASD | flak_bullet | Dual-barrel flak, cooldown 12 |
+
+**Projectile stat overrides** - set on the vehicle weapon (not the template) to tier up:
+
+| Key | Type | Effect |
+|---|---|---|
+| `projectile-yield` | float | Explosion power (overrides ammo `yield`) |
+| `projectile-radius` | int | Explosion radius in blocks (overrides ammo `radius`) |
+| `projectile-explosive` | boolean | Force enable/disable explosion (overrides ammo `explosive`) |
+| `projectile-cluster-amount` | int | Number of cluster bomblets spawned (overrides ammo `amount`) |
+
+Balance `cooldown`, `projectile-damage`, `projectile-speed`, sounds, and limits in the template. Leave seat, bones, and barrel vector on the vehicle:
 
 ```yaml
 # templates/weapons/gun_turret.yml
@@ -189,14 +211,106 @@ gun_turret:
 ```
 
 ```yaml
-rear_gun:
-  template: gun_turret
-  seat: gunner
-  body-bone: "gunturret"
-  head-bone: "gunrotator"
-  aim-vector: exit2.exitalign2
+# Light cannon - template only
+naval_gun:
+  template: naval_cannon
+  seat: front_gunner
+  body-bone: "gun_body"
+  head-bone: "gun_rotator"
+  rotation-limits:
+    min-pitch: -60
+    max-pitch: 20
   bones:
-    - exit2.exitalign2
+    - exit.exitalign
+
+# Heavy cannon - template + stat overrides
+large_cannon:
+  template: naval_cannon
+  seat: gunner
+  body-bone: "weapon_body"
+  head-bone: "cannon_controller"
+  head-axis: z
+  cooldown: 8
+  projectile-damage: 28
+  projectile-yield: 2.7
+  projectile-radius: 10
+  accepted-ammunition:
+    - cannonball
+    - clusterbomb
+  bones:
+    - exit.exit_align
+
+# Capital cannon - highest tier
+front_turret:
+  template: naval_cannon
+  seat: front_turret_gunner
+  body-bone: "body"
+  head-bone: "gun_front"
+  head-axis: z
+  cooldown: 12
+  projectile-damage: 36
+  projectile-yield: 3.5
+  projectile-radius: 12
+  projectile-cluster-amount: 26
+  accepted-ammunition:
+    - cannonball
+    - clusterbomb
+  bones:
+    - exit.exitalign
+```
+
+### Armor and role templates
+
+Incoming component vulnerability is a cause-to-multiplier map. Shared profiles live in `plugins/VehicleFramework/templates/armor/*.yml` and `plugins/VehicleFramework/templates/roles/*.yml`. Components set `armor:` and `role:`. Merge order is armor, then role, then an optional `damage:` map on the component. Later keys win.
+
+Ship-wide blast numbers (torpedo, cannonball, bomb, explosion) live on the armor class. Change `torpedo` on `wooden`, `airship`, or `armored` instead of every hull and engine.
+
+| Armor | Used by |
+|---|---|
+| `wooden` | gunboat, sloop |
+| `airship` | cloudskimmer, gyrobomber, behemoth (wooden blast plus flak) |
+| `armored` | ironclad, cruiser, torpedoboat, locomotive engine, small_car engine |
+| `aircraft` | biplane, monoplane, bomber |
+| `emplacement` | static guns, train cars, locomotive hull |
+| `wagon` | horse cart, wooden cart, small_car hull |
+
+Roles cover projectile and bullet (pumps also set `small_bomb`). Example:
+
+```yaml
+hull:
+  health: 400.0
+  armor: armored
+  role: hull_armored
+  damage:
+    bullet: 0.2
+```
+
+A `damage:` list is still accepted when `armor` and `role` are omitted (weapons and leftover vehicle lists). Weapon YAML `damage:` is incoming weapon HP and does not use these templates.
+
+### Death templates
+
+Shared wreck sequences live in `plugins/VehicleFramework/templates/death/*.yml`. Vehicles set `death.template` and overlay nested keys. Instance-wins: nested `explode` / `sink` / `crash` deep-merge. `/vf reload` loads death templates before vehicles.
+
+| Template | fragments | Extra |
+|---|---|---|
+| `explode_small` | 4 | explode sound |
+| `explode_medium` | 10 | explode sound |
+| `explode_large` | 30 | explode sound |
+| `ship` | 30 | explode plus sink sounds |
+
+Planes overlay crash on `explode_medium`:
+
+```yaml
+death:
+  template: explode_medium
+  explode:
+    overrides:
+      crashing:
+        type: crash
+        conditions:
+          - state(flying)
+  crash:
+    nop: true
 ```
 
 ### Land terrain-follow (opt-in)

@@ -16,6 +16,7 @@ import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Interface.MovementInterface;
 import net.tfminecraft.VehicleFramework.Managers.InventoryManager;
 import net.tfminecraft.VehicleFramework.Managers.VehicleManager;
+import net.tfminecraft.VehicleFramework.Tracks.TrackJunction;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Balloon;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
@@ -72,6 +73,12 @@ public class VehicleMovementController implements MovementInterface{
 				break;
 			case TURN_RIGHT_LOCAL:
 				turnRightLocal(p);
+				break;
+			case JUNCTION_LEFT:
+				junctionHold(p, TrackJunction.Side.LEFT);
+				break;
+			case JUNCTION_RIGHT:
+				junctionHold(p, TrackJunction.Side.RIGHT);
 				break;
 			case SEAT_SELECTION:
 				seatSelection(p);
@@ -143,6 +150,20 @@ public class VehicleMovementController implements MovementInterface{
 	private void turnRightLocal(Player p) {
 		rotateController.turnRightLocal(rotator, v, p);
 	}
+
+	private void junctionHold(Player p, TrackJunction.Side side) {
+		if (p == null || !v.isTrain()) {
+			return;
+		}
+		if (v.getSeatHandler() == null || !v.getSeatHandler().isCaptain(p)) {
+			return;
+		}
+		if (v.hasParent()) {
+			return;
+		}
+		v.getTrainHandler().holdJunction(side);
+	}
+
 	private void pitchUp(Player p) {
 		rotateController.pitchUp(rotator, v, p, getPitchRollRate());
 	}
@@ -206,7 +227,9 @@ public class VehicleMovementController implements MovementInterface{
 		if(v.shouldFloat()) velocity = floatController.calculateFloat(v, velocity);
 		if(v.hasComponent(Component.WINGS) || v.hasComponent(Component.BALLOON)) velocity= liftController.calculateLift(rotator, v, velocity);
 		apply(velocity, baseController.getDirection(v));
-		rotator.rotateSmoothed(0, 0, 0);
+		if (!v.isTrain()) {
+			rotator.rotateSmoothed(0, 0, 0);
+		}
 	}
 
 	private void up(Player p) {
@@ -303,7 +326,7 @@ public class VehicleMovementController implements MovementInterface{
 		if(state.isDefault()) return;
 		if(System.currentTimeMillis()-5000 > v.getSpawnTime()) {
 			if(v.isTrain()) {
-				v.getTrainHandler().retarget(velocity);
+				v.getTrainHandler().splineTick();
 			} else {
 				e.setVelocity(velocity);
 			}

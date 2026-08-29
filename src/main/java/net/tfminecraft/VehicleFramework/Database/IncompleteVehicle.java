@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 
+import net.tfminecraft.VehicleFramework.Tracks.ThrottleTape;
+
 public class IncompleteVehicle {
 	private String id;
 	private String uuid;
@@ -29,8 +31,16 @@ public class IncompleteVehicle {
 	private String owner = "none";
 	private boolean whitelisted = false;
 	private List<String> whitelist = new ArrayList<>();
+	private ConsistData consist = ConsistData.unbound();
+	private ThrottleTape throttleTape;
+	private boolean ticketsEnabled = false;
+	private String ticketId;
 
 	public IncompleteVehicle(String uuid, String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, List<JsonObject> containers, int throttle, int gear, float yaw, double fuel, String owner, boolean whitelisted, List<String> whitelist) {
+		this(uuid, id, name, skin, components, weapons, rotations, passengers, containers, throttle, gear, yaw, fuel, owner, whitelisted, whitelist, ConsistData.unbound());
+	}
+
+	public IncompleteVehicle(String uuid, String id, String name, String skin, List<IncompleteComponent> components, List<IncompleteWeapon> weapons, List<RotationData> rotations, List<PassengerData> passengers, List<JsonObject> containers, int throttle, int gear, float yaw, double fuel, String owner, boolean whitelisted, List<String> whitelist, ConsistData consist) {
 		this.uuid = uuid;
 		this.id = id;
 		this.name = name;
@@ -47,6 +57,7 @@ public class IncompleteVehicle {
 		this.owner = owner;
 		this.whitelisted = whitelisted;
 		this.whitelist = whitelist;
+		this.consist = consist == null ? ConsistData.unbound() : consist;
 	}
 
 	public double getFuel() {
@@ -110,5 +121,33 @@ public class IncompleteVehicle {
 
 	public List<String> getWhitelist() {
 		return whitelist;
+	}
+
+	public ConsistData getConsist() {
+		return consist;
+	}
+
+	public ThrottleTape getThrottleTape() {
+		return throttleTape;
+	}
+
+	public void setThrottleTape(ThrottleTape tape) {
+		this.throttleTape = tape;
+	}
+
+	public boolean isTicketsEnabled() {
+		return ticketsEnabled;
+	}
+
+	public void setTicketsEnabled(boolean ticketsEnabled) {
+		this.ticketsEnabled = ticketsEnabled;
+	}
+
+	public String getTicketId() {
+		return ticketId;
+	}
+
+	public void setTicketId(String ticketId) {
+		this.ticketId = ticketId;
 	}
 }

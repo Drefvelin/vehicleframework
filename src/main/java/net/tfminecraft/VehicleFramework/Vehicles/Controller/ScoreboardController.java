@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -15,6 +14,7 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
+import net.tfminecraft.VehicleFramework.Util.Text;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
@@ -40,7 +40,7 @@ public class ScoreboardController {
 		Objective obj = board.registerNewObjective("vehicleDummy", Criteria.DUMMY, vehicle.getName());
 		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 		List<String> scores = new ArrayList<>();
-		scores.add("§fType: §e"+WordUtils.capitalize(new String(vehicle.getId()).replace("_", " ")));
+		scores.add("§fType: §e"+Text.capitalize(new String(vehicle.getId()).replace("_", " ")));
 		int i = 0;
 		for(VehicleComponent c : vehicle.getComponents()) {
 			scores.add("§e"+c.getAlias()+":");

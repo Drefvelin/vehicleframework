@@ -1,0 +1,60 @@
+# Spline tracks and train debug log
+# Copied to plugins/VehicleFramework/trains.yml on first run
+
+item-small: ia.tfmc:track_small
+item-medium: ia.tfmc:track_medium
+item-large: ia.tfmc:track_large
+item-layer: v.iron_shovel
+item-remover: v.iron_pickaxe
+item-recorder: v.clock
+item-junction: v.diamond_shovel
+item-switch: ia.tfmc:railroad_switch
+snap-distance: 3
+display-y-offset: 0.5
+vehicle-y-offset: 0.5
+max-turn-degrees: 35
+min-lay-distance: 8
+join-distance: 1.5
+min-junction-spacing: 16
+max-junction-length: 32
+junction-arm-distance: 16
+# Railroad switch ItemDisplay at each frog (through / diverge)
+switch:
+  offset-along: -1.2
+  offset-out: 2.4
+  offset-y: 0.0
+  yaw-inward: 90
+  throw-degrees: 90
+  throw-degrees-per-second: 90
+desired-grade-degrees: 6
+max-grade-degrees: 10
+
+# Moving trains: gravel crumbs across the 3-wide ballast, plus a break sound
+fx:
+  particle: BLOCK_CRACK
+  particle-block: GRAVEL
+  count: 3
+  width: 3
+  extra: 0.06
+  y-offset: 0.08
+  sound: minecraft:block.stone.break
+  sound-volume: 0.35
+  sound-pitch: 0.85
+  sound-interval-blocks: 2.5
+
+# Survival / adventure: grow the stroke one sample at a time (small -> medium -> large).
+# Creative / spectator (or interval-ticks 0) still rebakes the whole stroke at once, with one sound + particles at the end.
+build:
+  interval-ticks: 4
+  swing: true
+  sound: minecraft:block.gravel.break
+  sound-volume: 0.55
+  sound-pitch: 0.9
+  particle: BLOCK_CRACK
+  particle-block: GRAVEL
+  count: 6
+  width: 1
+  extra: 0.08
+
+# One switch for logs/track.log, logs/persistence.log, and logs/recorder.log
+debug-logging: true

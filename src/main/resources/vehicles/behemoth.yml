@@ -1,0 +1,634 @@
+behemoth:
+    name: "§l§eBehemoth"
+    model: behemoth
+    skins:
+        behemoth:
+            name: "Behemoth"
+            model: behemoth
+    death:
+        explode:
+            fragments: 30
+            duration: 320
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+    behaviour:
+        rotator: body_controller
+        vector: move.movealign
+        float: true
+        float-in:
+            - WATER
+            - KELP
+    containers:
+        cargo_hold_1:
+            seat: passenger_1
+            name: "§eCargo Hold 1"
+            size: 54
+        cargo_hold_2:
+            seat: passenger_2
+            name: "§eCargo Hold 2"
+            size: 54
+        cargo_hold_3:
+            seat: passenger_3
+            name: "§eCargo Hold 3"
+            size: 54
+        cargo_hold_4:
+            seat: passenger_4
+            name: "§eCargo Hold 4"
+            size: 54
+    utilities:
+        horn:
+            sound: "vehicleframework:big_horn"
+            pitch: 1.0
+            volume: 16.0
+    states:
+        flying:
+            animations:
+                default:
+                    - regular
+                forward:
+                    - forward
+                backward:
+                    - backward
+                right:
+                    - right
+                left:
+                    - left
+            keybinds:
+                W: THROTTLE_UP
+                SPACE_W: THROTTLE_UP
+                SHIFT_W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                SPACE_S: THROTTLE_DOWN
+                SHIFT_S: THROTTLE_DOWN
+                A: TURN_LEFT
+                SPACE_A: TURN_LEFT
+                SHIFT_A: TURN_LEFT
+                D: TURN_RIGHT
+                SPACE_D: TURN_RIGHT
+                SHIFT_D: TURN_RIGHT
+                SPACE: UP
+                SHIFT: DOWN
+                SHIFT_LEFT_CLICK: SEAT_SELECTION
+                LEFT_CLICK: HORN
+        floating:
+            switch-parameters:
+                velocity:
+                    y: -0.8,0.8
+            animations:
+                default:
+                    - regular
+                forward:
+                    - forward
+                backward:
+                    - backward
+                right:
+                    - right
+                left:
+                    - left
+            keybinds:
+                W: THROTTLE_UP
+                SPACE_W: THROTTLE_UP
+                SHIFT_W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                SPACE_S: THROTTLE_DOWN
+                SHIFT_S: THROTTLE_DOWN
+                A: TURN_LEFT
+                SPACE_A: TURN_LEFT
+                SHIFT_A: TURN_LEFT
+                D: TURN_RIGHT
+                SPACE_D: TURN_RIGHT
+                SHIFT_D: TURN_RIGHT
+                SPACE: UP
+                SHIFT_LEFT_CLICK: SEAT_SELECTION
+        ground:
+            switch-parameters:
+                velocity:
+                    y: -0.5,0.5
+            animations:
+                forward:
+                    - forward
+                backward:
+                    - backward
+            keybinds:
+                W: THROTTLE_UP
+                SPACE_W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                SPACE_S: THROTTLE_DOWN
+                SPACE: UP
+                SHIFT_LEFT_CLICK: SEAT_SELECTION
+    components:
+        engine:
+            sounds:
+                steam_engine:
+                    sound: "vehicleframework:steam_engine"
+                    pitched: true
+                    pitch: 1.0
+                    volume: 6.0
+                water_move:
+                    sound: "vehicleframework:ship_water_move"
+                    pitch: 1.0
+                    volume: 4.0
+            particles:
+                    exhaust:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 4
+                        spread: 0.3
+                        speed: 0.04
+            particle-bones:
+                - exhaust.exhaustalign
+                - exhaust2.exhaustalign2
+                - exhaust3.exhaustalign3
+                - exhaust4.exhaustalign4
+            health: 580.0
+            repair-time: 100
+            fuel-burn-rate: 12
+            fuel: arcane_fuel
+            fuel-capacity: 16000
+            refuel-states:
+                - GROUND
+            damage-chance: 0.7
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - bullet(1.5)
+                - entity_explosion(2.0)
+                - small_bomb(10.0)
+                - cannonball(1.8)
+                - torpedo(7.0)
+                - flak_bullet(5.0)
+            max: 100
+            min: -20
+            speed: 0.27
+            turn-rate: 0.16
+            vfx:
+                - engine_vfx_1
+                - engine_vfx_2
+                - engine_vfx_3
+        hull:
+            health: 1150.0
+            repair-time: 160
+            damage-chance: 1.0
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - bullet(0.7)
+                - entity_explosion(2.0)
+                - small_bomb(10.0)
+                - cannonball(1.8)
+                - torpedo(7.0)
+                - flak_bullet(3.0)
+            vfx:
+                - hull_vfx_1
+                - hull_vfx_2
+        balloon:
+            health: 2000.0
+            repair-time: 200
+            damage-chance: 1.0
+            lift: 0.2
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - bullet(2.0)
+                - entity_explosion(2.0)
+                - small_bomb(10.0)
+                - cannonball(1.8)
+                - torpedo(7.0)
+                - flak_bullet(3.0)
+            vfx:
+                - balloon_vfx_1
+                - balloon_vfx_2
+    seats:
+        - captain(captain)
+        - mechanic(mechanic_1)
+        - mechanic(mechanic_2)
+        - passenger(front_gunner)
+        - passenger(cannoneer_left)
+        - passenger(cannoneer_right)
+        - passenger(aa_turret_gunner_1)
+        - passenger(aa_turret_gunner_2)
+        - passenger(aa_turret_gunner_3)
+        - passenger(aa_turret_gunner_4)
+        - passenger(passenger_1)
+        - passenger(passenger_2)
+        - passenger(passenger_3)
+        - passenger(passenger_4)
+        - passenger(passenger_5)
+        - passenger(passenger_6)
+    weapons:
+        autocannon:
+            name: "§eFront Cannon"
+            seat: front_gunner
+            body-bone: "autocannon"
+            head-bone: "autocannon_rotator"
+            head-axis: x
+            rotation-limits:
+              min-yaw: -50
+              max-yaw: 50
+              min-pitch: -10
+              max-pitch: 85
+            reload-time: 5
+            cooldown: 12
+            accepted-ammunition:
+                - flak_bullet
+            bones:
+                - acexit.acexitalign
+                - acexit2.acexitalign2
+            animations:
+                shoot:
+                    - ac_shoot2
+                    - ac_shoot
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:guns.musket_1"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 6
+                        spread: 0.1
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 6
+                        spread: 0.6
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 4
+                        spread: 0.2
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_DOWN
+                S: WEAPON_UP
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_DOWN
+                SPACE_S: WEAPON_UP
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        left_cannon:
+            name: "§eLeft Cannon"
+            seat: cannoneer_left
+            body-bone: "cannon"
+            head-bone: "gun_rotator"
+            head-axis: z
+            rotation-limits:
+              min-yaw: -60
+              max-yaw: 60
+              min-roll: -50
+              max-roll: 40
+            reload-time: 5
+            accepted-ammunition:
+                - cannonball
+                - clusterbomb
+            bones:
+                - cannonexit.cannonexitalign
+            animations:
+                shoot:
+                    - shoot1
+            data:
+                shoot-sounds:
+                    sound_basic:
+                        sound: "minecraft:entity.generic.explode"
+                        pitch: 0.6
+                        volume: 6.0
+                    sound:
+                        sound: "vehicleframework:cannon_with_clink"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 60
+                        spread: 0.3
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 60
+                        spread: 1.4
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 20
+                        spread: 0.7
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        right_cannon:
+            name: "§eRight Cannon"
+            seat: cannoneer_right
+            body-bone: "cannon2"
+            head-bone: "gun_rotator2"
+            head-axis: z
+            rotation-limits:
+              min-yaw: -60
+              max-yaw: 60
+              min-roll: -50
+              max-roll: 40
+            reload-time: 5
+            accepted-ammunition:
+                - cannonball
+                - clusterbomb
+            bones:
+                - cannonexit2.cannonexitalign2
+            animations:
+                shoot:
+                    - shoot2
+            data:
+                shoot-sounds:
+                    sound_basic:
+                        sound: "minecraft:entity.generic.explode"
+                        pitch: 0.6
+                        volume: 6.0
+                    sound:
+                        sound: "vehicleframework:cannon_with_clink"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 60
+                        spread: 0.3
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 60
+                        spread: 1.4
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 20
+                        spread: 0.7
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        aa_turret_1:
+            name: "§eAnti-Air Turret 1"
+            seat: aa_turret_gunner_1
+            body-bone: "aa_turret_body"
+            head-bone: "gun"
+            head-axis: x
+            rotation-limits:
+              min-pitch: -85
+              max-pitch: 0
+            reload-time: 10
+            cooldown: 10
+            accepted-ammunition:
+                - bullet
+            animations:
+                shoot:
+                    - aa_shoot
+                    - aa_shoot2
+            bones:
+                - exit1.exit_align1
+                - exit2.exit_align2
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:guns.musket_1"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 4
+                        spread: 0.1
+                        speed: 1.2
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        aa_turret_2:
+            name: "§eAnti-Air Turret 2"
+            seat: aa_turret_gunner_2
+            body-bone: "aa_turret_body2"
+            head-bone: "gun2"
+            head-axis: x
+            rotation-limits:
+              min-pitch: -85
+              max-pitch: 0
+            reload-time: 10
+            cooldown: 10
+            accepted-ammunition:
+                - bullet
+            animations:
+                shoot:
+                    - aa_shoot3
+                    - aa_shoo4
+            bones:
+                - exit3.exit_align3
+                - exit4.exit_align4
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:guns.musket_1"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 4
+                        spread: 0.1
+                        speed: 1.2
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        aa_turret_3:
+            name: "§eAnti-Air Turret 3"
+            seat: aa_turret_gunner_3
+            body-bone: "aa_turret_body3"
+            head-bone: "gun3"
+            head-axis: x
+            rotation-limits:
+              min-pitch: -85
+              max-pitch: 0
+            reload-time: 10
+            cooldown: 10
+            accepted-ammunition:
+                - bullet
+            animations:
+                shoot:
+                    - aa_shoot7
+                    - aa_shoot8
+            bones:
+                - exit5.exit_align5
+                - exit6.exit_align6
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:guns.musket_1"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 4
+                        spread: 0.1
+                        speed: 1.2
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        aa_turret_4:
+            name: "§eAnti-Air Turret 4"
+            seat: aa_turret_gunner_4
+            body-bone: "aa_turret_body4"
+            head-bone: "gun4"
+            head-axis: x
+            rotation-limits:
+              min-pitch: -85
+              max-pitch: 0
+            reload-time: 10
+            cooldown: 10
+            accepted-ammunition:
+                - bullet
+            animations:
+                shoot:
+                    - aa_shoot5
+                    - aa_shoot6
+            bones:
+                - exit7.exit_align7
+                - exit8.exit_align8
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:guns.musket_1"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 4
+                        spread: 0.1
+                        speed: 1.2
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT

@@ -11,6 +11,7 @@ import net.tfminecraft.VehicleFramework.Data.DamageData;
 import net.tfminecraft.VehicleFramework.Data.HealthData;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.InputHandler;
+import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Bullet;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
 import net.tfminecraft.VehicleFramework.Weapons.Data.WeaponData;
 import net.tfminecraft.VehicleFramework.Weapons.Handlers.AmmunitionHandler;
@@ -44,6 +45,7 @@ public class Weapon {
 	protected String aimVector;
 	protected Integer projectileDamage;
 	protected String projectileDamageType;
+	protected Double projectileSpeed;
 
 	public static final double DEFAULT_CURSOR_RANGE = 80.0;
 	
@@ -66,6 +68,11 @@ public class Weapon {
 		}
 		if (config.contains("projectile-damage-type")) {
 			projectileDamageType = config.getString("projectile-damage-type").toUpperCase();
+		}
+		if (config.contains("projectile-speed")) {
+			projectileSpeed = config.getDouble("projectile-speed");
+		} else if (config.contains("projectile-velocity")) {
+			projectileSpeed = config.getDouble("projectile-velocity");
 		}
 		damageData = new DamageData((List<String>) config.getList("damage", new ArrayList<String>()));
 		if(config.isConfigurationSection("animations")) {
@@ -180,6 +187,10 @@ public class Weapon {
 		return projectileDamageType;
 	}
 
+	public Double getProjectileSpeed() {
+		return projectileSpeed;
+	}
+
 	public static int effectiveDamage(ActiveWeapon weapon, AmmunitionData ammo) {
 		if (weapon == null) {
 			return effectiveDamage((Integer) null, ammo);
@@ -206,6 +217,31 @@ public class Weapon {
 			return projectileDamageTypeOverride;
 		}
 		return ammo == null ? "PROJECTILE" : ammo.getDamageType();
+	}
+
+	public static double effectiveProjectileSpeed(ActiveWeapon weapon, Bullet bullet) {
+		if (weapon == null) {
+			return effectiveProjectileSpeed((Double) null, bullet);
+		}
+		return weapon.effectiveBulletSpeed(bullet);
+	}
+
+	public static double effectiveProjectileVelocity(ActiveWeapon weapon) {
+		if (weapon == null) {
+			return effectiveProjectileSpeed((Double) null, WeaponData.DEFAULT_VELOCITY);
+		}
+		return weapon.effectiveProjectileVelocity();
+	}
+
+	public static double effectiveProjectileSpeed(Double projectileSpeedOverride, Bullet bullet) {
+		return effectiveProjectileSpeed(projectileSpeedOverride, bullet == null ? Bullet.DEFAULT_SPEED : bullet.getSpeed());
+	}
+
+	public static double effectiveProjectileSpeed(Double projectileSpeedOverride, double fallback) {
+		if (projectileSpeedOverride != null) {
+			return projectileSpeedOverride;
+		}
+		return fallback;
 	}
 	
 }

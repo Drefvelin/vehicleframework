@@ -1,0 +1,95 @@
+aa_turret:
+    name: "§l§eAnti-Air Turret"
+    model: aa_turret
+    fixed: true
+    skins:
+        aa_turret:
+            name: "Anti-Air Turret"
+            model: aa_turret
+    death:
+        explode:
+            fragments: 4
+            duration: 320
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+    behaviour:
+        rotator: aa_turret_body
+        vector: aa_turret_body.aa_turret_body
+    states:
+        ground:
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    components:
+        hull:
+            health: 30.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - entity_explosion(1.3)
+                - bullet(0.4)
+                - torpedo(0.2)
+                - small_bomb(3.0)
+                - cannonball(2.0)
+            vfx:
+                - aa_turret_body
+    seats:
+        - captain(aa_turret_gunner)
+    weapons:
+        aa_turret:
+            name: "§eAnti-Air Turret"
+            seat: aa_turret_gunner
+            body-bone: "aa_turret_body"
+            head-bone: "gun"
+            head-axis: x
+            rotation-limits:
+              min-pitch: -85
+              max-pitch: 0
+            reload-time: 10
+            cooldown: 10
+            accepted-ammunition:
+                - bullet
+            animations:
+                shoot:
+                    - shoot
+                    - shoot2
+            bones:
+                - exit1.exit_align1
+                - exit2.exit_align2
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:guns.musket_1"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 4
+                        spread: 0.1
+                        speed: 1.2
+            keybinds:
+                W: WEAPON_DOWN
+                S: WEAPON_UP
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_DOWN
+                SPACE_S: WEAPON_UP
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT

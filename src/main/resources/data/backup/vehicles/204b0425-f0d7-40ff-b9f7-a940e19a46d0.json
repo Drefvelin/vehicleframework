@@ -1,0 +1,20 @@
+{
+  "components": {
+    "hull": {
+      "damage": 0.0
+    }
+  },
+  "id": "passenger_car",
+  "name": "§l§ePassenger Car",
+  "passengers": {},
+  "rotators": {
+    "body": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  },
+  "skin": "passenger_car",
+  "yaw": -90.24676513671875
+}

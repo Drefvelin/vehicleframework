@@ -39,6 +39,9 @@ public class ExplosionCreator {
         if (event.isCancelled()) {
             return;
         }
+		if (VehicleFramework.getTrackDisplayManager() != null) {
+			VehicleFramework.getTrackDisplayManager().breakInRadius(explosionCenter, blastRadius);
+		}
 	    int particles = (int) Math.round(yield*15);
 	    Random random = new Random();
 		// Falling Block Effect

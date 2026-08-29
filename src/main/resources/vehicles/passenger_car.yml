@@ -1,0 +1,57 @@
+passenger_car:
+    name: "§l§ePassenger Car"
+    model: passenger_car
+    fixed: true
+    skins:
+        passenger_car:
+            name: "Passenger Car"
+            model: passenger_car
+    death:
+        explode:
+            fragments: 4
+            duration: 320
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+    behaviour:
+        rotator: body
+        vector: body.body
+        tracked: true
+        train:
+            front-connector: connector_front
+            back-connector: connector_back
+    states:
+        ground:
+            animations:
+                forward:
+                    - forward
+                backward:
+                    - backward
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    seats:
+        - passenger(passenger)
+        - passenger(passenger2)
+        - passenger(passenger3)
+        - passenger(passenger4)
+        - passenger(passenger5)
+        - passenger(passenger6)
+        - passenger(passenger7)
+        - passenger(passenger8)
+    components:
+        hull:
+            health: 30.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - entity_explosion(1.3)
+                - bullet(0.4)
+                - torpedo(0.2)
+                - small_bomb(3.0)
+                - cannonball(2.0)
+            vfx:
+                - body

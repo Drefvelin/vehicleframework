@@ -62,6 +62,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.StateHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TrainHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Train.ConsistRelinker;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.UtilityHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.WeaponHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
@@ -229,8 +230,13 @@ public class ActiveVehicle {
 		return parent;
 	}
 	public void setParent(ActiveVehicle v) {
-		if(this.equals(v)) return;
+		if (v != null && this.equals(v)) {
+			return;
+		}
 		parent = v;
+		if (v != null && isTrain()) {
+			getTrainHandler().setPendingParent(null);
+		}
 	}
 	
 	public String getId() {
@@ -360,6 +366,8 @@ public class ActiveVehicle {
 		ownerData.setOwner(inc.getOwner());
 		ownerData.setWhiteListed(inc.isWhitelisted());
 		ownerData.setWhiteList(inc.getWhitelist());
+		ownerData.setTicketId(inc.getTicketId());
+		ownerData.setTicketsEnabled(inc.isTicketsEnabled());
 		setFuel(inc.getFuel());
 		if(!changeSkin(inc.getSkin(), true)) {
 			VFLogger.log("could not apply skin "+inc.getSkin()+" to "+id);
@@ -373,6 +381,12 @@ public class ActiveVehicle {
 			if(inc.getThrottle() != 0) e.setStarted(true);
 			e.setCurrentGear(inc.getGear());
 			e.getGear().getThrottle().setThrottle(inc.getThrottle());
+		}
+		if (isTrain()) {
+			getTrainHandler().applyConsist(inc.getConsist());
+			if (inc.getThrottleTape() != null) {
+				getTrainHandler().setInstalledTape(inc.getThrottleTape());
+			}
 		}
 	}
 
@@ -500,6 +514,7 @@ public class ActiveVehicle {
 		VehicleRemovePayload resolved = payload != null
 			? payload
 			: VehicleRemovePayload.remove(VehicleRemoveReason.GENERIC);
+		ConsistRelinker.onRemove(this, resolved);
 		Bukkit.getPluginManager().callEvent(new VehicleRemoveEvent(this, resolved));
 		vehicleManager.unregister(entity);
 		entity.remove();
@@ -708,6 +723,17 @@ public class ActiveVehicle {
 	}
 	public TrainHandler getTrainHandler() {
 		return getBehaviourHandler().getTrainHandler();
+	}
+
+	public ActiveVehicle ticketSource() {
+		if (!isTrain() || !hasParent()) {
+			return this;
+		}
+		ActiveVehicle loco = this;
+		while (loco.hasParent()) {
+			loco = loco.getParent();
+		}
+		return loco;
 	}
 	//Seats
 	public boolean isPassenger(Entity e, boolean checkAll) {

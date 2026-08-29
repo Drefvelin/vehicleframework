@@ -84,7 +84,7 @@ small_car:
                     max: 0
                     min: -20
                     acceleration: 2
-                    speed: 0.4
+                    speed: 0.25
                 first:
                     name: "First"
                     engine-sound:
@@ -101,7 +101,7 @@ small_car:
                     max: 40
                     min: 0
                     acceleration: 3
-                    speed: 0.4
+                    speed: 0.25
                 second:
                     name: "Second"
                     engine-sound:
@@ -118,7 +118,7 @@ small_car:
                     max: 75
                     min: 40
                     acceleration: 2
-                    speed: 0.55
+                    speed: 0.35
                 third:
                     name: "Third"
                     engine-sound:
@@ -135,7 +135,7 @@ small_car:
                     max: 100
                     min: 75
                     acceleration: 1
-                    speed: 0.65
+                    speed: 0.45
             particles:
                 dust:
                     particle: SMOKE_NORMAL

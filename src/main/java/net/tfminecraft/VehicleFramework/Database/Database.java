@@ -38,6 +38,7 @@ import net.tfminecraft.VehicleFramework.Bones.BoneRotator;
 import net.tfminecraft.VehicleFramework.Data.StoredVehicleMeta;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Managers.SpawnManager;
+import net.tfminecraft.VehicleFramework.Tracks.ThrottleTape;
 import net.tfminecraft.VehicleFramework.Util.SpawnLocation;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
@@ -124,6 +125,10 @@ public class Database {
 			String skin = (String) json.get("skin");
 			String owner = json.containsKey("owner") ? (String) json.get("owner") : "none";
 			boolean whitelisted = json.containsKey("whitelisted") && (Boolean) json.get("whitelisted");
+			boolean ticketsEnabled = json.containsKey("ticketsEnabled") && json.get("ticketsEnabled") instanceof Boolean b && b;
+			String ticketId = json.containsKey("ticketId") && json.get("ticketId") != null
+					? String.valueOf(json.get("ticketId"))
+					: null;
 			List<String> whitelist = new ArrayList<>();
 			if (json.containsKey("whitelist")) {
 				for (Object entry : (JSONArray) json.get("whitelist")) whitelist.add((String) entry);
@@ -226,9 +231,18 @@ public class Database {
 				}
 			}
 			List<JsonObject> containers = loadContainers(json);
+			ConsistData consist = ConsistData.fromJson(json);
+			PersistenceLog.loadJson(sLoc.getFile(), uuid, id, consist);
+			ThrottleTape tape = json.containsKey("throttleTape") && json.get("throttleTape") instanceof JSONObject tapeJson
+					? ThrottleTape.fromJson(tapeJson)
+					: null;
 	        // Create and return IncompleteVehicle with loaded components
 	        file.delete();
-	        return new IncompleteVehicle(uuid, id, name, skin, componentsList, weapons, rotations, passengers, containers, throttle, gear, yaw, fuel, owner, whitelisted, whitelist);
+	        IncompleteVehicle incomplete = new IncompleteVehicle(uuid, id, name, skin, componentsList, weapons, rotations, passengers, containers, throttle, gear, yaw, fuel, owner, whitelisted, whitelist, consist);
+	        incomplete.setThrottleTape(tape);
+	        incomplete.setTicketId(ticketId);
+	        incomplete.setTicketsEnabled(ticketsEnabled);
+	        return incomplete;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -475,6 +489,7 @@ public class Database {
                     // Create a SpawnLocation object and add it to the SpawnManager
                     SpawnLocation sLoc = new SpawnLocation(c, loc, fileString);
                     SpawnManager.add(sLoc);
+                    PersistenceLog.spawnQueued(fileString, loc, c.getWorld().getName() + " " + c.getX() + "," + c.getZ());
 
                     // Delete the file after processing
                     file.delete();
@@ -517,6 +532,7 @@ public class Database {
         	defaults.put("zPos", loc.getZ());
         	defaults.put("file", sLoc.getFile());
         	save(file, defaults);
+			PersistenceLog.saveSpawn(sLoc.getFile(), loc);
         } catch (Throwable ex) {
 			ex.printStackTrace();
         }
@@ -540,6 +556,7 @@ public class Database {
 			String fileString = id + ".json";
 
 			saveSpawnLocation(new SpawnLocation(v.getEntity().getLocation().getChunk(), v.getEntity().getLocation(), fileString));
+			PersistenceLog.saveVehicle(v, v.getEntity().getLocation());
 
 			File file = new File("plugins/VehicleFramework/data/vehicles", fileString);
 			if (file.exists()) file.delete();
@@ -553,6 +570,10 @@ public class Database {
 			// --- OWNERSHIP ---
 			vehicleData.put("owner", v.getOwnerData().getOwner());
 			vehicleData.put("whitelisted", v.getOwnerData().isWhiteListed());
+			vehicleData.put("ticketsEnabled", v.getOwnerData().isTicketsEnabled());
+			if (v.getOwnerData().getTicketId() != null) {
+				vehicleData.put("ticketId", v.getOwnerData().getTicketId());
+			}
 			JSONArray whitelistArray = new JSONArray();
 			for (String entry : v.getOwnerData().getWhiteList()) whitelistArray.add(entry);
 			vehicleData.put("whitelist", whitelistArray);
@@ -636,13 +657,34 @@ public class Database {
 					weaponsObject.put(w.getId(), weaponData);
 				}
 
-				vehicleData.put("weapons", weaponsObject);
+			vehicleData.put("weapons", weaponsObject);
 			}
+			putConsist(v, vehicleData);
+			putThrottleTape(v, vehicleData);
 			save(file, vehicleData);
 
 		} catch (Throwable ex) {
 			ex.printStackTrace();
 		}
+	}
+
+	private void putConsist(ActiveVehicle v, JSONObject vehicleData) {
+		if (v == null || !v.isTrain()) {
+			return;
+		}
+		v.getTrainHandler().toConsistData().put(vehicleData);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void putThrottleTape(ActiveVehicle v, JSONObject vehicleData) {
+		if (v == null || !v.isTrain() || v.hasParent()) {
+			return;
+		}
+		ThrottleTape tape = v.getTrainHandler().getInstalledTape();
+		if (tape == null || tape.isEmpty()) {
+			return;
+		}
+		vehicleData.put("throttleTape", tape.toJson());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -682,6 +724,8 @@ public class Database {
 					toSave.put(s, getObject(s, defaults));
 				} else if (o instanceof JSONArray) {
 					toSave.put(s, getArray(s, defaults));
+				} else if (o instanceof Boolean) {
+					toSave.put(s, o);
 				}
 			}
 
@@ -779,6 +823,10 @@ public class Database {
 			// --- OWNERSHIP ---
 			vehicleData.put("owner", v.getOwnerData().getOwner());
 			vehicleData.put("whitelisted", v.getOwnerData().isWhiteListed());
+			vehicleData.put("ticketsEnabled", v.getOwnerData().isTicketsEnabled());
+			if (v.getOwnerData().getTicketId() != null) {
+				vehicleData.put("ticketId", v.getOwnerData().getTicketId());
+			}
 			JSONArray backupWhitelistArray = new JSONArray();
 			for (String entry : v.getOwnerData().getWhiteList()) backupWhitelistArray.add(entry);
 			vehicleData.put("whitelist", backupWhitelistArray);
@@ -862,6 +910,8 @@ public class Database {
 				vehicleData.put("weapons", weaponsObject);
 			}
 
+			putConsist(v, vehicleData);
+			putThrottleTape(v, vehicleData);
 			save(file, vehicleData);
 
 		} catch (Throwable ex) {

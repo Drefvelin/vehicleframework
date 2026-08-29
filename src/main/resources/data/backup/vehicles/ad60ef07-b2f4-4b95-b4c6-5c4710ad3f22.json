@@ -1,0 +1,37 @@
+{
+  "components": {
+    "hull": {
+      "damage": 0.0
+    }
+  },
+  "id": "field_artillery",
+  "name": "§l§eField Artillery",
+  "passengers": {},
+  "rotators": {
+    "gun": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "connector": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "field_artillery_controller": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  },
+  "skin": "field_artillery",
+  "weapons": {
+    "field_artillery": {
+      "damage": 0.0
+    }
+  },
+  "yaw": 71.4893798828125
+}

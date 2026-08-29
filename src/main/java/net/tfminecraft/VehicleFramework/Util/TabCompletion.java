@@ -30,6 +30,7 @@ public class TabCompletion implements TabCompleter {
 				if (Permissions.isAdmin(sender)) {
 					completions.add("takeover");
                     completions.add("reload");
+                    completions.add("track");
                 }
                 return completions;
             }
@@ -40,6 +41,31 @@ public class TabCompletion implements TabCompleter {
                     completions.add(v.getId());
                 }
                 return completions;
+            }
+
+            if (args[0].equalsIgnoreCase("track") && Permissions.isAdmin(sender)) {
+                if (args.length == 2) {
+                    completions.add("start");
+                    completions.add("end");
+                    completions.add("list");
+                    completions.add("info");
+                    completions.add("particles");
+                    completions.add("delete");
+                    completions.add("bind");
+                    completions.add("unbind");
+                    return completions;
+                }
+                if (args.length == 3 && args[1].equalsIgnoreCase("delete")) {
+                    Player player = (Player) sender;
+                    var registry = net.tfminecraft.VehicleFramework.VehicleFramework.getTrackRegistry();
+                    if (registry != null) {
+                        for (net.tfminecraft.VehicleFramework.Tracks.TrackSpline spline
+                                : registry.inWorld(player.getWorld().getName())) {
+                            completions.add(spline.getId().toString());
+                        }
+                    }
+                    return completions;
+                }
             }
 
             if (args[0].equalsIgnoreCase("kill") && args.length == 2) {

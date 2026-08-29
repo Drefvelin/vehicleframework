@@ -28,11 +28,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.14.0</version> <!-- or latest -->
-        </dependency>
-        <dependency>
             <groupId>local</groupId>
             <artifactId>json-simple</artifactId>
             <version>1.1</version>
@@ -60,12 +55,11 @@
             <scope>system</scope>
             <systemPath>D:/Dokumenter/My Plugins/Reference Libs/MythicMobs-5.8.0-SNAPSHOT.jar</systemPath>
         </dependency>
-        <!-- Source: https://mvnrepository.com/artifact/org.joml/joml -->
         <dependency>
             <groupId>org.joml</groupId>
             <artifactId>joml</artifactId>
             <version>1.10.8</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>local</groupId>
@@ -122,25 +116,6 @@
                                 <copy file="${project.build.directory}/${project.build.finalName}.jar"
                                     tofile="D:\Dokumenter\My Plugins\TFMC\VehicleFramework\${project.build.finalName}.jar"/>
                             </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals><goal>shade</goal></goals>
-                        <configuration>
-                            <relocations>
-                                <relocation>
-                                    <pattern>org.apache.commons.lang3</pattern>
-                                    <shadedPattern>net.tfminecraft.shadeutils.lang3</shadedPattern>
-                                </relocation>
-                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

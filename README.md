@@ -127,6 +127,7 @@ fixed_artillery: # First vehicle I made
       reload-time: 10
       cooldown: 10                  # ticks between shots (20 ticks = 1 second)
       projectile-damage: 12         # optional; outgoing hit/explosion damage (not vehicle incoming `damage:`)
+      projectile-speed: 9.0         # optional; outgoing projectile speed (ammo speed or data.velocity)
       accepted-ammunition:
         - bullet
       bones:
@@ -176,7 +177,7 @@ Shared turrets live in `plugins/VehicleFramework/templates/weapons/*.yml`. Root 
 
 Unknown `template` ids skip that weapon and log an error. `/vf reload` reloads templates before vehicles. Templates cannot reference other templates.
 
-Balance cooldown, `projectile-damage`, sounds, and limits in the template. Leave seat, bones, and barrel vector on the vehicle:
+Balance cooldown, `projectile-damage`, `projectile-speed`, sounds, and limits in the template. Leave seat, bones, and barrel vector on the vehicle:
 
 ```yaml
 # templates/weapons/gun_turret.yml
@@ -231,13 +232,19 @@ One-block water stays **ground**: dummy FLOATING (no YAML `floating:` state) is 
 
 Parent probe locators to non-spinning wheel groups (`front_wheels` / `back_wheels`, or the car's `front_axle_turn` / `back_axle_turn`), not spinning rims. Rays are always world-down. Order is front-left, front-right, back-left, back-right looking along the move direction. With all four hits, pitch and roll are visual only (`ConvertedAngle.fromDirection` on the world front-back and left-right axes, clamped to ±25°); they do not move the hitbox. `body_controller` yaw is left to turning. Missing probe bones are logged once and skipped. If none resolve, snap uses the `body` bone as in Batch 1.
 
+### Trains (custom spline tracks)
+
+Land cars/carts use terrain-follow. Trains do not. Design, phases, and implementation batches: [`docs/trains.md`](docs/trains.md).
+
+Phase 1: persist a **spline** (samples + segment health) separate from track **displays**; persist consist parent/child UUIDs; generate track between two anchors; 1x3 meshes on chunk load; loco/cars lerp along arc length `s`. Phase 2: recorder, tickets, coal-car inventory. Vanilla `Rail` motion is legacy until T5.
+
 ### Global config (`config.yml`)
 
 - `weapon-degraded-reload-multiplier` (default `2.0`) - At 0% weapon health, reload takes this many times longer than at 100% health. Scales linearly between full and zero health.
 - `weapon-aim-debug` (default `false`) - When true, shows an `END_ROD` particle at the resolved cursor aim target for the gunner and logs aim angles/target to console every 0.5s.
 - `terrain-follow-debug` (default `false`) - When true, shows `END_ROD` particles at terrain-follow probe (or body) starts and down-ray hits for nearby players.
 - `ground-engine-logging` (default `true`) - When true, appends each terrain-follow step (`state=` plus dest/vel, `lookaheadY`, `effSnap`, `air`, airborne `vx`, and geared-engine `gear`/`thr` when present) and each state swap (`state=A->B reason=... isDefault=...`) to `plugins/VehicleFramework/logs/ground_engine.log`.
-- `wipe-log` (default `true`) - When true, deletes `ground_engine.log` on plugin start and `/vf reload`. Live `config.yml` is not overwritten; add these keys if they are missing.
+- `wipe-log` (default `true`) - When true, deletes `ground_engine.log` and `track.log` on plugin start and `/vf reload`. Live `config.yml` is not overwritten; add these keys if they are missing.
 
 ### Weapon aim mode (optional)
 
@@ -302,6 +309,20 @@ projectile-damage: 12
 # projectile-damage-type: bullet   # optional; omit to keep ammo type
 ```
 
+### Weapon projectile speed (optional)
+
+Outgoing projectile speed can also be overridden per weapon without copying ammunition. For `BULLET` ammo this replaces ammo `speed`. For cannonballs, clusters, and torpedoes it replaces `data.velocity` when set.
+
+| Key | Default | Purpose |
+|-----|---------|---------|
+| `projectile-speed` | ammo `speed` or `data.velocity` | Outgoing projectile speed for this weapon only |
+| `projectile-velocity` | same as `projectile-speed` | Alias of `projectile-speed` |
+
+```yaml
+projectile-speed: 9.0
+# data.velocity: 3.0   # still used for entity projectiles when projectile-speed is omitted
+```
+
 ### Bullet ammunition (`ammunition/*.yml`, type `BULLET`)
 
 Vehicle bullets use per-tick simulated projectiles with gravity and raycast hit detection (close-range hits work from the muzzle onward).
@@ -324,4 +345,4 @@ bullet:
   damage-type: bullet
 ```
 
-Weapons may override outgoing damage without copying the ammo definition. Example on `aa_turret`: `projectile-damage: 12`. Omit both keys on other weapons (for example a machine gun) to keep the ammunition defaults.
+Weapons may override outgoing damage and speed without copying the ammo definition. Example on `gun_turret`: `projectile-damage: 12` and `projectile-speed: 9.0`. Omit both keys on other weapons (for example a machine gun) to keep the ammunition defaults.

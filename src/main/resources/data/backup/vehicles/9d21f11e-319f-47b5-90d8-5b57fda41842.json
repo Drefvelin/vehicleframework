@@ -1,0 +1,36 @@
+{
+  "components": {
+    "engine": {
+      "damage": 22.6,
+      "throttle": 0,
+      "fuel": 818.0
+    },
+    "wings": {
+      "damage": 22.6
+    },
+    "hull": {
+      "damage": 18.1
+    }
+  },
+  "id": "monoplane",
+  "name": "§l§eMonoplane",
+  "passengers": {},
+  "rotators": {
+    "body_controller": {
+      "w": 0.9661004,
+      "x": 0.08452282,
+      "y": -0.24301024,
+      "z": 0.02126064
+    }
+  },
+  "skin": "monoplane",
+  "weapons": {
+    "bomb_bay": {
+      "damage": 100.0
+    },
+    "machine_guns": {
+      "damage": 100.0
+    }
+  },
+  "yaw": 105.8890380859375
+}

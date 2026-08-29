@@ -1,0 +1,280 @@
+monoplane:
+    name: "§l§eMonoplane"
+    model: monoplane
+    skins:
+        monoplane:
+            name: "Monoplane"
+            model: monoplane
+        monoplane_black:
+            name: "Monoplane (Black)"
+            model: monoplane_black
+        monoplane_chinese:
+            name: "Monoplane (Yellow)"
+            model: monoplane_chinese
+        monoplane_purple:
+            name: "Monoplane (Purple)"
+            model: monoplane_purple
+        monoplane_revenor:
+            name: "Monoplane (Revenor)"
+            model: monoplane_revenor
+        monoplane_domenia:
+            name: "Monoplane (Domenia)"
+            model: monoplane_domenia
+        monoplane_sabarissa:
+            name: "Monoplane (Sabarissa)"
+            model: monoplane_sabarissa
+        monoplane_sabarissa_brown:
+            name: "Monoplane (Brown)"
+            model: monoplane_sabarissa_brown
+        monoplane_pirate:
+            name: "Monoplane (Pirate)"
+            model: monoplane_pirate
+        monoplane_prism:
+            name: "Monoplane (Prism)"
+            model: monoplane_prism
+        monoplane_norain:
+            name: "Monoplane (Norain)"
+            model: monoplane_norain
+        monoplane_zerratoris:
+            name: "Monoplane (Zerratoris)"
+            model: monoplane_zerratoris
+        monoplane_oseni:
+            name: "Monoplane (Oseni)"
+            model: monoplane_oseni
+    death:
+        explode:
+            fragments: 10
+            duration: 320
+            overrides:
+                crashing:
+                    type: crash
+                    conditions:
+                        - state(flying)
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+        crash:
+            nop: true
+    behaviour:
+        turn-scaling: false
+        rotator: body_controller
+        vector: move.movealign
+        rotation-targets:
+            lift:
+                conditions:
+                    - lift(true)
+                    - state(ground)
+                pitch: 0.0
+                interval: 0.2
+            no_lift:
+                conditions:
+                    - lift(false)
+                    - state(ground)
+                pitch: -10.0
+                roll: 0.0
+                interval: 0.2
+                snap: true
+            crash:
+                conditions:
+                    - OR(passengers=false;has_fuel=false;throttle_less_than=10)
+                    - state(flying)
+                pitch: 40.0
+                interval: 0.3
+    states:
+        ground:
+            switch-parameters:
+                velocity:
+                    y: -1.0,1.0
+                rotations:
+                    x: -7.5,7.5
+                    z: -7.5,7.5
+            animations:
+                forward:
+                    - forward
+                engine_active:
+                    - engine_active
+            keybinds:
+                SHIFT_W: THROTTLE_UP
+                SHIFT_S: THROTTLE_DOWN
+                SHIFT_A: TURN_LEFT
+                SHIFT_D: TURN_RIGHT
+                SHIFT_LEFT_CLICK: SEAT_SELECTION
+        flying:
+            animations:
+                engine_active:
+                    - engine_active
+                crash:
+                    - crash
+            keybinds:
+                SHIFT_W: THROTTLE_UP
+                SHIFT_S: THROTTLE_DOWN
+                SHIFT_A: TURN_LEFT_LOCAL
+                SHIFT_D: TURN_RIGHT_LOCAL
+                W: PITCH_DOWN
+                S: PITCH_UP
+                A: ROLL_LEFT
+                D: ROLL_RIGHT
+                SPACE_W: PITCH_DOWN
+                SPACE_S: PITCH_UP
+                SPACE_A: ROLL_LEFT
+                SPACE_D: ROLL_RIGHT
+                SHIFT_LEFT_CLICK: SEAT_SELECTION
+    custom-effects:
+        engine_start:
+            - animation(engine_start)
+            - sound(move;vehicleframework:radial_engine_start;6.0;1.0)
+            - delay(20)
+            - particle(campfire_cosy_smoke;exhaust1.exhaust1align;1;0.1;0.3)
+            - particle(campfire_cosy_smoke;exhaust2.exhaust2align;1;0.1;0.3)
+            - delay(25)
+            - particle(campfire_cosy_smoke;exhaust1.exhaust1align;5;0.2;0.8)
+            - particle(campfire_cosy_smoke;exhaust2.exhaust2align;5;0.2;0.8)
+            - delay(5)
+            - particle(campfire_cosy_smoke;exhaust1.exhaust1align;5;0.2;0.4)
+            - particle(campfire_cosy_smoke;exhaust2.exhaust2align;5;0.2;0.4)
+            - delay(30)
+        fire_start:
+            - death(explode)
+    components:
+        engine:
+            sounds:
+                plane_engine:
+                    sound: "vehicleframework:plane_engine"
+                    doppler: true
+                    pitched: true
+                    max-pitch: 1.0
+                    min-pitch: 0.85
+                    pitch: 1.0
+                    volume: 6.0
+            requires-start: true
+            health: 200.0
+            repair-time: 60
+            fuel-burn-rate: 1
+            fuel: arcane_fuel
+            fuel-capacity: 900
+            refuel-states:
+                - GROUND
+            damage-chance: 0.7
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.5)
+                - entity_explosion(1.3)
+                - small_bomb(5.0)
+                - cannonball(5.0)
+                - bullet(1.5)
+                - flak_bullet(5.0)
+            max: 100
+            min: -10
+            speed: 0.7
+            turn-rate: 0.2
+            vfx:
+                - move
+        hull:
+            health: 400.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.5)
+                - entity_explosion(1.3)
+                - small_bomb(5.0)
+                - cannonball(5.0)
+                - bullet(1.2)
+                - flak_bullet(5.0)
+            vfx:
+                - move
+        wings:
+            lift: 6.7
+            turn-rate: 0.55
+            health: 200.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.5)
+                - entity_explosion(1.3)
+                - small_bomb(5.0)
+                - cannonball(5.0)
+                - bullet(1.5)
+                - flak_bullet(5.0)
+            vfx:
+                - move
+    seats:
+        - captain(pilot)
+    weapons:
+        machine_guns:
+            name: "§eFront Rifles"
+            seat: pilot
+            fixed: true
+            reload-time: 5
+            cooldown: 2
+            reload-states:
+                - GROUND
+            accepted-ammunition:
+                - bullet
+            bones:
+                - gun_exit.gun_align
+                - gun_exit2.gun_align2
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "vehicleframework:gun"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 4
+                        spread: 0.05
+                        speed: 0.3
+            keybinds:
+                RIGHT_CLICK: WEAPON_RELOAD #WEAPON_RELOAD_AND_SHOOT
+                SPACE: WEAPON_SHOOT
+                LEFT_CLICK: WEAPON_SWITCH
+        bomb_bay:
+            name: "§eBomb Bay"
+            seat: pilot
+            fixed: true
+            reload-time: 5
+            cooldown: 4
+            reload-states:
+                - GROUND
+            accepted-ammunition:
+                - small_bomb
+            bones:
+                - bomb_bay.bomb_bay_align
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "vehicleframework:clank"
+                        pitch: 1.0
+                        volume: 3.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+            keybinds:
+                RIGHT_CLICK: WEAPON_RELOAD #WEAPON_RELOAD_AND_SHOOT
+                SPACE: WEAPON_SHOOT
+                LEFT_CLICK: WEAPON_SWITCH

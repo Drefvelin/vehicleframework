@@ -1,0 +1,47 @@
+cannonball:
+    name: "§eCannonball"
+    type: cannonball
+    input: m.utils.cannonball
+    yield: 2.5
+    radius: 10
+    damage: 20
+    damage-type: cannonball
+    rounds: 1
+    fire: true
+    explosive: false
+    potion-effects:
+        - potion(poison,0,10) color(0,255,0) 45
+    hit-sfx:
+        wither:
+            sound: minecraft:entity.wither.shoot
+            pitch: 1.5
+            volume: 4.0
+    hit-vfx:
+        smoke:
+            particle: CAMPFIRE_COSY_SMOKE
+            amount: 8
+            spread: 0.1
+            speed: 0.1
+    sounds:
+        whistle:
+            sound: vehicleframework:shell_whistle
+            pitch: 1.5
+            volume: 4.0
+            delay: 20
+            pitched: true
+    particles:
+        flame:
+            particle: FLAME
+            amount: 10
+            spread: 0.05
+            speed: 0.05
+        spark:
+            particle: FIREWORKS_SPARK
+            amount: 20
+            spread: 0.1
+            speed: 0.1
+    model:
+        type: item
+        material: obsidian
+        small: false
+        model-data: 0

@@ -1,0 +1,153 @@
+{
+  "components": {
+    "balloon": {
+      "damage": 72.2
+    },
+    "engine": {
+      "damage": 36.1,
+      "throttle": 0,
+      "fuel": 0.0
+    },
+    "hull": {
+      "damage": 72.2
+    }
+  },
+  "containers": {
+    "cargo_hold_1": {
+      "id": "cargo_hold_1",
+      "items": []
+    },
+    "cargo_hold_2": {
+      "id": "cargo_hold_2",
+      "items": []
+    },
+    "cargo_hold_3": {
+      "id": "cargo_hold_3",
+      "items": []
+    },
+    "cargo_hold_4": {
+      "id": "cargo_hold_4",
+      "items": []
+    }
+  },
+  "id": "behemoth",
+  "name": "§l§eBehemoth",
+  "passengers": {},
+  "rotators": {
+    "gun": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "gun_rotator": {
+      "w": 0.96242535,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.27154636
+    },
+    "gun2": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "autocannon_rotator": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "gun3": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "gun4": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "cannon2": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "cannon": {
+      "w": 0.9971888,
+      "x": 0.0,
+      "y": -0.07492961,
+      "z": 0.0
+    },
+    "gun_rotator2": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "aa_turret_body": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "body_controller": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "autocannon": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "aa_turret_body3": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "aa_turret_body2": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "aa_turret_body4": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  },
+  "skin": "behemoth",
+  "weapons": {
+    "aa_turret_1": {
+      "damage": 42.0
+    },
+    "aa_turret_2": {
+      "damage": 42.0
+    },
+    "aa_turret_3": {
+      "damage": 42.0
+    },
+    "aa_turret_4": {
+      "damage": 42.0
+    },
+    "right_cannon": {
+      "damage": 42.0
+    },
+    "autocannon": {
+      "damage": 42.0
+    },
+    "left_cannon": {
+      "damage": 42.0
+    }
+  },
+  "yaw": 52.72021484375
+}

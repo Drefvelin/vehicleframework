@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -15,6 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import net.tfminecraft.VehicleFramework.Util.Text;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
@@ -82,17 +82,17 @@ public class InventoryManager {
 		}
 		ItemMeta m = i.getItemMeta();
 		if(s.isOccupied()) {
-			m.setDisplayName("§e"+WordUtils.capitalize(new String(s.getBone())).replace("_", " "));
+			m.setDisplayName("§e"+Text.capitalize(new String(s.getBone())).replace("_", " "));
 		} else {
-			m.setDisplayName("§a"+WordUtils.capitalize(new String(s.getBone())).replace("_", " "));
+			m.setDisplayName("§a"+Text.capitalize(new String(s.getBone())).replace("_", " "));
 		}
 		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_seat_id");
 		m.getPersistentDataContainer().set(key, PersistentDataType.STRING, s.getBone());
 		List<String> lore = new ArrayList<>();
-		lore.add("§7Type: §e"+WordUtils.capitalize(s.getType().toString().toLowerCase()));
+		lore.add("§7Type: §e"+Text.capitalize(s.getType().toString().toLowerCase()));
 		if(s.getType().equals(SeatType.ENTITY)) {
 			if(s.isOccupied()) {
-				lore.add("§7Entity: §e"+WordUtils.capitalize(s.getEntity().getType().name().toLowerCase().replace("_", " ")));
+				lore.add("§7Entity: §e"+Text.capitalize(s.getEntity().getType().name().toLowerCase().replace("_", " ")));
 				lore.add("");
 				lore.add("§cClick to dismount entity");
 			} else {
@@ -236,7 +236,7 @@ public class InventoryManager {
 			type = c.getType().toString().toLowerCase();
 		}
 		ItemMeta m = i.getItemMeta();
-		m.setDisplayName("§7"+WordUtils.capitalize(new String(type)));
+		m.setDisplayName("§7"+Text.capitalize(new String(type)));
 		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_component_type");
 		m.getPersistentDataContainer().set(key, PersistentDataType.STRING, type);
 		List<String> lore = new ArrayList<>();

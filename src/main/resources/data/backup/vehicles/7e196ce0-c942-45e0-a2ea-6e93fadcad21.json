@@ -1,0 +1,55 @@
+{
+  "components": {
+    "engine": {
+      "damage": 0.1,
+      "throttle": 0,
+      "fuel": 2197.0
+    },
+    "wings": {
+      "damage": 0.30000000000000004
+    },
+    "hull": {
+      "damage": 0.30000000000000004
+    }
+  },
+  "id": "biplane",
+  "name": "§l§eBiplane",
+  "passengers": {},
+  "rotators": {
+    "body_controller": {
+      "w": 0.9961947,
+      "x": -0.08715573,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "gunturret": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "gunrotator": {
+      "w": 0.70710677,
+      "x": 0.0,
+      "y": 0.70710677,
+      "z": 0.0
+    }
+  },
+  "skin": "biplane_norain",
+  "weapons": {
+    "rear_gun": {
+      "damage": 3.0
+    },
+    "bomb_bay": {
+      "damage": 3.0,
+      "ammo": "small_bomb",
+      "count": 2
+    },
+    "machine_guns": {
+      "damage": 3.0,
+      "ammo": "bullet",
+      "count": 200
+    }
+  },
+  "yaw": 88.8310546875
+}

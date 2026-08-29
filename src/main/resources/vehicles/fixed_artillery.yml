@@ -1,0 +1,104 @@
+fixed_artillery:
+    name: "§l§eFixed Artillery"
+    model: fixed_artillery
+    fixed: true
+    skins:
+        fixed_artillery:
+            name: "Fixed Artillery"
+            model: fixed_artillery
+    death:
+        explode:
+            fragments: 4
+            duration: 320
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+    behaviour:
+        rotator: weapon_body
+        vector: weapon_body.weapon_body
+    states:
+        ground:
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    components:
+        hull:
+            health: 80.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - entity_explosion(1.3)
+                - bullet(0.4)
+                - torpedo(0.2)
+                - small_bomb(3.0)
+                - cannonball(2.0)
+            vfx:
+                - weapon_body
+    seats:
+        - captain(gunner)
+    weapons:
+        flak_cannon:
+            name: "§eFlak Cannon"
+            seat: gunner
+            body-bone: "weapon_body"
+            head-bone: "cannon_controller"
+            head-axis: z
+            rotation-limits:
+              min-roll: -15
+              max-roll: 75
+            reload-time: 5
+            cooldown: 15
+            accepted-ammunition:
+                - cannonball
+                - clusterbomb
+            bones:
+                - exit.exitalign
+            animations:
+                shoot:
+                    - shoot
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:entity.generic.explode"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 100
+                        spread: 0.3
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 100
+                        spread: 1.4
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 50
+                        spread: 0.7
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT

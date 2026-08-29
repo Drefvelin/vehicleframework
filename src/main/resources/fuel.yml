@@ -2,7 +2,7 @@ coal:
     name: "#524f49Coal Blocks"
     item: v.coal_block
     amount: 100
-blaze_powder:
-    name: "#de893aBlaze Powder"
-    item: v.blaze_powder
+arcane_fuel:
+    name: "#c4b99fArcane Fuel"
+    item: m.utils.arcane_fuel
     amount: 100

@@ -1,0 +1,382 @@
+sloop:
+    name: "§l§eSloop"
+    model: sloop
+    skins:
+        sloop:
+            name: "Sloop"
+            model: sloop
+    death:
+        explode:
+            fragments: 30
+            duration: 320
+            sounds:
+                sink:
+                    sound: "vehicleframework:ship_sinking"
+                    pitch: 1.0
+                    volume: 5.0
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+        sink:
+            duration: 320
+            sounds:
+                sink:
+                    sound: "vehicleframework:ship_sinking"
+                    pitch: 1.0
+                    volume: 5.0
+    behaviour:
+        rotator: body_controller
+        vector: move.movealign
+        float: true
+        float-in:
+            - WATER
+            - KELP
+    states:
+        floating:
+            animations:
+                default:
+                    - regular
+                explode:
+                    - explode
+                sink:
+                    - sink
+                forward:
+                    - forward
+                right:
+                    - right
+                left:
+                    - left
+            keybinds:
+                W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                A: TURN_LEFT
+                D: TURN_RIGHT
+                SHIFT: SEAT_SELECTION
+    components:
+        engine:
+            sounds:
+                sails:
+                    sound: "vehicleframework:ship_sail"
+                    pitch: 1.0
+                    volume: 6.0
+                water_move:
+                    sound: "vehicleframework:ship_water_move"
+                    pitch: 1.0
+                    volume: 4.0
+            health: 200.0
+            repair-time: 60
+            damage-chance: 0.7
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - bullet(0.9)
+                - entity_explosion(2.0)
+                - small_bomb(10.0)
+                - cannonball(1.8)
+                - torpedo(7.0)
+            max: 100
+            min: -10
+            speed: 0.3
+            turn-rate: 0.2
+            vfx:
+                - engine_vfx1
+                - engine_vfx2
+                - engine_vfx3
+        hull:
+            sinkable: true
+            health: 400.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - bullet(0.2)
+                - entity_explosion(2.0)
+                - small_bomb(10.0)
+                - cannonball(1.8)
+                - torpedo(7.0)
+            vfx:
+                - hull_vfx1
+                - hull_vfx2
+                - hull_vfx3
+        pump:
+            health: 80.0
+            repair-time: 40
+            damage-chance: 0.4
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - bullet(0.8)
+                - entity_explosion(2.0)
+                - small_bomb(15.0)
+                - cannonball(1.8)
+                - torpedo(7.0)
+            power: 50
+            vfx:
+                - pump_vfx1
+    seats:
+        - captain(captain)
+        - passenger(interior_1)
+        - mechanic(mechanic)
+        - passenger(right_gunner_1)
+        - passenger(right_gunner_2)
+        - passenger(left_gunner_1)
+        - passenger(left_gunner_2)
+        - passenger(lookout)
+        - passenger(passenger_1)
+        - passenger(passenger_2)
+        - passenger(passenger_3)
+        - passenger(passenger_4)
+    weapons:
+        front_right_gun:
+            name: "§eFront Right Cannon"
+            seat: right_gunner_1
+            body-bone: "gun_body"
+            head-bone: "gun_rotator"
+            head-axis: x
+            rotation-limits:
+              min-yaw: -30
+              max-yaw: 30
+              min-pitch: -60
+              max-pitch: 20
+            reload-time: 5
+            accepted-ammunition:
+                - cannonball
+            bones:
+                - exit.exitalign
+            animations:
+                shoot:
+                    - shoot
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:entity.generic.explode"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 70
+                        spread: 0.2
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 60
+                        spread: 1.0
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 20
+                        spread: 0.5
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        back_right_gun:
+            name: "§eBack Right Cannon"
+            seat: right_gunner_2
+            body-bone: "gun_body4"
+            head-bone: "gun_rotator4"
+            head-axis: x
+            rotation-limits:
+              min-yaw: -30
+              max-yaw: 30
+              min-pitch: -60
+              max-pitch: 20
+            reload-time: 5
+            accepted-ammunition:
+                - cannonball
+            bones:
+                - exit4.exitalign4
+            animations:
+                shoot:
+                    - shoot
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:entity.generic.explode"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 70
+                        spread: 0.2
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 60
+                        spread: 1.0
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 20
+                        spread: 0.5
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        front_left_gun:
+            name: "§eFront Left Cannon"
+            seat: left_gunner_1
+            body-bone: "gun_body2"
+            head-bone: "gun_rotator2"
+            head-axis: x
+            rotation-limits:
+              min-yaw: -30
+              max-yaw: 30
+              min-pitch: -60
+              max-pitch: 20
+            reload-time: 5
+            accepted-ammunition:
+                - cannonball
+            bones:
+                - exit2.exitalign2
+            animations:
+                shoot:
+                    - shoot
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:entity.generic.explode"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 70
+                        spread: 0.2
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 60
+                        spread: 1.0
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 20
+                        spread: 0.5
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        back_left_gun:
+            name: "§eBack Left Cannon"
+            seat: left_gunner_2
+            body-bone: "gun_body3"
+            head-bone: "gun_rotator3"
+            head-axis: x
+            rotation-limits:
+              min-yaw: -30
+              max-yaw: 30
+              min-pitch: -60
+              max-pitch: 20
+            reload-time: 5
+            accepted-ammunition:
+                - cannonball
+            bones:
+                - exit3.exitalign3
+            animations:
+                shoot:
+                    - shoot
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:entity.generic.explode"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 70
+                        spread: 0.2
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 60
+                        spread: 1.0
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 20
+                        spread: 0.5
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_UP
+                S: WEAPON_DOWN
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_UP
+                SPACE_S: WEAPON_DOWN
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT

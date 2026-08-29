@@ -34,7 +34,6 @@ ironclad:
             - KELP
     states:
         floating:
-            climb: 1
             animations:
                 default:
                     - float
@@ -152,8 +151,8 @@ ironclad:
             head-bone: "cannon_controller"
             head-axis: z
             rotation-limits:
-              min-roll: -75
-              max-roll: 15
+              min-roll: -15
+              max-roll: 75
             reload-time: 5
             accepted-ammunition:
                 - cannonball
@@ -215,11 +214,10 @@ ironclad:
             head-bone: "gun"
             head-axis: x
             rotation-limits:
-              min-pitch: 0
-              max-pitch: 85
+              min-pitch: -85
+              max-pitch: 0
             reload-time: 10
             cooldown: 10
-            projectile-damage: 12
             accepted-ammunition:
                 - bullet
             animations:

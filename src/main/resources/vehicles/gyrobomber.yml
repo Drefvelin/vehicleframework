@@ -1,0 +1,463 @@
+gyrobomber:
+    name: "§l§eGyrobomber"
+    model: gyrobomber
+    skins:
+        gyrobomber:
+            name: "Gyrobomber"
+            model: gyrobomber
+        gyrobomber_prism:
+            name: "Gyrobomber (Prism)"
+            model: gyrobomber_prism
+    death:
+        explode:
+            fragments: 30
+            duration: 320
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+    behaviour:
+        turn-scaling: false
+        rotator: body_controller
+        vector: move.movealign
+    containers:
+        cargo_hold:
+            seat: bombardier_2
+            name: "§eCargo Hold"
+            size: 54
+    utilities:
+        horn:
+            sound: "vehicleframework:big_horn"
+            pitch: 1.0
+            volume: 8.0
+    states:
+        flying:
+            animations:
+                default:
+                    - regular
+                forward:
+                    - forward
+                backward:
+                    - backward
+                right:
+                    - right
+                left:
+                    - left
+            keybinds:
+                W: THROTTLE_UP
+                SPACE_W: THROTTLE_UP
+                SHIFT_W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                SPACE_S: THROTTLE_DOWN
+                SHIFT_S: THROTTLE_DOWN
+                A: TURN_LEFT
+                SPACE_A: TURN_LEFT
+                SHIFT_A: TURN_LEFT
+                D: TURN_RIGHT
+                SPACE_D: TURN_RIGHT
+                SHIFT_D: TURN_RIGHT
+                SPACE: UP
+                SHIFT: DOWN
+                SHIFT_LEFT_CLICK: SEAT_SELECTION
+                LEFT_CLICK: HORN
+        floating:
+            switch-parameters:
+                velocity:
+                    y: -0.8,0.8
+            animations:
+                default:
+                    - regular
+                forward:
+                    - forward
+                backward:
+                    - backward
+                right:
+                    - right
+                left:
+                    - left
+            keybinds:
+                W: THROTTLE_UP
+                SPACE_W: THROTTLE_UP
+                SHIFT_W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                SPACE_S: THROTTLE_DOWN
+                SHIFT_S: THROTTLE_DOWN
+                A: TURN_LEFT
+                SPACE_A: TURN_LEFT
+                SHIFT_A: TURN_LEFT
+                D: TURN_RIGHT
+                SPACE_D: TURN_RIGHT
+                SHIFT_D: TURN_RIGHT
+                SPACE: UP
+                SHIFT_LEFT_CLICK: SEAT_SELECTION
+                LEFT_CLICK: HORN
+        ground:
+            switch-parameters:
+                velocity:
+                    y: -0.5,0.5
+            animations:
+                forward:
+                    - forward
+                backward:
+                    - backward
+            keybinds:
+                W: THROTTLE_UP
+                SPACE_W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                SPACE_S: THROTTLE_DOWN
+                SPACE: UP
+                SHIFT_LEFT_CLICK: SEAT_SELECTION
+                LEFT_CLICK: HORN
+    components:
+        engine:
+            sounds:
+                steam_engine:
+                    sound: "vehicleframework:steam_engine"
+                    pitched: true
+                    pitch: 1.0
+                    volume: 6.0
+                water_move:
+                    sound: "vehicleframework:ship_water_move"
+                    pitch: 1.0
+                    volume: 4.0
+            particles:
+                    exhaust:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 10
+                        spread: 0.3
+                        speed: 0.04
+            particle-bones:
+                - exhaust1.exhaust_align1
+                - exhaust2.exhaust_align2
+            health: 400.0
+            repair-time: 60
+            fuel-burn-rate: 5
+            fuel: arcane_fuel
+            fuel-capacity: 5000
+            refuel-states:
+                - GROUND
+            damage-chance: 0.7
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - bullet(0.6)
+                - entity_explosion(2.0)
+                - small_bomb(10.0)
+                - cannonball(1.8)
+                - torpedo(7.0)
+                - flak_bullet(2.0)
+            max: 100
+            min: -20
+            speed: 0.15
+            turn-rate: 0.12
+            vfx:
+                - engine_vfx_1
+                - engine_vfx_2
+        hull:
+            health: 900.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - bullet(0.1)
+                - entity_explosion(2.0)
+                - small_bomb(10.0)
+                - cannonball(1.8)
+                - torpedo(7.0)
+                - flak_bullet(2.0)
+            vfx:
+                - hull_vfx_1
+                - hull_vfx_2
+                - hull_vfx_3
+        balloon:
+            health: 2000.0
+            repair-time: 160
+            damage-chance: 1.0
+            lift: 0.1
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - bullet(1.2)
+                - entity_explosion(2.0)
+                - small_bomb(10.0)
+                - cannonball(1.8)
+                - torpedo(7.0)
+                - flak_bullet(2.0)
+            vfx:
+                - balloon_vfx_1
+                - balloon_vfx_2
+                - balloon_vfx_3
+    seats:
+        - captain(pilot)
+        - mechanic(bombardier_1)
+        - passenger(bombardier_2)
+        - passenger(gunner_1)
+        - passenger(gunner_2)
+        - passenger(gunner_3)
+        - passenger(gunner_4)
+    weapons:
+        bomb_bay_left:
+            name: "§eBomb Bay (Left)"
+            seat: bombardier_2
+            fixed: true
+            reload-time: 5
+            cooldown: 10
+            reload-states:
+                - GROUND
+            accepted-ammunition:
+                - small_bomb_rack
+            bones:
+                - bomb_bay1.bomb_bay_align_1
+                - bomb_bay2.bomb_bay_align_2
+                - bomb_bay3.bomb_bay_align_3
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "vehicleframework:clank"
+                        pitch: 1.0
+                        volume: 3.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+            keybinds:
+                RIGHT_CLICK: WEAPON_RELOAD #WEAPON_RELOAD_AND_SHOOT
+                SPACE: WEAPON_SHOOT
+                LEFT_CLICK: WEAPON_SWITCH
+        bomb_bay_right:
+            name: "§eBomb Bay (Right)"
+            seat: bombardier_1
+            fixed: true
+            reload-time: 5
+            cooldown: 10
+            reload-states:
+                - GROUND
+            accepted-ammunition:
+                - small_bomb_rack
+            bones:
+                - bomb_bay4.bomb_bay_align_4
+                - bomb_bay5.bomb_bay_align_5
+                - bomb_bay6.bomb_bay_align_6
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "vehicleframework:clank"
+                        pitch: 1.0
+                        volume: 3.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+            keybinds:
+                RIGHT_CLICK: WEAPON_RELOAD #WEAPON_RELOAD_AND_SHOOT
+                SPACE: WEAPON_SHOOT
+                LEFT_CLICK: WEAPON_SWITCH
+        rear_gun:
+            name: "§eRear Rifle"
+            seat: gunner_1
+            body-bone: "gunturret"
+            head-bone: "gunrotator"
+            head-axis: z
+            rotation-limits:
+              min-roll: -60
+              max-roll: 60
+            reload-time: 5
+            cooldown: 4
+            accepted-ammunition:
+                - bullet
+            bones:
+                - exit2.exitalign2
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "vehicleframework:gun"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 10
+                        spread: 0.05
+                        speed: 0.3
+            keybinds:
+                W: WEAPON_DOWN
+                S: WEAPON_UP
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_DOWN
+                SPACE_S: WEAPON_UP
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        front_gun:
+            name: "§eFront Rifle"
+            seat: gunner_2
+            body-bone: "gunturret2"
+            head-bone: "gunrotator2"
+            head-axis: z
+            rotation-limits:
+              min-roll: -60
+              max-roll: 60
+            reload-time: 5
+            cooldown: 4
+            accepted-ammunition:
+                - bullet
+            bones:
+                - exit3.exitalign3
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "vehicleframework:gun"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 10
+                        spread: 0.05
+                        speed: 0.3
+            keybinds:
+                W: WEAPON_DOWN
+                S: WEAPON_UP
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_DOWN
+                SPACE_S: WEAPON_UP
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        left_gun:
+            name: "§eLeft Rifle"
+            seat: gunner_3
+            body-bone: "gunturret3"
+            head-bone: "gunrotator3"
+            head-axis: z
+            rotation-limits:
+              min-roll: -60
+              max-roll: 60
+            reload-time: 5
+            cooldown: 4
+            accepted-ammunition:
+                - bullet
+            bones:
+                - exit4.exitalign4
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "vehicleframework:gun"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 10
+                        spread: 0.05
+                        speed: 0.3
+            keybinds:
+                W: WEAPON_DOWN
+                S: WEAPON_UP
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_DOWN
+                SPACE_S: WEAPON_UP
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT
+        right_gun:
+            name: "§eRight Rifle"
+            seat: gunner_4
+            body-bone: "gunturret4"
+            head-bone: "gunrotator4"
+            head-axis: z
+            rotation-limits:
+              min-roll: -60
+              max-roll: 60
+            reload-time: 5
+            cooldown: 4
+            accepted-ammunition:
+                - bullet
+            bones:
+                - exit5.exitalign5
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "vehicleframework:gun"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "vehicleframework:gun_reload"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 10
+                        spread: 0.05
+                        speed: 0.3
+            keybinds:
+                W: WEAPON_DOWN
+                S: WEAPON_UP
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_DOWN
+                SPACE_S: WEAPON_UP
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT

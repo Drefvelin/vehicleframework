@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -16,6 +15,7 @@ import me.Plugins.TLibs.Enums.APIType;
 import me.Plugins.TLibs.Objects.API.ItemAPI;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Util.Text;
 import net.tfminecraft.VehicleFramework.Bones.VectorBone;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Data.ParticleData;
@@ -171,7 +171,7 @@ public class AmmunitionHandler {
 	@SuppressWarnings("deprecation")
 	private void reload(Player p, Ammunition a) {
 		p.sendTitle("", "§aReloaded!", 0, 10, 4);
-		p.sendMessage("§aLoaded ammunition: §e"+WordUtils.capitalize(new String(a.getId()).replace("_", " ")));
+		p.sendMessage("§aLoaded ammunition: §e"+Text.capitalize(new String(a.getId()).replace("_", " ")));
 		ammo = a;
 		count = a.getData().getRounds()*exitBones.size();
 		playSound(exitBones.get(0), SoundArg.RELOAD);

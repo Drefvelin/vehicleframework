@@ -35,6 +35,8 @@ public class OwnershipGUIManager {
         if(Cache.allowWhitelist) i.setItem(4, createViewWhitelistButton(v.getOwnerData().getWhiteList().size()));
         // Slot 6 – Remove ownership
         i.setItem(6, createRemoveOwnershipButton());
+        // Slot 8 – Toggle tickets
+        i.setItem(8, createToggleTicketsButton(v.ticketSource().getOwnerData().isTicketsEnabled()));
 
         fillGlass(i);
 
@@ -112,6 +114,20 @@ public class OwnershipGUIManager {
         List<String> lore = new ArrayList<>();
         lore.add("§7Players on whitelist: §f" + count);
         lore.add("§7Click to manage whitelist");
+        m.setLore(lore);
+        i.setItemMeta(m);
+        return i;
+    }
+
+    private ItemStack createToggleTicketsButton(boolean enabled) {
+        ItemStack i = new ItemStack(enabled ? Material.LIME_DYE : Material.GRAY_DYE);
+        ItemMeta m = i.getItemMeta();
+        m.setDisplayName(enabled ? "§aTickets: ON" : "§7Tickets: OFF");
+        List<String> lore = new ArrayList<>();
+        lore.add("§7When enabled, passenger seats need a ticket");
+        lore.add("§7Owner right-clicks with the ticket item to mint");
+        lore.add("");
+        lore.add("§eClick to toggle");
         m.setLore(lore);
         i.setItemMeta(m);
         return i;

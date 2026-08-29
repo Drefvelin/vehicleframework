@@ -1,0 +1,25 @@
+{
+  "components": {
+    "engine": {
+      "damage": 0.0,
+      "throttle": 0,
+      "fuel": 1800.0
+    },
+    "hull": {
+      "damage": 0.0
+    }
+  },
+  "id": "simple_locomotive",
+  "name": "§l§eSimple Locomotive",
+  "passengers": {},
+  "rotators": {
+    "body_controller": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  },
+  "skin": "simple_locomotive",
+  "yaw": -0.8844943642616272
+}

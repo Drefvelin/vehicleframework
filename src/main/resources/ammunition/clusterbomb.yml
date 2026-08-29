@@ -1,0 +1,54 @@
+clusterbomb:
+    name: "§eClusterbomb"
+    type: cluster
+    input: m.utils.clusterbomb
+    yield: 3.5
+    radius: 10
+    damage: 20
+    damage-type: clusterbomb
+    fuse: 60
+    amount: 24
+    spread: 7.5
+    sounds:
+        whistle:
+            sound: vehicleframework:shell_whistle
+            pitch: 1.5
+            volume: 4.0
+            delay: 20
+            pitched: true
+    particles:
+        flame:
+            particle: FLAME
+            amount: 10
+            spread: 0.05
+            speed: 0.05
+        spark:
+            particle: FIREWORKS_SPARK
+            amount: 20
+            spread: 0.1
+            speed: 0.1
+    model:
+        type: item
+        material: obsidian
+        small: false
+        model-data: 0
+    cluster:
+        yield: 1.5
+        radius: 8
+        damage: 15
+        particles:
+        flame:
+            particle: FLAME
+            amount: 5
+            spread: 0.05
+            speed: 0.05
+        spark:
+            particle: FIREWORKS_SPARK
+            amount: 10
+            spread: 0.1
+            speed: 0.1
+        model:
+            type: item
+            material: obsidian
+            small: false
+            model-data: 0

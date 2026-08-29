@@ -3,7 +3,6 @@ package net.tfminecraft.VehicleFramework.Managers;
 import java.util.HashMap;
 import java.util.UUID;
 
-import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -20,6 +19,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import me.Plugins.TLibs.TLibs;
 import me.Plugins.TLibs.Enums.APIType;
 import me.Plugins.TLibs.Objects.API.ItemAPI;
+import net.tfminecraft.VehicleFramework.Util.Text;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Events.VehicleRepairStartEvent;
@@ -190,7 +190,7 @@ public class RepairManager implements Listener{
 		        	v.updateBoard();
 		        	beingRepaired.remove(p);
 					repairing.remove(p);
-		        	p.sendMessage("§aRepaired §e"+WordUtils.capitalize(c.getType().toString().toLowerCase()));
+		        	p.sendMessage("§aRepaired §e"+Text.capitalize(c.getType().toString().toLowerCase()));
 		        	p.getWorld().playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, 1f);
 		        }
 		    }.runTaskLater(VehicleFramework.plugin, c.getHealthData().getBaseRepairTime()*1L);

@@ -39,6 +39,14 @@ public class Throttle {
 		current--;
 	}
 	
+	public void stepToward(int target) {
+		if (current < target) {
+			change(1);
+		} else if (current > target) {
+			change(-1);
+		}
+	}
+
 	public void setThrottle(int i) {
 		current = i;
 		if(current > max) current = max;

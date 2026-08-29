@@ -1,9 +1,9 @@
 package net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -20,6 +20,7 @@ import com.ticxo.modelengine.api.model.bone.ModelBone;
 
 import de.tr7zw.nbtapi.NBT;
 import de.tr7zw.nbtapi.iface.ReadWriteNBT;
+import me.Plugins.TLibs.TLibs;
 import me.Plugins.TLibs.Objects.API.SubAPI.StringFormatter;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Enums.VFGUI;
@@ -39,6 +40,8 @@ public class Container {
 
     //items
     private List<ItemStack> items = new ArrayList<>();
+    private List<String> allowItems = new ArrayList<>();
+    private Inventory live;
 
     public Container(String key, ConfigurationSection config) {
         id = key;
@@ -50,6 +53,13 @@ public class Container {
                 boneList.add(s);
             }
         }
+        if (config.contains("allow-items")) {
+            for (String path : config.getStringList("allow-items")) {
+                if (path != null && !path.isBlank()) {
+                    allowItems.add(path);
+                }
+            }
+        }
     }
 
     public Container(ActiveVehicle v, Container stored) {
@@ -57,6 +67,7 @@ public class Container {
         name = stored.getName();
         size = stored.getSize();
         seat = stored.getSeat();
+        allowItems.addAll(stored.getAllowItems());
         for(String bone : stored.getBoneList()) {
             Optional<ModelBone> opt = v.getModel().getBone(bone);
             if(opt.isEmpty()) {
@@ -95,32 +106,157 @@ public class Container {
         return items;
     }
 
-    public void open(ActiveVehicle v, Player player) {
-        // Create custom inventory with your holder
-        Inventory inv = Bukkit.createInventory(
-            new VFInventoryHolder(id, VFGUI.CONTAINER, v),
-            size,
-            name
-        );
+    public List<String> getAllowItems() {
+        return allowItems;
+    }
 
-        // Copy item list into inventory
-        for (int i = 0; i < Math.min(size, items.size()); i++) {
-            inv.setItem(i, items.get(i));
+    public boolean allows(ItemStack item) {
+        return decideAllow(allowItems.isEmpty(), isEmpty(item), matchesAllowList(item));
+    }
+
+    static boolean decideAllow(boolean emptyList, boolean itemEmpty, boolean pathHit) {
+        if (itemEmpty) {
+            return true;
         }
+        if (emptyList) {
+            return true;
+        }
+        return pathHit;
+    }
 
-        player.openInventory(inv);
+    private boolean matchesAllowList(ItemStack item) {
+        for (String path : allowItems) {
+            try {
+                if (TLibs.getItemAPI().getChecker().checkItemWithPath(item, path)) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return false;
+    }
+
+    public ItemStack takeOneMatching(String tlibsPath) {
+        if (tlibsPath == null || tlibsPath.isBlank()) {
+            return null;
+        }
+        int slots = live != null ? live.getSize() : items.size();
+        for (int i = 0; i < slots; i++) {
+            ItemStack stack = live != null ? live.getItem(i) : (i < items.size() ? items.get(i) : null);
+            if (isEmpty(stack)) {
+                continue;
+            }
+            try {
+                if (!TLibs.getItemAPI().getChecker().checkItemWithPath(stack, tlibsPath)) {
+                    continue;
+                }
+            } catch (Exception ignored) {
+                continue;
+            }
+            ItemStack one = stack.clone();
+            one.setAmount(1);
+            int left = stack.getAmount() - 1;
+            ItemStack remain = left <= 0 ? null : stack;
+            if (remain != null) {
+                remain.setAmount(left);
+            }
+            if (live != null) {
+                live.setItem(i, remain);
+            } else {
+                items.set(i, remain);
+            }
+            pullLive();
+            updateBoneVisibility();
+            return one;
+        }
+        return null;
+    }
+
+    private static boolean isEmpty(ItemStack item) {
+        return item == null || item.getType().isAir();
+    }
+
+    public void giveOrDrop(Player player, ItemStack item) {
+        if (isEmpty(item) || player == null) {
+            return;
+        }
+        HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(item.clone());
+        if (leftover.isEmpty() || player.getWorld() == null) {
+            return;
+        }
+        for (ItemStack extra : leftover.values()) {
+            player.getWorld().dropItemNaturally(player.getLocation(), extra);
+        }
+    }
+
+    public void stripDisallowed(Inventory inventory, Player player) {
+        if (inventory == null || allowItems.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < inventory.getSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
+            if (allows(stack)) {
+                continue;
+            }
+            inventory.setItem(i, null);
+            giveOrDrop(player, stack);
+        }
+    }
+
+    public void open(ActiveVehicle v, Player player) {
+        player.openInventory(ensureLive(v));
     }
 
     public void close(Inventory inventory) {
-        items.clear();
-        ItemStack[] contents = inventory.getContents();
-        for (ItemStack item : contents) {
-            items.add(item != null ? item.clone() : null); // clone to avoid referencing Bukkit internals
+        if (inventory == null) {
+            return;
+        }
+        if (live != null && inventory == live) {
+            pullLive();
+        } else {
+            items.clear();
+            ItemStack[] contents = inventory.getContents();
+            for (ItemStack item : contents) {
+                items.add(item != null ? item.clone() : null);
+            }
+            pushLive();
         }
         updateBoneVisibility();
     }
 
+    private Inventory ensureLive(ActiveVehicle v) {
+        if (live != null) {
+            return live;
+        }
+        live = Bukkit.createInventory(
+                new VFInventoryHolder(id, VFGUI.CONTAINER, v),
+                size,
+                name);
+        pushLive();
+        return live;
+    }
+
+    private void pullLive() {
+        if (live == null) {
+            return;
+        }
+        items.clear();
+        for (ItemStack item : live.getContents()) {
+            items.add(item != null ? item.clone() : null);
+        }
+    }
+
+    private void pushLive() {
+        if (live == null) {
+            return;
+        }
+        for (int i = 0; i < live.getSize(); i++) {
+            live.setItem(i, i < items.size() ? items.get(i) : null);
+        }
+    }
+
     public JsonObject getAsJson() {
+        pullLive();
         JsonObject root = new JsonObject();
         root.addProperty("id", id);
 
@@ -172,6 +308,7 @@ public class Container {
                 e.printStackTrace(); // or log cleanly
             }
         }
+        pushLive();
         updateBoneVisibility();
     }
 
@@ -211,6 +348,7 @@ public class Container {
     }
 
     public void destroy(Location loc) {
+        pullLive();
         for(ItemStack item : items) {
             loc.getWorld().dropItem(loc, item);
         }

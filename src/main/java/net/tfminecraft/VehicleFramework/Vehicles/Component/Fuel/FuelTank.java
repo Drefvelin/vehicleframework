@@ -93,6 +93,17 @@ public class FuelTank {
         if(current < 0) current = 0;
     }
 
+    public boolean addFuel(int amount) {
+        if (amount <= 0 || current >= capacity) {
+            return false;
+        }
+        current += amount;
+        if (current > capacity) {
+            current = capacity;
+        }
+        return true;
+    }
+
     public void refuel(Player p, ActiveVehicle v, int amount){
         if(states.size() > 0 && !states.contains(v.getCurrentState().getType())) {
             if(p != null) p.sendMessage("§cCannot refuel in this state ("+v.getCurrentState().getType().toString()+")");

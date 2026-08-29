@@ -13,6 +13,7 @@ import com.ticxo.modelengine.api.mount.controller.MountControllerTypes;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Database.PersistenceLog;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
@@ -40,6 +41,7 @@ public class SeatHandler {
 		}
 		if(model.getMountManager().isEmpty()) {
 			VFLogger.log("Model with no mount manager detected!");
+			PersistenceLog.append("MOUNT_MANAGER_MISSING " + PersistenceLog.vehicle(vehicle));
 			return;
 		}
 		manager = model.getMountManager().get();
@@ -54,6 +56,30 @@ public class SeatHandler {
 		if(passengers.size() > 0) return true;
 		return false;
 	}
+
+	public boolean hasCaptain() {
+		return captainPlayer() != null;
+	}
+
+	public boolean isCaptain(Player player) {
+		if (player == null) {
+			return false;
+		}
+		Player captain = captainPlayer();
+		return captain != null && captain.getUniqueId().equals(player.getUniqueId());
+	}
+
+	public Player captainPlayer() {
+		for (Seat seat : seats) {
+			if (!seat.getType().equals(SeatType.CAPTAIN) || !seat.isOccupied()) {
+				continue;
+			}
+			if (seat.getEntity() instanceof Player player) {
+				return player;
+			}
+		}
+		return null;
+	}
 	public List<Entity> getPassengers(){
 		return passengers;
 	}
@@ -66,15 +92,23 @@ public class SeatHandler {
 		
 	}
 	public void addPassenger(Entity e, Seat seat) {
-		manager.mountPassenger(seat.getBone(), e, MountControllerTypes.WALKING);
+		boolean managerOk = manager != null;
+		if (managerOk) {
+			manager.mountPassenger(seat.getBone(), e, MountControllerTypes.WALKING);
+		}
 		if(seat.getType().equals(SeatType.CAPTAIN) && e instanceof Player) {
 			VehicleFramework.getLog().logEntry(((Player) e).getName()+" entered captain seat of "+v.getName()+" at "+e.getLocation().getX()+"x, "+e.getLocation().getZ()+"z");
 		}
 	    seat.mount(e);
 		if(!isPassenger(e)) passengers.add(e);
+		if (e instanceof Player p) {
+			PersistenceLog.mount(p, v, seat, managerOk, managerOk && manager.getPassengerSeatMap().containsKey(e));
+		}
 	}
 	public void dismountPassenger(Entity e, boolean change) {
-		manager.dismountPassenger(e);
+		if (manager != null) {
+			manager.dismountPassenger(e);
+		}
 		if(!change) {
 			removePassenger(e);
 			if(e instanceof Player) {
@@ -83,6 +117,7 @@ public class SeatHandler {
 			}
 		}
 		resetSeat(e);
+		PersistenceLog.dismount(e, v, change);
 	}
 	private void removePassenger(Entity e) {
 		if(isPassenger(e)) {
@@ -130,12 +165,16 @@ public class SeatHandler {
 	
 	public void slowTick() {
 		//check that everyone is in their seats
+		if(manager == null) {
+			return;
+		}
 		List<Entity> verify = new ArrayList<>(passengers);
 		for(Seat s : seats) {
 			if(!s.isOccupied()) continue;
 			Entity e = s.getEntity();
 			verify.remove(e);
 			if(manager.getPassengerSeatMap().containsKey(e)) continue;
+			PersistenceLog.remount(e, v, s.getBone());
 			manager.mountPassenger(s.getBone(), e, MountControllerTypes.WALKING);
 		    s.mount(e);
 		}

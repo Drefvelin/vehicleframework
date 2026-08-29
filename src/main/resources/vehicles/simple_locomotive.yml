@@ -1,0 +1,91 @@
+simple_locomotive:
+    name: "§l§eSimple Locomotive"
+    model: simple_locomotive
+    skins:
+        simple_locomotive:
+            name: "Simple Locomotive"
+            model: simple_locomotive
+    death:
+        explode:
+            fragments: 4
+            duration: 320
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+    behaviour:
+        rotator: body_controller
+        vector: move.movealign
+        tracked: true
+        train:
+            back-connector: connector_back
+            fuel-cars:
+                - coal_car
+    states:
+        ground:
+            animations:
+                forward:
+                    - forward
+                backward:
+                    - backward
+            keybinds:
+                W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                A: JUNCTION_LEFT
+                D: JUNCTION_RIGHT
+                SHIFT: SEAT_SELECTION
+    seats:
+        - captain(driver)
+    components:
+        engine:
+            sounds:
+                steam_engine:
+                    sound: "vehicleframework:steam_engine"
+                    pitched: true
+                    pitch: 1.0
+                    volume: 6.0
+            particles:
+                    exhaust:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 10
+                        spread: 0.3
+                        speed: 0.2
+            particle-bones:
+                - exhaust.exhaustalign
+            requires-start: true
+            health: 200.0
+            fuel-burn-rate: 5
+            fuel: coal
+            fuel-capacity: 4800
+            repair-time: 60
+            damage-chance: 0.7
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.2)
+                - bullet(0.6)
+                - entity_explosion(1.5)
+                - small_bomb(6.0)
+                - cannonball(1.3)
+                - torpedo(5.0)
+            max: 100
+            min: -100
+            speed: 0.6
+            turn-rate: 0.2
+            vfx:
+                - body
+        hull:
+            health: 30.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - entity_explosion(1.3)
+                - bullet(0.4)
+                - torpedo(0.2)
+                - small_bomb(3.0)
+                - cannonball(2.0)
+            vfx:
+                - body

@@ -1,0 +1,124 @@
+field_artillery:
+    name: "§l§eField Artillery"
+    model: field_artillery
+    fixed: true
+    towable: true
+    skins:
+        field_artillery:
+            name: "Field Artillery"
+            model: field_artillery
+    death:
+        explode:
+            fragments: 4
+            duration: 320
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
+    behaviour:
+        rotator: field_artillery_controller
+        vector: field_artillery_body.field_artillery_body
+        secondary-rotators:
+            - connector
+        rotation-targets:
+            not_towed:
+                rotator: connector
+                conditions:
+                    - is_passenger(false)
+                pitch: 0.0
+                interval: 0.2
+            towed:
+                rotator: connector
+                conditions:
+                    - is_passenger(true)
+                pitch: 30.0
+                interval: 0.2
+    states:
+        ground:
+            animations:
+                forward:
+                    - forward
+                backward:
+                    - backward
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    components:
+        hull:
+            health: 40.0
+            repair-time: 100
+            damage-chance: 1.0
+            damage:
+                - entity_attack(0.1)
+                - projectile(0.3)
+                - entity_explosion(1.3)
+                - bullet(0.4)
+                - torpedo(0.2)
+                - small_bomb(3.0)
+                - cannonball(2.0)
+            vfx:
+                - field_artillery_body
+    seats:
+        - captain(gunner)
+    weapons:
+        field_artillery:
+            name: "§eField Artillery"
+            seat: gunner
+            body-bone: "field_artillery_controller"
+            head-bone: "gun"
+            head-axis: x
+            rotation-limits:
+              min-pitch: -45
+              max-pitch: 15
+            reload-time: 5
+            cooldown: 5
+            accepted-ammunition:
+                - cannonball
+            animations:
+                shoot:
+                    - shoot
+            bones:
+                - exit.exit_align
+            data:
+                shoot-sounds:
+                    sound:
+                        sound: "minecraft:entity.generic.explode"
+                        pitch: 1.0
+                        volume: 6.0
+                reload-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                reload-start-sounds:
+                    sound:
+                        sound: "minecraft:block.anvil.land"
+                        pitch: 1.0
+                        volume: 1.0
+                particles:
+                    particle1:
+                        particle: FLAME
+                        amount: 100
+                        spread: 0.3
+                        speed: 1.2
+                    particle2:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 100
+                        spread: 1.4
+                        speed: 0.2
+                    particle3:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 50
+                        spread: 0.7
+                        speed: 0.4
+            keybinds:
+                W: WEAPON_DOWN
+                S: WEAPON_UP
+                A: WEAPON_LEFT
+                D: WEAPON_RIGHT
+                SPACE_W: WEAPON_DOWN
+                SPACE_S: WEAPON_UP
+                SPACE_A: WEAPON_LEFT
+                SPACE_D: WEAPON_RIGHT
+                RIGHT_CLICK: WEAPON_RELOAD
+                SPACE: WEAPON_SHOOT

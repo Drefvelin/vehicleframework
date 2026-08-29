@@ -30,8 +30,10 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -53,6 +55,7 @@ import net.tfminecraft.VehicleFramework.Data.OwnedVehicleSummary;
 import net.tfminecraft.VehicleFramework.Data.StoredVehicleMeta;
 import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
+import net.tfminecraft.VehicleFramework.Database.PersistenceLog;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
@@ -67,14 +70,21 @@ import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Managers.Inventory.VFInventoryHolder;
 import net.tfminecraft.VehicleFramework.Managers.Spawner.VehicleSpawner;
 import net.tfminecraft.VehicleFramework.Protocol.PacketConverter;
+import net.tfminecraft.VehicleFramework.Tracks.TrainTapeInteract;
+import net.tfminecraft.VehicleFramework.Tracks.TrainCollision;
+import net.tfminecraft.VehicleFramework.Tracks.TrackJunction;
 import net.tfminecraft.VehicleFramework.Util.Damager;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketInteract;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketItems;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketRules;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Train.ConsistRelinker;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
 
 public class VehicleManager implements Listener{
@@ -99,8 +109,8 @@ public class VehicleManager implements Listener{
 	private HashMap<Player, ActiveVehicle> addingToWhitelist = new HashMap<>();
 	private HashMap<Player, Integer> addingToWhitelistTimeout = new HashMap<>();
 
-	// Owner-eject cooldown: player cannot re-enter any vehicle until timestamp expires
-	private HashMap<Player, Long> ejectCooldown = new HashMap<>();
+	// Owner-eject cooldown: player cannot re-enter that vehicle until timestamp expires
+	private HashMap<Player, HashMap<String, Long>> ejectCooldown = new HashMap<>();
 
 	// Admin takeover: player is waiting to click a vehicle and claim ownership
 	private HashMap<Player, Integer> pendingTakeover = new HashMap<>();
@@ -200,6 +210,8 @@ public class VehicleManager implements Listener{
 	public ActiveVehicle spawn(Location loc, Vehicle v, IncompleteVehicle i) {
 		ActiveVehicle vehicle = spawner.spawn(loc, v, this, i);
 		register(vehicle);
+		ConsistRelinker.tryLink(vehicle);
+		PersistenceLog.spawned(vehicle, loc);
 		Bukkit.getPluginManager().callEvent(new VehicleSpawnEvent(vehicle));
 		return vehicle;
 	}
@@ -213,6 +225,7 @@ public class VehicleManager implements Listener{
 	}
 
 	public void reload() {
+		PersistenceLog.append("VEHICLE_MANAGER_RELOAD");
 		spawnManager.start();
 	}
 	private void vehicleSlowTickCycle() {
@@ -250,6 +263,7 @@ public class VehicleManager implements Listener{
 						VFLogger.log(v.getId()+" has run into an issue");
 					}
 	            }
+				TrainCollision.tick(vehicles.values());
 	            Iterator<Map.Entry<Player, ActiveVehicle>> iterator = tow.entrySet().iterator();
 	            while (iterator.hasNext()) {
 	                Map.Entry<Player, ActiveVehicle> entry = iterator.next();
@@ -351,15 +365,12 @@ public class VehicleManager implements Listener{
 	    		return;
 	    	}
 	    }
-	    // Check if this player was ejected by the owner and is still on cooldown
-	    if(ejectCooldown.containsKey(p)) {
-	    	if(ejectCooldown.get(p) > System.currentTimeMillis()) {
-	    		long remaining = (ejectCooldown.get(p) - System.currentTimeMillis() + 999) / 1000;
-	    		p.sendMessage("§cYou cannot enter this vehicle for §e" + remaining + "§c more seconds.");
-	    		return;
-	    	} else {
-	    		ejectCooldown.remove(p);
-	    	}
+	    // Check if this player was ejected by the owner and is still on cooldown for this vehicle
+	    long ejectUntil = ejectUntil(p, v);
+	    if (ejectUntil > System.currentTimeMillis()) {
+	    	long remaining = (ejectUntil - System.currentTimeMillis() + 999) / 1000;
+	    	p.sendMessage("§cYou cannot enter this vehicle for §e" + remaining + "§c more seconds.");
+	    	return;
 	    }
 	    // Clear any pending entity mount when opening the seat menu again
 	    pendingEntityVehicle.remove(p);
@@ -542,6 +553,14 @@ public class VehicleManager implements Listener{
 			}
 		}
 		cooldown.put(p, System.currentTimeMillis()+100);
+		if (TrainTapeInteract.handle(p, v)) {
+			e.setCancelled(true);
+			return;
+		}
+		if (VehicleTicketInteract.handle(p, v)) {
+			e.setCancelled(true);
+			return;
+		}
 		//Containers
 		if(v.hasContainers()) {
 			if(v.getContainerHandler().open(p)) return;
@@ -661,6 +680,10 @@ public class VehicleManager implements Listener{
 				v.getOwnerData().setWhiteListed(false);
 				p.closeInventory();
 				p.sendMessage("§7Ownership of §f" + v.getName() + "§7 has been removed.");
+				break;
+			case 8: // Toggle tickets on the consist loco when attached
+				v.ticketSource().getOwnerData().toggleTickets();
+				ownershipGUI.ownershipGui(e.getView().getTopInventory(), p, v, false);
 				break;
 			default:
 				break;
@@ -840,9 +863,58 @@ public class VehicleManager implements Listener{
 		
 	}
 
+	private boolean allowTicketSeat(Player p, ActiveVehicle v, Seat seat) {
+		if (p == null || v == null || seat == null) {
+			return true;
+		}
+		ActiveVehicle source = v.ticketSource();
+		boolean exempt = VehicleTicketRules.ownerOrWhitelisted(source.getOwnerData(), p.getName());
+		boolean has = VehicleTicketItems.inventoryHas(p, source.getOwnerData().getTicketId());
+		return VehicleTicketRules.mayEnter(source.getOwnerData().isTicketsEnabled(), seat.getType(), exempt, has);
+	}
+
+	private void putEjectCooldown(Player player, ActiveVehicle vehicle) {
+		if (player == null || vehicle == null || vehicle.getUUID() == null) {
+			return;
+		}
+		ejectCooldown.computeIfAbsent(player, ignored -> new HashMap<>())
+				.put(vehicle.getUUID(), System.currentTimeMillis() + 60000L);
+	}
+
+	private long ejectUntil(Player player, ActiveVehicle vehicle) {
+		if (player == null || vehicle == null || vehicle.getUUID() == null) {
+			return 0;
+		}
+		HashMap<String, Long> byVehicle = ejectCooldown.get(player);
+		if (byVehicle == null) {
+			return 0;
+		}
+		Long until = byVehicle.get(vehicle.getUUID());
+		if (until == null) {
+			return 0;
+		}
+		if (until <= System.currentTimeMillis()) {
+			byVehicle.remove(vehicle.getUUID());
+			if (byVehicle.isEmpty()) {
+				ejectCooldown.remove(player);
+			}
+			return 0;
+		}
+		return until;
+	}
+
 	public void mount(Player p, String seat, ActiveVehicle v) {
 		Seat s = v.getSeatHandler().getSeat(seat);
 		if(s == null) return;
+		if (ejectUntil(p, v) > System.currentTimeMillis()) {
+			long remaining = (ejectUntil(p, v) - System.currentTimeMillis() + 999) / 1000;
+			p.sendMessage("§cYou cannot enter this vehicle for §e" + remaining + "§c more seconds.");
+			return;
+		}
+		if (!allowTicketSeat(p, v, s)) {
+			p.sendMessage("§cYou need a ticket for this vehicle.");
+			return;
+		}
 		if(!v.isPassenger(p, true)) {
 	    	v.addPassenger(p, s);
 	    } else {
@@ -913,15 +985,28 @@ public class VehicleManager implements Listener{
 				Entity occupant = seat.getEntity();
 				if(occupant instanceof Player) {
 					Player ejected = (Player) occupant;
+					if (ejected.getUniqueId().equals(p.getUniqueId())) {
+						p.sendMessage("§cYou cannot eject yourself");
+						return;
+					}
 					v.dismountPassenger(ejected, false);
-					ejectCooldown.put(ejected, System.currentTimeMillis() + 60000L);
-					ejected.sendMessage("§cYou have been removed from the vehicle by the owner and cannot re-enter for 60 seconds.");
+					putEjectCooldown(ejected, v);
+					ejected.sendMessage("§cYou have been removed from this vehicle by the owner and cannot re-enter it for 60 seconds.");
 					p.sendMessage("§aEjected §e" + ejected.getName() + "§a from the vehicle.");
 					inv.seatSelection(p.getOpenInventory().getTopInventory(), p, v, false);
 					return;
 				}
 			}
 			p.sendMessage("§cSeat is occupied");
+			return;
+		}
+		if (!allowTicketSeat(p, v, seat)) {
+			p.sendMessage("§cYou need a ticket for this vehicle.");
+			return;
+		}
+		if (ejectUntil(p, v) > System.currentTimeMillis()) {
+			long remaining = (ejectUntil(p, v) - System.currentTimeMillis() + 999) / 1000;
+			p.sendMessage("§cYou cannot enter this vehicle for §e" + remaining + "§c more seconds.");
 			return;
 		}
 	    if(!v.isPassenger(p, true)) {
@@ -962,6 +1047,84 @@ public class VehicleManager implements Listener{
 	}
 
 	@EventHandler
+	public void containerClick(InventoryClickEvent e) {
+		if (!(e.getView().getTopInventory().getHolder() instanceof VFInventoryHolder h)) {
+			return;
+		}
+		if (!h.getType().equals(VFGUI.CONTAINER)) {
+			return;
+		}
+		Optional<ActiveVehicle> opt = h.getVehicle();
+		if (opt.isEmpty() || !opt.get().hasContainers()) {
+			return;
+		}
+		Container c = opt.get().getContainerHandler().get(h.getId());
+		if (c == null) {
+			return;
+		}
+		ItemStack incoming = incomingToContainer(e);
+		if (incoming == null || c.allows(incoming)) {
+			return;
+		}
+		e.setCancelled(true);
+		e.getWhoClicked().sendMessage("§cThat item is not allowed in this container.");
+	}
+
+	@EventHandler
+	public void containerDrag(InventoryDragEvent e) {
+		if (!(e.getView().getTopInventory().getHolder() instanceof VFInventoryHolder h)) {
+			return;
+		}
+		if (!h.getType().equals(VFGUI.CONTAINER)) {
+			return;
+		}
+		Optional<ActiveVehicle> opt = h.getVehicle();
+		if (opt.isEmpty() || !opt.get().hasContainers()) {
+			return;
+		}
+		Container c = opt.get().getContainerHandler().get(h.getId());
+		if (c == null || c.allows(e.getOldCursor())) {
+			return;
+		}
+		int topSize = e.getView().getTopInventory().getSize();
+		for (int slot : e.getRawSlots()) {
+			if (slot < topSize) {
+				e.setCancelled(true);
+				e.getWhoClicked().sendMessage("§cThat item is not allowed in this container.");
+				return;
+			}
+		}
+	}
+
+	private static ItemStack incomingToContainer(InventoryClickEvent e) {
+		Inventory top = e.getView().getTopInventory();
+		Inventory clicked = e.getClickedInventory();
+		InventoryAction action = e.getAction();
+		if (action == InventoryAction.PLACE_ALL
+				|| action == InventoryAction.PLACE_ONE
+				|| action == InventoryAction.PLACE_SOME
+				|| action == InventoryAction.SWAP_WITH_CURSOR) {
+			if (clicked != null && clicked.equals(top)) {
+				return e.getCursor();
+			}
+		}
+		if (action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+			if (clicked != null && !clicked.equals(top)) {
+				return e.getCurrentItem();
+			}
+		}
+		if (action == InventoryAction.HOTBAR_SWAP || action == InventoryAction.HOTBAR_MOVE_AND_READD) {
+			if (clicked != null && clicked.equals(top)) {
+				int hotbar = e.getHotbarButton();
+				if (hotbar >= 0) {
+					return e.getWhoClicked().getInventory().getItem(hotbar);
+				}
+			}
+		}
+		return null;
+	}
+
+	@EventHandler
 	public void saveContainer(InventoryCloseEvent e) {
 		if(e.getView().getTopInventory().getHolder() == null) return;
 		if(!(e.getView().getTopInventory().getHolder() instanceof VFInventoryHolder)) return;
@@ -971,6 +1134,9 @@ public class VehicleManager implements Listener{
 		if(opt.isEmpty()) return;
 		Container c = opt.get().getContainerHandler().get(h.getId());
 		if(c == null) return;
+		if (e.getPlayer() instanceof Player player) {
+			c.stripDisallowed(e.getView().getTopInventory(), player);
+		}
 		c.close(e.getView().getTopInventory());
 	}
 	
@@ -978,14 +1144,20 @@ public class VehicleManager implements Listener{
 	    ActiveVehicle vehicle = activeVehicle.get(p);
 	    if (vehicle == null) return;
 
-	    List<Keybind> keybinds = converter.convert(sideways, forward, space, sneak);
+	    if (vehicle.isTrain()) {
+	    	ActiveVehicle loco = vehicle.ticketSource();
+	    	if (loco.getSeatHandler() != null && loco.getSeatHandler().isCaptain(p)) {
+	    		if (sideways > 0) {
+	    			loco.getTrainHandler().holdJunction(TrackJunction.Side.LEFT);
+	    		} else if (sideways < 0) {
+	    			loco.getTrainHandler().holdJunction(TrackJunction.Side.RIGHT);
+	    		}
+	    	}
+	    }
 
-	    if (!keybinds.isEmpty()) {
-	        Bukkit.getScheduler().runTask(VehicleFramework.plugin, () -> {
-	            for (Keybind key : keybinds) {
-	                vehicle.key(p, key);
-	            }
-	        });
+	    List<Keybind> keybinds = converter.convert(sideways, forward, space, sneak);
+	    for (Keybind key : keybinds) {
+	        vehicle.key(p, key);
 	    }
 	}
 
@@ -1002,6 +1174,7 @@ public class VehicleManager implements Listener{
 	}
 
 	public void unload(ActiveVehicle v) {
+		PersistenceLog.unload(v, v.isDestroyed() ? "destroyed" : "unload");
 		if(!v.isDestroyed()) {
 			db.saveVehicle(v);
 			v.remove(VehicleRemoveReason.UNLOAD);

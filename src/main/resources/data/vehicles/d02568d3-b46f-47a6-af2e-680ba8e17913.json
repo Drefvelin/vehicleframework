@@ -1,0 +1,90 @@
+{
+  "components": {
+    "engine": {
+      "damage": 0.0,
+      "throttle": 0,
+      "fuel": 0.0
+    },
+    "hull": {
+      "damage": 0.0
+    },
+    "pump": {
+      "damage": 0.0
+    }
+  },
+  "id": "cruiser",
+  "name": "§l§eCruiser",
+  "passengers": {},
+  "rotators": {
+    "gun": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "body_controller": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "gun2": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "gun_front": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "body2": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "gun_back": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "body": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "aa_turret_body2": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "aa_turret_body": {
+      "w": 1.0,
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  },
+  "skin": "cruiser",
+  "weapons": {
+    "aa_turret_right": {
+      "damage": 0.0
+    },
+    "back_turret": {
+      "damage": 0.0
+    },
+    "aa_turret_left": {
+      "damage": 0.0
+    },
+    "front_turret": {
+      "damage": 0.0
+    }
+  },
+  "yaw": 17.297119140625
+}

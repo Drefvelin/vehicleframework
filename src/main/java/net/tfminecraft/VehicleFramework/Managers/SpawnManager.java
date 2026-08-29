@@ -16,6 +16,7 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import net.tfminecraft.VehicleFramework.VehicleFramework;
+import net.tfminecraft.VehicleFramework.Database.PersistenceLog;
 import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
@@ -65,6 +66,7 @@ public class SpawnManager implements Listener {
 	}
 	
 	public void start() {
+		PersistenceLog.spawnManagerStart(spawns.size());
 		db.loadActiveSpawnLocations();
 		startTickCycle();
 	}
@@ -94,6 +96,7 @@ public class SpawnManager implements Listener {
 	}
 	
 	private void loadVehicle(SpawnLocation loc, IncompleteVehicle i) {
+		PersistenceLog.spawnLoad(loc.getFile(), loc.getLoc());
 		Vehicle v = VehicleLoader.getByString(i.getId());
 		if(v == null) return;
 		vehicleManager.spawn(loc.getLoc(), v, i);

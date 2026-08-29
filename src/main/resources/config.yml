@@ -24,20 +24,76 @@ convert-explosion:
     - GRASS_BLOCK.DIRT
     - STONE_BRICKS.CRACKED_STONE_BRICKS
     - STONE.COBBLESTONE
+## Falling debris will not rest on these
+ignore-ground:
+    - GRASS
+    - TALL_GRASS
+    - FERN
+    - LARGE_FERN
+    - DEAD_BUSH
+    - SEAGRASS
+    - TALL_SEAGRASS
+    - AZALEA
+    - FLOWERING_AZALEA
+    - MOSS_CARPET
+    - VINE
+    - GLOW_LICHEN
+    - CAVE_VINES
+    - CAVE_VINES_PLANT
+    - TWISTING_VINES
+    - TWISTING_VINES_PLANT
+    - WEEPING_VINES
+    - WEEPING_VINES_PLANT
+    - OAK_LEAVES
+    - SPRUCE_LEAVES
+    - BIRCH_LEAVES
+    - JUNGLE_LEAVES
+    - ACACIA_LEAVES
+    - DARK_OAK_LEAVES
+    - MANGROVE_LEAVES
+    - AZALEA_LEAVES
+    - FLOWERING_AZALEA_LEAVES
+    - WATER
+    - LAVA
+    - CARPET
+    - SNOW
+    - TORCH
+    - SOUL_TORCH
+    - REDSTONE_TORCH
+    - REDSTONE_WIRE
+    - RAIL
+    - POWERED_RAIL
+    - DETECTOR_RAIL
+    - ACTIVATOR_RAIL
+    - LADDER
+    - SCAFFOLDING
+    - WHEAT
+    - CARROTS
+    - POTATOES
+    - BEETROOTS
+    - MELON_STEM
+    - PUMPKIN_STEM
+    - NETHER_WART
+    - COCOA
+    - SWEET_BERRY_BUSH
+    - LIGHT
+    - BARRIER
+    - AIR
 
 ##Should we log when people enter the captains seat of a vehicle?
 enable-logging: true
 
 ##How far away does the player need to be for the vehicle to despawn?
-despawn-distance: 128
+despawn-distance: 160
 
 ##Explosion Damage
-block-damage: false
+block-damage: true
 
 ##Items, supports TLibs paths for MMOItems and ItemsAdder
-repair-item: v.iron_shovel
-skin-item: v.bucket
+repair-item: m.utils.vehicle_repair
+skin-item: m.utils.vehicle_skin
 destroy-item: v.blaze_rod
+ticket-item: v.paper
 
 ##Can players set up whitelists for their vehicle
 allow-whitelist: true
@@ -47,14 +103,14 @@ whitelisted-by-default: true
 weapon-degraded-reload-multiplier: 2.0
 
 ## Show a particle at the resolved cursor aim target for the gunner (debug tuning)
-weapon-aim-debug: false
+weapon-aim-debug: true
 
 ## Show END_ROD particles at terrain-follow probe starts and ground hits
 terrain-follow-debug: false
 
 ## Append each terrain-follow step to plugins/VehicleFramework/logs/ground_engine.log
 ground-engine-logging: true
-## When true, ground_engine.log is deleted on every plugin start/reload
+## When true, ground_engine.log is deleted on every plugin start/reload.
 wipe-log: true
 
 ##Set this to the ID of the MythicMob, in the free pack this is VehicleFrameworkDummy

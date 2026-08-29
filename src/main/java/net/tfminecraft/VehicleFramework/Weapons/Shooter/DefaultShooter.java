@@ -15,6 +15,7 @@ import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Interface.Shooter;
 import net.tfminecraft.VehicleFramework.Projectiles.HitChecker;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
+import net.tfminecraft.VehicleFramework.Weapons.Weapon;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.ClusterBomb;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
@@ -39,7 +40,7 @@ public class DefaultShooter implements Shooter {
 	    Entity e = ammoData.spawn(loc);
 		Cache.projectiles.add(e);
 	    
-	    Vector velocity = vector.clone().multiply(w.getWeaponData().getVelocity());
+	    Vector velocity = vector.clone().multiply(Weapon.effectiveProjectileVelocity(w));
 	    new BukkitRunnable() {
 	        int i = 0;
 	        float pitch = 1.2f;

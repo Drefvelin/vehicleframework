@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -27,6 +29,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -35,6 +38,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -43,6 +48,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.model.ModeledEntity;
 
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.mobs.ActiveMob;
@@ -77,6 +85,7 @@ import net.tfminecraft.VehicleFramework.Util.Damager;
 import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
+import net.tfminecraft.VehicleFramework.Vehicles.VehicleHealthDecay;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketInteract;
@@ -125,6 +134,8 @@ public class VehicleManager implements Listener{
 	private HashMap<Entity, ActiveVehicle> vehicles = new HashMap<>();
 
 	private Set<Entity> damagedEntities = new HashSet<>();
+	private final Map<UUID, Boolean> packetSneak = new ConcurrentHashMap<>();
+	private final Map<UUID, Long> mountedLeftClickAt = new ConcurrentHashMap<>();
 
 	public void setDamaged(Entity e, boolean damaged) {
 		if (damaged) {
@@ -152,6 +163,27 @@ public class VehicleManager implements Listener{
             if(v.getUUID().equalsIgnoreCase(UUID)) return v;
         }
 		return null;
+	}
+
+	/**
+	 * Adds {@code fractionOfMax * maxHealth} damage to every component and weapon,
+	 * clamping remaining health to {@code minHealthFraction}. Spawned vehicles are
+	 * updated in memory then saved; unspawned vehicles are edited on disk in place.
+	 */
+	public boolean unloadedDamage(String vehicleUuid, double fractionOfMax, double minHealthFraction) {
+		if (vehicleUuid == null || vehicleUuid.isBlank()) {
+			return false;
+		}
+		ActiveVehicle live = getByUUID(vehicleUuid.trim());
+		if (live != null) {
+			VehicleHealthDecay.applyToLive(live, fractionOfMax, minHealthFraction);
+			db.saveVehicle(live);
+			return true;
+		}
+		return VehicleHealthDecay.applyToStoredFile(
+				VehicleHealthDecay.storedVehicleFile(vehicleUuid),
+				fractionOfMax,
+				minHealthFraction);
 	}
 	
 	public ActiveVehicle get(Entity e) {
@@ -320,6 +352,10 @@ public class VehicleManager implements Listener{
 	
 	public void dismount(Player p) {
 		if(activeVehicle.containsKey(p)) activeVehicle.remove(p);
+		if (p != null) {
+			packetSneak.remove(p.getUniqueId());
+			mountedLeftClickAt.remove(p.getUniqueId());
+		}
 	}
 	
 	public void leashedInteract(Player p, ActiveVehicle v, LivingEntity e) {
@@ -765,6 +801,11 @@ public class VehicleManager implements Listener{
 	@EventHandler
 	public void playerLeave(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
+		packetSneak.remove(p.getUniqueId());
+		mountedLeftClickAt.remove(p.getUniqueId());
+		if (VehicleFramework.getPacketListener() != null) {
+			VehicleFramework.getPacketListener().unregisterPlayer(p);
+		}
 		pendingEntityVehicle.remove(p);
 		pendingEntitySeat.remove(p);
 		addingToWhitelist.remove(p);
@@ -793,6 +834,17 @@ public class VehicleManager implements Listener{
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void damagePassenger(EntityDamageEvent e) {
 		Entity entity = e.getEntity();
+		if (e instanceof EntityDamageByEntityEvent by) {
+			DamageCause cause = e.getCause();
+			if ((cause == DamageCause.ENTITY_ATTACK || cause == DamageCause.ENTITY_SWEEP_ATTACK)
+					&& by.getDamager() instanceof Player attacker) {
+				fireMountedLeftClick(attacker);
+				if (isOwnVehicleMelee(attacker, entity)) {
+					e.setCancelled(true);
+					return;
+				}
+			}
+		}
 		if(damagedEntities.contains(entity)) return;
 		for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
         	ActiveVehicle v = entry.getValue();
@@ -853,14 +905,95 @@ public class VehicleManager implements Listener{
 		ActiveVehicle v = vehicles.get(activeVehicle.get(p).getEntity());
 		if(!v.isPassenger(p, false)) return;
 		Action a = e.getAction();
-		if(p.isSneaking()) {
+		if(a.equals(Action.LEFT_CLICK_AIR) || a.equals(Action.LEFT_CLICK_BLOCK)) {
+			fireMountedLeftClick(p);
+			return;
+		}
+		if(mountedShifting(p)) {
 			if(a.equals(Action.RIGHT_CLICK_AIR) || a.equals(Action.RIGHT_CLICK_BLOCK)) v.key(p, Keybind.SHIFT_RIGHT_CLICK);
-			if(a.equals(Action.LEFT_CLICK_AIR) || a.equals(Action.LEFT_CLICK_BLOCK)) v.key(p, Keybind.SHIFT_LEFT_CLICK);
 			return;
 		}
 		if(a.equals(Action.RIGHT_CLICK_AIR) || a.equals(Action.RIGHT_CLICK_BLOCK)) v.key(p, Keybind.RIGHT_CLICK);
-		if(a.equals(Action.LEFT_CLICK_AIR) || a.equals(Action.LEFT_CLICK_BLOCK)) v.key(p, Keybind.LEFT_CLICK);
-		
+	}
+
+	@EventHandler
+	public void swingWhileMounted(PlayerAnimationEvent e) {
+		if (e.getAnimationType() != PlayerAnimationType.ARM_SWING) {
+			return;
+		}
+		fireMountedLeftClick(e.getPlayer());
+	}
+
+	private boolean mountedShifting(Player p) {
+		if (p == null) {
+			return false;
+		}
+		return p.isSneaking() || packetSneak.getOrDefault(p.getUniqueId(), false);
+	}
+
+	private void fireMountedLeftClick(Player p) {
+		ActiveVehicle v = mountedVehicle(p);
+		if (v == null) {
+			return;
+		}
+		long now = System.currentTimeMillis();
+		Long last = mountedLeftClickAt.get(p.getUniqueId());
+		if (last != null && now - last < 75L) {
+			return;
+		}
+		mountedLeftClickAt.put(p.getUniqueId(), now);
+		if (mountedShifting(p)) {
+			v.key(p, Keybind.SHIFT_LEFT_CLICK);
+		} else {
+			v.key(p, Keybind.LEFT_CLICK);
+		}
+	}
+
+	private ActiveVehicle mountedVehicle(Player p) {
+		if (p == null) {
+			return null;
+		}
+		ActiveVehicle v = activeVehicle.get(p);
+		if (v == null || !v.isPassenger(p, false)) {
+			return null;
+		}
+		return v;
+	}
+
+	private boolean isOwnVehicleMelee(Player attacker, Entity hurt) {
+		ActiveVehicle v = mountedVehicle(attacker);
+		if (v == null || hurt == null) {
+			return false;
+		}
+		if (hurt.equals(v.getEntity())) {
+			return true;
+		}
+		ActiveVehicle mapped = vehicles.get(hurt);
+		if (mapped != null && mapped == v) {
+			return true;
+		}
+		try {
+			ModeledEntity hit = ModelEngineAPI.getModeledEntity(hurt);
+			ModeledEntity base = ModelEngineAPI.getModeledEntity(v.getEntity());
+			return hit != null && hit.equals(base);
+		} catch (Exception ignored) {
+			return false;
+		}
+	}
+
+	static boolean isPassengerMeleeOnOwnVehicle(EntityDamageEvent e, Map<Entity, ActiveVehicle> vehicles) {
+		if (!(e instanceof EntityDamageByEntityEvent by)) {
+			return false;
+		}
+		DamageCause cause = e.getCause();
+		if (cause != DamageCause.ENTITY_ATTACK && cause != DamageCause.ENTITY_SWEEP_ATTACK) {
+			return false;
+		}
+		if (!(by.getDamager() instanceof Player player)) {
+			return false;
+		}
+		ActiveVehicle v = vehicles.get(e.getEntity());
+		return v != null && v.isPassenger(player, false);
 	}
 
 	private boolean allowTicketSeat(Player p, ActiveVehicle v, Seat seat) {
@@ -1143,6 +1276,7 @@ public class VehicleManager implements Listener{
 	public void inputPacket(Player p, float sideways, float forward, boolean space, boolean sneak) {
 	    ActiveVehicle vehicle = activeVehicle.get(p);
 	    if (vehicle == null) return;
+	    packetSneak.put(p.getUniqueId(), sneak);
 
 	    if (vehicle.isTrain()) {
 	    	ActiveVehicle loco = vehicle.ticketSource();

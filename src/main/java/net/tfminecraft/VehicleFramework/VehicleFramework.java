@@ -55,6 +55,7 @@ public class VehicleFramework extends JavaPlugin{
 	private final Database db = new Database();
 	private static TrackRegistry trackRegistry;
 	private static TrackDisplayManager trackDisplayManager;
+	private static VehiclePacketListener packetListener;
 	
 	@Override
 	public void onEnable() {
@@ -104,8 +105,9 @@ public class VehicleFramework extends JavaPlugin{
 		getCommand(commandManager.cmd1).setExecutor(commandManager);
 		getCommand(commandManager.cmd1).setTabCompleter(new TabCompletion());
 		
-		VehiclePacketListener packetListener = new VehiclePacketListener(vehicleManager);
-        packetListener.register();
+		VehiclePacketListener listener = new VehiclePacketListener(vehicleManager);
+		packetListener = listener;
+		listener.register();
 	}
 	public void startManagers() {
 		vehicleManager.start();
@@ -266,6 +268,10 @@ public class VehicleFramework extends JavaPlugin{
 
 	public static VehicleManager getVehicleManager() {
 		return vehicleManager;
+	}
+
+	public static VehiclePacketListener getPacketListener() {
+		return packetListener;
 	}
 
 	public static LogWriter getLog() {

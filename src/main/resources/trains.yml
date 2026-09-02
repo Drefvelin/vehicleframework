@@ -66,4 +66,4 @@ build:
   y-offset: 0.08
 
 # One switch for logs/track.log, logs/persistence.log, and logs/recorder.log
-debug-logging: true
+debug-logging: false

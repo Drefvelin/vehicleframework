@@ -96,7 +96,7 @@ public class Cache {
 	public static double weaponDegradedReloadMultiplier = 2.0;
 	public static boolean weaponAimDebug = false;
 	public static boolean terrainFollowDebug = false;
-	public static boolean debugLogging = true;
+	public static boolean debugLogging = false;
 	public static boolean groundEngineLogging = false;
 	public static boolean wipeLog = false;
 

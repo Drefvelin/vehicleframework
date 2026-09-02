@@ -103,15 +103,15 @@ whitelisted-by-default: true
 weapon-degraded-reload-multiplier: 2.0
 
 ## Show a particle at the resolved cursor aim target for the gunner (debug tuning)
-weapon-aim-debug: true
+weapon-aim-debug: false
 
 ## Show END_ROD particles at terrain-follow probe starts and ground hits
 terrain-follow-debug: false
 
 ## Append each terrain-follow step to plugins/VehicleFramework/logs/ground_engine.log
-ground-engine-logging: true
+ground-engine-logging: false
 ## When true, ground_engine.log is deleted on every plugin start/reload.
-wipe-log: true
+wipe-log: false
 
 ##Set this to the ID of the MythicMob, in the free pack this is VehicleFrameworkDummy
 ##You can leave it as "none" if you do not have MythicMobs on your server

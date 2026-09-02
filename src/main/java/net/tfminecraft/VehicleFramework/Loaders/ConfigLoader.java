@@ -78,7 +78,7 @@ public class ConfigLoader {
 		Cache.weaponDegradedReloadMultiplier = Math.max(1.0, config.getDouble("weapon-degraded-reload-multiplier", 2.0));
 		Cache.weaponAimDebug = config.getBoolean("weapon-aim-debug", false);
 		Cache.terrainFollowDebug = config.getBoolean("terrain-follow-debug", false);
-		Cache.groundEngineLogging = config.getBoolean("ground-engine-logging", true);
-		Cache.wipeLog = config.getBoolean("wipe-log", true);
+		Cache.groundEngineLogging = config.getBoolean("ground-engine-logging", false);
+		Cache.wipeLog = config.getBoolean("wipe-log", false);
 	}
 }

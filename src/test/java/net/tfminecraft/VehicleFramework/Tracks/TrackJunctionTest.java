@@ -26,6 +26,7 @@ class TrackJunctionTest {
 		assertEquals(TrackJunction.Side.LEFT, loaded.side);
 		assertEquals(branch, loaded.branchSplineId().orElseThrow());
 		assertFalse(loaded.thrown);
+		assertEquals(0, loaded.turnoutEndS, 1e-9);
 	}
 
 	@Test
@@ -48,6 +49,62 @@ class TrackJunctionTest {
 		TrackJunction loaded = TrackJunction.fromJson(json);
 		assertTrue(loaded.branchSplineId().isEmpty());
 		assertEquals(1, loaded.facingSign);
+	}
+
+	@Test
+	void jsonRoundtrip_preservesTurnoutS() {
+		UUID id = UUID.randomUUID();
+		UUID stem = UUID.randomUUID();
+		UUID branch = UUID.randomUUID();
+		TrackJunction junction = new TrackJunction(
+				id, stem, 8, 1, TrackJunction.Side.RIGHT, branch, false, 23.5);
+		JSONObject json = junction.toJson();
+		assertTrue(json.containsKey("turnoutS"));
+		assertEquals(23.5, (Double) json.get("turnoutS"), 1e-9);
+		TrackJunction loaded = TrackJunction.fromJson(json);
+		assertEquals(23.5, loaded.turnoutEndS, 1e-9);
+		assertEquals(branch, loaded.branchSplineId().orElseThrow());
+	}
+
+	@Test
+	void jsonRoundtrip_omitsTurnoutSWhenZero() {
+		TrackJunction junction = new TrackJunction(
+				UUID.randomUUID(), UUID.randomUUID(), 3, 1, TrackJunction.Side.RIGHT, null);
+		JSONObject json = junction.toJson();
+		assertFalse(json.containsKey("turnoutS"));
+		TrackJunction loaded = TrackJunction.fromJson(json);
+		assertEquals(0, loaded.turnoutEndS, 1e-9);
+	}
+
+	@Test
+	void jsonRoundtrip_missingTurnoutSDefaultsToZero() {
+		UUID branch = UUID.randomUUID();
+		TrackJunction junction = new TrackJunction(
+				UUID.randomUUID(), UUID.randomUUID(), 5, 1, TrackJunction.Side.LEFT, branch);
+		JSONObject json = junction.toJson();
+		assertFalse(json.containsKey("turnoutS"));
+		TrackJunction loaded = TrackJunction.fromJson(json);
+		assertEquals(0, loaded.turnoutEndS, 1e-9);
+		assertEquals(branch, loaded.branchSplineId().orElseThrow());
+	}
+
+	@Test
+	void withTurnoutEndS_preservesOtherFields() {
+		UUID id = UUID.randomUUID();
+		UUID stem = UUID.randomUUID();
+		UUID branch = UUID.randomUUID();
+		TrackJunction base = new TrackJunction(
+				id, stem, 10, -1, TrackJunction.Side.LEFT, branch, true);
+		TrackJunction updated = base.withTurnoutEndS(18);
+		assertEquals(18, updated.turnoutEndS, 1e-9);
+		assertEquals(id, updated.id);
+		assertEquals(stem, updated.stemSplineId);
+		assertEquals(10, updated.s, 1e-9);
+		assertEquals(-1, updated.facingSign);
+		assertEquals(TrackJunction.Side.LEFT, updated.side);
+		assertEquals(branch, updated.branchSplineId().orElseThrow());
+		assertTrue(updated.thrown);
+		assertEquals(0, base.turnoutEndS, 1e-9);
 	}
 
 	@Test

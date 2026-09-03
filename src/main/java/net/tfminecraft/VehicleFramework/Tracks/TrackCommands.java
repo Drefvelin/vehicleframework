@@ -388,6 +388,13 @@ public final class TrackCommands {
 		}
 		lastToolMs.put(player.getUniqueId(), System.currentTimeMillis());
 		TrackLog.dig(player.getName(), result);
+		if (result.removedJunctionTurnout) {
+			if (result.kept != null) {
+				player.sendMessage("§eRemoved junction turnout; branch track kept beyond the frog.");
+			} else {
+				player.sendMessage("§eRemoved junction turnout.");
+			}
+		}
 		if (at != null && at.getWorld() != null) {
 			TrackFx.place(at.getWorld(), new TrackPose(at.getX(), at.getY(), at.getZ(), 0, 0));
 			if (Cache.trackBuildSwing) {

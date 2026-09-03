@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pygame
 
-from trackmap.parse import Dump, branch_ids, parse_track_log, short_id
+from trackmap.parse import Dump, branch_ids, parse_track_log, short_id, spline_tangent_xz
 
 TOOLS = Path(__file__).resolve().parent.parent
 DEFAULT_LOG = TOOLS / "input" / "track.log"
@@ -24,6 +24,8 @@ FROG = (255, 40, 50)
 FROG_RING = (255, 220, 60)
 TIP = (255, 180, 80)
 CROSS = (255, 255, 255)
+FACE = (90, 230, 255)
+FACE_HEAD = (210, 255, 255)
 
 MIN_ZOOM = 0.15
 MAX_ZOOM = 48.0
@@ -165,6 +167,37 @@ def paint_grid(surf: pygame.Surface, cam: Camera, font: pygame.font.Font) -> Non
         gz += step
 
 
+def paint_arrow(
+    surf: pygame.Surface,
+    start: tuple[float, float],
+    direction: tuple[float, float],
+    length: float,
+    color: tuple[int, int, int],
+    head_color: tuple[int, int, int],
+) -> tuple[int, int]:
+    dx, dy = direction
+    n = math.hypot(dx, dy)
+    if n < 1e-9 or length < 8:
+        return int(start[0]), int(start[1])
+    ux, uy = dx / n, dy / n
+    ax, ay = start
+    bx = ax + ux * length
+    by = ay + uy * length
+    width = max(4, int(length * 0.12))
+    pygame.draw.line(surf, color, (int(ax), int(ay)), (int(bx), int(by)), width)
+    head = max(12.0, length * 0.32)
+    px, py = -uy, ux
+    p1 = (bx, by)
+    p2 = (bx - ux * head + px * head * 0.55, by - uy * head + py * head * 0.55)
+    p3 = (bx - ux * head - px * head * 0.55, by - uy * head - py * head * 0.55)
+    pygame.draw.polygon(
+        surf,
+        head_color,
+        [(int(p1[0]), int(p1[1])), (int(p2[0]), int(p2[1])), (int(p3[0]), int(p3[1]))],
+    )
+    return int(bx), int(by)
+
+
 def spline_color(dump: Dump, spline_id: str, loop: bool) -> tuple[int, int, int]:
     if spline_id in branch_ids(dump):
         return BRANCH
@@ -249,8 +282,24 @@ def run(log_path: Path | None = None) -> None:
                 screen, CROSS,
                 (int(sx) - r, int(sy) + r), (int(sx) + r, int(sy) - r), 3,
             )
-            tag = f"JUNCTION {j.side} s={j.s:.0f} {short_id(j.id)}"
+            tag = f"JUNCTION {j.side} facing={j.facing:+d} s={j.s:.0f} {short_id(j.id)}"
             screen.blit(font.render(tag, True, FROG), (int(sx) + r + 8, int(sy) - 10))
+            stem = dump.splines.get(j.stem)
+            if stem is not None:
+                tangent = spline_tangent_xz(stem, j.s)
+                if tangent is not None:
+                    face = -1 if j.facing < 0 else 1
+                    travel = (tangent[0] * face, tangent[1] * face)
+                    tn = math.hypot(travel[0], travel[1])
+                    if tn > 1e-9:
+                        ux, uz = travel[0] / tn, travel[1] / tn
+                        start = (sx + ux * (r + 10), sy + uz * (r + 10))
+                        shaft = max(40, int(cam.zoom * 5.5))
+                        hx, hy = paint_arrow(
+                            screen, start, (ux, uz), shaft, FACE, FACE_HEAD
+                        )
+                        need = "travel +s" if face > 0 else "travel -s"
+                        screen.blit(small.render(need, True, FACE), (hx + 8, hy - 8))
             if j.branch_tip:
                 tx, tz = j.branch_tip
                 tsx, tsy = cam.world_to_screen(tx, tz)
@@ -263,6 +312,7 @@ def run(log_path: Path | None = None) -> None:
             f"{path.name}  splines={len(dump.splines)}  junctions={len(dump.junctions)}",
             f"cursor X={wx:.1f}  Z={wz:.1f}  zoom={cam.zoom:.2f} px/block",
             "drag: pan   wheel: zoom   R: fit   Esc: quit   X east, Z south (north up)",
+            "cyan arrow: travel direction that can use that junction",
         ]
         y = 8
         for line in hud:

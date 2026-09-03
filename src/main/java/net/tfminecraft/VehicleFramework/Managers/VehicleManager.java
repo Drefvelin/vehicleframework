@@ -383,23 +383,12 @@ public class VehicleManager implements Listener{
 	    if(v.isPassenger(p, true)) {
 	    	return;
 	    }
-	    // If whitelist mode is enabled, only owner or whitelisted players can open seat selection.
-	    if(v.getOwnerData().isWhiteListed() && !v.getOwnerData().getOwner().equalsIgnoreCase("none")) {
-	    	String ownerEntry = v.getOwnerData().getOwner();
-	    	String playerEntry = "player_" + p.getName();
-	    	boolean isOwner = ownerEntry != null && ownerEntry.equalsIgnoreCase(playerEntry);
-	    	boolean isWhitelisted = false;
-	    	for(String entry : v.getOwnerData().getWhiteList()) {
-	    		if(entry == null) continue;
-	    		if(entry.equalsIgnoreCase(playerEntry) || entry.equalsIgnoreCase(p.getName())) {
-	    			isWhitelisted = true;
-	    			break;
-	    		}
-	    	}
-	    	if(!(isOwner || isWhitelisted)) {
-	    		p.sendMessage("§cYou are not on this vehicle's whitelist.");
-	    		return;
-	    	}
+	    ActiveVehicle accessVehicle = v.ticketSource();
+	    boolean hasTicket = VehicleTicketItems.inventoryHas(
+	    		p, accessVehicle.getOwnerData().getTicketId());
+	    if (!VehicleTicketRules.mayOpenSeatMenu(accessVehicle.getOwnerData(), p.getName(), hasTicket)) {
+	    	p.sendMessage("§cYou are not on this vehicle's whitelist.");
+	    	return;
 	    }
 	    // Check if this player was ejected by the owner and is still on cooldown for this vehicle
 	    long ejectUntil = ejectUntil(p, v);

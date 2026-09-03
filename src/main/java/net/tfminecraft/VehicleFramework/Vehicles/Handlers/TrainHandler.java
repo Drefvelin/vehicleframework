@@ -688,10 +688,11 @@ public class TrainHandler {
 		TrackSpline stem = stemId == null ? null : registry.get(stemId).orElse(null);
 		TrackSpline branch = branchId == null ? null : registry.get(branchId).orElse(null);
 		double stemLength = stem == null ? spline.length() : stem.length();
-		boolean stemLoop = stem != null && stem.isLoop();
+		boolean stemLoop = stem != null ? stem.isLoop() : spline.isLoop();
 		double branchLength = branch == null ? 0 : branch.length();
 		UUID parentSpline = splineId;
 		double parentS = s;
+		int parentTravelSign = travelSign;
 		ActiveVehicle parentCar = v;
 		ActiveVehicle car = child;
 		while (car != null) {
@@ -701,7 +702,7 @@ public class TrainHandler {
 			TrackJunctionTravel.Pose pose = TrackJunctionTravel.rewind(
 					parentSpline,
 					parentS,
-					travelSign,
+					parentTravelSign,
 					gap,
 					takeBranch && route != null,
 					stemId == null ? splineId : stemId,
@@ -728,6 +729,7 @@ public class TrainHandler {
 			parentSpline = pose.splineId;
 			parentS = pose.s;
 			parentCar = car;
+			parentTravelSign = carTrain.travelSign;
 			car = carTrain.child;
 		}
 	}

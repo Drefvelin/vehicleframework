@@ -1,12 +1,13 @@
 package net.tfminecraft.VehicleFramework.Vehicles.Handlers;
 
+import net.tfminecraft.VehicleFramework.Data.OwnerData;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 
 public final class VehicleTicketRules {
 	private VehicleTicketRules() {
 	}
 
-	public static boolean ownerOrWhitelisted(net.tfminecraft.VehicleFramework.Data.OwnerData data, String playerName) {
+	public static boolean ownerOrWhitelisted(OwnerData data, String playerName) {
 		if (data == null || playerName == null) {
 			return false;
 		}
@@ -26,6 +27,21 @@ public final class VehicleTicketRules {
 			}
 		}
 		return false;
+	}
+
+	public static boolean mayOpenSeatMenu(OwnerData access, String playerName, boolean hasMatchingTicket) {
+		if (access == null) {
+			return true;
+		}
+		if (!access.isWhiteListed()
+				|| access.getOwner() == null
+				|| access.getOwner().equalsIgnoreCase("none")) {
+			return true;
+		}
+		if (ownerOrWhitelisted(access, playerName)) {
+			return true;
+		}
+		return access.isTicketsEnabled() && hasMatchingTicket;
 	}
 
 	public static boolean mayEnter(boolean ticketsEnabled, SeatType seat, boolean ownerOrWhitelist, boolean hasMatchingTicket) {

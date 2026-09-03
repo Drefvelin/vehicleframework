@@ -18,6 +18,8 @@ import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.VehicleFramework;
 
 public final class TrackRegistry {
+	private static final double PRUNE_NESTED_MAX_LENGTH = 16.0;
+
 	private final TrackStore store;
 	private final Map<UUID, TrackSpline> splines = new ConcurrentHashMap<>();
 	private final Map<UUID, TrackJunction> junctions = new ConcurrentHashMap<>();
@@ -49,6 +51,7 @@ public final class TrackRegistry {
 					TrackJunction.wrapS(junction.s, stem.length(), stem.isLoop()));
 			junctions.put(placed.id, placed);
 		}
+		pruneNestedShortTracks();
 		dumpToLog();
 	}
 
@@ -84,13 +87,13 @@ public final class TrackRegistry {
 					&& atA.get().prepend != atB.get().prepend) {
 				StrokeLay laid = closeLoop(atA.get(), atB.get(), bukkitWorld);
 				TrackLog.layOk(laid.spline, "loop");
-				return TrackLayResult.of(TrackLayResult.Kind.CONNECT, laid.spline, laid.stroke, 0);
+				return finishLay(TrackLayResult.of(TrackLayResult.Kind.CONNECT, laid.spline, laid.stroke, 0));
 			}
 			if (atA.isPresent() && atB.isPresent()
 					&& !atA.get().spline.getId().equals(atB.get().spline.getId())) {
 				StrokeLay laid = connect(atA.get(), atB.get(), bukkitWorld);
 				TrackLog.layOk(laid.spline, "connect");
-				return TrackLayResult.of(TrackLayResult.Kind.CONNECT, laid.spline, laid.stroke, 0);
+				return finishLay(TrackLayResult.of(TrackLayResult.Kind.CONNECT, laid.spline, laid.stroke, 0));
 			}
 			if (atA.isPresent()) {
 				StrokeLay laid = extend(atA.get(), bx, by, bz, bukkitWorld);
@@ -98,7 +101,7 @@ public final class TrackRegistry {
 						? TrackLayResult.Kind.PREPEND
 						: TrackLayResult.Kind.APPEND;
 				TrackLog.layOk(laid.spline, kind.name().toLowerCase());
-				return TrackLayResult.of(kind, laid.spline, laid.stroke, laid.previousCount);
+				return finishLay(TrackLayResult.of(kind, laid.spline, laid.stroke, laid.previousCount));
 			}
 			if (atB.isPresent()) {
 				StrokeLay laid = extend(atB.get(), ax, ay, az, bukkitWorld);
@@ -106,7 +109,7 @@ public final class TrackRegistry {
 						? TrackLayResult.Kind.PREPEND
 						: TrackLayResult.Kind.APPEND;
 				TrackLog.layOk(laid.spline, kind.name().toLowerCase());
-				return TrackLayResult.of(kind, laid.spline, laid.stroke, laid.previousCount);
+				return finishLay(TrackLayResult.of(kind, laid.spline, laid.stroke, laid.previousCount));
 			}
 			List<double[]> points = TrackCurve.between(
 					ax, ay, az, bx, by, bz,
@@ -117,7 +120,7 @@ public final class TrackRegistry {
 			splines.put(spline.getId(), spline);
 			store.save(spline);
 			TrackLog.layOk(spline, "new");
-			return TrackLayResult.of(TrackLayResult.Kind.NEW, spline, points, 0);
+			return finishLay(TrackLayResult.of(TrackLayResult.Kind.NEW, spline, points, 0));
 		} catch (TrackLayException e) {
 			TrackLog.layFail(e.getMessage(), e);
 			throw e;
@@ -179,10 +182,19 @@ public final class TrackRegistry {
 			return DigResult.none();
 		}
 		UUID id = spline.getId();
+		Optional<TrackJunction> asBranch = junctionByBranch(id);
+		if (asBranch.isPresent()) {
+			TrackJunction junction = asBranch.get();
+			double digS = spline.getSamples().get(index).s;
+			double turnoutEnd = junction.turnoutEndS;
+			if (turnoutEnd > 0 && digS <= turnoutEnd + 1e-9) {
+				return finishDig(removeJunctionTurnout(junction, bukkitWorld));
+			}
+		}
 		List<TrackJunction> saved = List.copyOf(junctionsOn(id));
 		if (xyz.size() <= 2) {
 			delete(id);
-			return DigResult.deleted(id);
+			return finishDig(DigResult.deleted(id));
 		}
 		if (index == 0 || index == xyz.size() - 1) {
 			xyz.remove(index);
@@ -192,7 +204,7 @@ public final class TrackRegistry {
 			TrackSpline next = TrackSpline.fromPoints(id, spline.getWorld(), false, xyz);
 			replace(next);
 			rehomeJunctions(saved, spline, false, next);
-			return DigResult.updated(next);
+			return finishDig(DigResult.updated(next));
 		}
 		List<double[]> head = new ArrayList<>(xyz.subList(0, index));
 		List<double[]> tail = new ArrayList<>(xyz.subList(index + 1, xyz.size()));
@@ -213,16 +225,16 @@ public final class TrackRegistry {
 		}
 		if (start == null && rest == null) {
 			dropJunctionsForSpline(id, spline.getWorld());
-			return DigResult.deleted(id);
+			return finishDig(DigResult.deleted(id));
 		}
 		rehomeJunctions(saved, spline, false, start, rest);
 		if (start != null && rest != null) {
-			return DigResult.split(start, rest);
+			return finishDig(DigResult.split(start, rest));
 		}
 		if (start != null) {
-			return DigResult.updated(start);
+			return finishDig(DigResult.updated(start));
 		}
-		return DigResult.updated(id, rest);
+		return finishDig(DigResult.updated(id, rest));
 	}
 
 	private StrokeLay extend(TrackEnd end, double x, double y, double z, World bukkitWorld)
@@ -449,18 +461,23 @@ public final class TrackRegistry {
 			store.save(branch);
 			try {
 				TrackJunction.Side side = branchSide(yaw, extra);
-				putJunction(junction.withSide(side).withBranch(branch.getId()));
+				putJunction(junction.withSide(side).withBranch(branch.getId()).withTurnoutEndS(branch.length()));
 			} catch (TrackLayException e) {
 				removeSplineRecord(branch.getId());
 				throw e;
 			}
 			TrackLog.junctionBranch(branch, stem.getId(), junction.id);
 			dumpToLog();
-			return branch;
+			return finishLayBranch(branch);
 		} catch (TrackLayException e) {
 			TrackLog.layFail(e.getMessage(), e);
 			throw e;
 		}
+	}
+
+	private TrackSpline finishLayBranch(TrackSpline branch) {
+		pruneNestedShortTracks();
+		return branch;
 	}
 
 	private TrackSpline commitBranch(
@@ -479,10 +496,12 @@ public final class TrackRegistry {
 					frogS,
 					facing,
 					branchSide(yaw, extra),
-					branch.getId()));
+					branch.getId(),
+					false,
+					branch.length()));
 			TrackLog.junctionBranch(branch, stem.getId(), placed.id);
 			dumpToLog();
-			return branch;
+			return finishLayBranch(branch);
 		} catch (TrackLayException e) {
 			removeSplineRecord(branch.getId());
 			throw e;
@@ -533,6 +552,14 @@ public final class TrackRegistry {
 	}
 
 	public boolean delete(UUID id) {
+		if (!deleteWithoutPrune(id)) {
+			return false;
+		}
+		pruneNestedShortTracks();
+		return true;
+	}
+
+	private boolean deleteWithoutPrune(UUID id) {
 		TrackBuildAnimator.cancel(id);
 		TrackSpline spline = splines.get(id);
 		if (spline == null) {
@@ -580,11 +607,15 @@ public final class TrackRegistry {
 				deleteJunction(junction.id);
 				continue;
 			}
+			if (!best.isLoop() && best.length() < Cache.trackMinLayDistance - 1e-9) {
+				dropJunctionAndBranch(junction);
+				continue;
+			}
 			int facing = flipFacing ? -junction.facingSign : junction.facingSign;
 			try {
 				putJunction(junction.withStem(best.getId(), bestS).withFacing(facing));
 			} catch (TrackLayException e) {
-				deleteJunction(junction.id);
+				dropJunctionAndBranch(junction);
 			}
 		}
 	}
@@ -597,6 +628,7 @@ public final class TrackRegistry {
 		if (stem == null) {
 			throw new TrackLayException("Junction stem track is missing");
 		}
+		ensureStemLongEnoughForJunction(stem);
 		double s = TrackJunction.wrapS(junction.s, stem.length(), stem.isLoop());
 		TrackJunction placed = junction.withS(s);
 		TrackJunction existing = junctions.get(placed.id);
@@ -676,6 +708,7 @@ public final class TrackRegistry {
 		if (stem == null) {
 			throw new TrackLayException("Junction stem track is missing");
 		}
+		ensureStemLongEnoughForJunction(stem);
 		double frogS = TrackJunction.wrapS(s, stem.length(), stem.isLoop());
 		double min = Cache.trackMinJunctionSpacing;
 		for (TrackJunction other : junctions.values()) {
@@ -885,5 +918,129 @@ public final class TrackRegistry {
 			}
 		}
 		return Optional.ofNullable(best);
+	}
+
+	private TrackLayResult finishLay(TrackLayResult result) {
+		pruneNestedShortTracks();
+		return result;
+	}
+
+	private DigResult finishDig(DigResult result) {
+		if (result.kind != DigResult.Kind.NONE) {
+			pruneNestedShortTracks();
+		}
+		return result;
+	}
+
+	private void ensureStemLongEnoughForJunction(TrackSpline stem) throws TrackLayException {
+		if (!stem.isLoop() && stem.length() < Cache.trackMinLayDistance - 1e-9) {
+			throw new TrackLayException("Track is too short for a junction (need "
+					+ (int) Math.round(Cache.trackMinLayDistance) + ").");
+		}
+	}
+
+	private void dropJunctionAndBranch(TrackJunction junction) {
+		removeJunctionTurnout(junction, null);
+		pruneNestedShortTracks();
+	}
+
+	private DigResult removeJunctionTurnout(TrackJunction junction, World bukkitWorld) {
+		if (junction == null) {
+			return DigResult.none();
+		}
+		UUID branchId = junction.branchSplineId;
+		deleteJunction(junction.id);
+		if (branchId == null) {
+			return DigResult.none();
+		}
+		TrackSpline branch = splines.get(branchId);
+		if (branch == null) {
+			return DigResult.none();
+		}
+		double cutoff = turnoutCutoff(junction, branch);
+		List<TrackSample> samples = branch.getSamples();
+		int keepFrom = samples.size();
+		for (int i = 0; i < samples.size(); i++) {
+			if (samples.get(i).s > cutoff + 1e-9) {
+				keepFrom = i;
+				break;
+			}
+		}
+		List<double[]> xyz = branch.xyz();
+		if (keepFrom >= xyz.size() - 1) {
+			removeSplineRecord(branchId);
+			return DigResult.deletedJunctionTurnout(branchId);
+		}
+		List<double[]> tail = new ArrayList<>(xyz.subList(keepFrom, xyz.size()));
+		TrackResettle.resettle(bukkitWorld, tail, true, false);
+		TrackSpline next = replace(TrackSpline.fromPoints(branchId, branch.getWorld(), false, tail));
+		return DigResult.removedJunctionTurnout(next);
+	}
+
+	private static double turnoutCutoff(TrackJunction junction, TrackSpline branch) {
+		return junction.turnoutEndS > 0 ? junction.turnoutEndS : branch.length();
+	}
+
+	public void pruneNestedShortTracks() {
+		boolean changed = true;
+		while (changed) {
+			changed = false;
+			List<UUID> toDelete = new ArrayList<>();
+			for (TrackSpline candidate : splines.values()) {
+				if (candidate.isLoop() || candidate.length() > PRUNE_NESTED_MAX_LENGTH + 1e-9) {
+					continue;
+				}
+				if (isFullyNestedInLongerTrack(candidate)) {
+					toDelete.add(candidate.getId());
+				}
+			}
+			for (UUID id : toDelete) {
+				if (deleteWithoutPrune(id)) {
+					changed = true;
+				}
+			}
+		}
+	}
+
+	private boolean isFullyNestedInLongerTrack(TrackSpline candidate) {
+		if (candidate.getSamples().size() < 2) {
+			return false;
+		}
+		for (TrackSpline host : inWorld(candidate.getWorld())) {
+			if (host.getId().equals(candidate.getId())) {
+				continue;
+			}
+			if (host.length() <= candidate.length() + 1e-9) {
+				continue;
+			}
+			if (allSamplesOverlap(host, candidate)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean allSamplesOverlap(TrackSpline host, TrackSpline candidate) {
+		for (TrackSample sample : candidate.getSamples()) {
+			if (!anyHostSampleOverlaps(host, sample)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean anyHostSampleOverlaps(TrackSpline host, TrackSample sample) {
+		for (TrackSample hostSample : host.getSamples()) {
+			double dx = hostSample.x - sample.x;
+			double dz = hostSample.z - sample.z;
+			if (Math.hypot(dx, dz) > TrackClearance.OVERLAP_HORIZ) {
+				continue;
+			}
+			if (Math.abs(hostSample.y - sample.y) > TrackClearance.OVERLAP_VERT) {
+				continue;
+			}
+			return true;
+		}
+		return false;
 	}
 }

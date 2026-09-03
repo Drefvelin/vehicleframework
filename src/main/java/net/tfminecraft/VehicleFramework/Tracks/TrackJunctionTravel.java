@@ -166,11 +166,21 @@ public final class TrackJunctionTravel {
 		int facing = facingSign < 0 ? -1 : 1;
 		boolean onBranch = takeBranch && branchId != null && parentSplineId.equals(branchId);
 		if (onBranch) {
-			if (parentS >= behind) {
-				return new Pose(branchId, parentS - behind);
+			double childS = parentS - travel * behind;
+			if (travel > 0) {
+				if (childS >= -1e-9) {
+					return new Pose(branchId, Math.max(0, childS));
+				}
+				double leftover = behind - parentS;
+				double stemS = junctionS - facing * leftover;
+				stemS = TrackJunction.wrapS(stemS, stemLength, stemLoop);
+				return new Pose(stemId != null ? stemId : parentSplineId, stemS);
 			}
-			double leftover = behind - Math.max(0, parentS);
-			double stemS = junctionS - facing * leftover;
+			if (childS <= branchLength + 1e-9) {
+				return new Pose(branchId, Math.max(0, childS));
+			}
+			double leftover = childS - branchLength;
+			double stemS = junctionS + facing * leftover;
 			stemS = TrackJunction.wrapS(stemS, stemLength, stemLoop);
 			return new Pose(stemId != null ? stemId : parentSplineId, stemS);
 		}
@@ -180,12 +190,8 @@ public final class TrackJunctionTravel {
 			return new Pose(stem, TrackJunction.wrapS(childS, stemLength, stemLoop));
 		}
 		double alongBehind = (parentS - junctionS) * travel;
-		if (alongBehind >= behind) {
-			double childS = parentS - travel * behind;
-			return new Pose(stem, TrackJunction.wrapS(childS, stemLength, stemLoop));
-		}
-		if (alongBehind <= 1e-9) {
-			double childS = parentS - travel * behind;
+		double childS = parentS - travel * behind;
+		if (travel < 0 || alongBehind <= 1e-9 || alongBehind >= behind) {
 			return new Pose(stem, TrackJunction.wrapS(childS, stemLength, stemLoop));
 		}
 		double leftover = behind - alongBehind;

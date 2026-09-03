@@ -12,8 +12,10 @@ PT_RE = re.compile(
     r" PT spline=(\S+) s=([\d.]+) ([\d.-]+),([\d.-]+),([\d.-]+)"
 )
 JUNCTION_RE = re.compile(
-    r" JUNCTION id=(\S+) stem=(\S+) s=([\d.]+) frog=(\S+) side=(\S+) facing=(-?\d+)"
-    r" branch=(\S+) branchLen=(\S+) branchTip=(\S+)"
+    r" JUNCTION id=(?P<id>\S+) stem=(?P<stem>\S+) s=(?P<s>[\d.]+) frog=(?P<frog>\S+)"
+    r" side=(?P<side>\S+) facing=(?P<facing>-?\d+)"
+    r"(?: thrown=(?P<thrown>true|false))?"
+    r" branch=(?P<branch>\S+) branchLen=(?P<branchLen>\S+) branchTip=(?P<branchTip>\S+)"
 )
 DROP_RE = re.compile(r" JUNCTION_DROP id=(\S+) stem=(\S+) reason=(\S+)")
 XYZ_RE = re.compile(r"^([\d.-]+),([\d.-]+),([\d.-]+)$")
@@ -48,6 +50,7 @@ class Junction:
     frog: tuple[float, float, float] | None
     side: str
     facing: int
+    thrown: bool | None
     branch: str
     branch_len: float | None
     branch_tip: tuple[float, float] | None
@@ -116,18 +119,20 @@ def parse_track_log(path: Path) -> Dump:
             continue
         m = JUNCTION_RE.search(line)
         if m:
-            blen = None if m.group(8) == "-" else float(m.group(8))
+            blen_raw = m.group("branchLen")
+            thrown_raw = m.group("thrown")
             current.junctions.append(
                 Junction(
-                    id=m.group(1),
-                    stem=m.group(2),
-                    s=float(m.group(3)),
-                    frog=_xyz(m.group(4)),
-                    side=m.group(5),
-                    facing=int(m.group(6)),
-                    branch=m.group(7),
-                    branch_len=blen,
-                    branch_tip=_tip(m.group(9)),
+                    id=m.group("id"),
+                    stem=m.group("stem"),
+                    s=float(m.group("s")),
+                    frog=_xyz(m.group("frog")),
+                    side=m.group("side"),
+                    facing=int(m.group("facing")),
+                    thrown=None if thrown_raw is None else thrown_raw == "true",
+                    branch=m.group("branch"),
+                    branch_len=None if blen_raw == "-" else float(blen_raw),
+                    branch_tip=_tip(m.group("branchTip")),
                 )
             )
             continue
@@ -145,3 +150,28 @@ def short_id(uid: str) -> str:
 
 def branch_ids(dump: Dump) -> set[str]:
     return {j.branch for j in dump.junctions if j.branch and j.branch != "null"}
+
+
+def spline_tangent_xz(spline: Spline, s: float) -> tuple[float, float] | None:
+    pts = spline.pts
+    if len(pts) < 2:
+        dx = spline.last[0] - spline.first[0]
+        dz = spline.last[2] - spline.first[2]
+        if abs(dx) < 1e-9 and abs(dz) < 1e-9:
+            return None
+        return dx, dz
+    for i in range(len(pts) - 1):
+        a = pts[i]
+        b = pts[i + 1]
+        if s < a.s - 1e-9:
+            break
+        if s <= b.s + 1e-9 or i == len(pts) - 2:
+            dx = b.x - a.x
+            dz = b.z - a.z
+            if abs(dx) > 1e-9 or abs(dz) > 1e-9:
+                return dx, dz
+    dx = pts[-1].x - pts[-2].x
+    dz = pts[-1].z - pts[-2].z
+    if abs(dx) < 1e-9 and abs(dz) < 1e-9:
+        return None
+    return dx, dz

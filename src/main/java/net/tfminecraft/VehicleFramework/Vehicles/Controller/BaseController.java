@@ -9,19 +9,11 @@ import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Direction;
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
-import net.tfminecraft.VehicleFramework.Vehicles.Component.Balloon;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 
 public class BaseController {
 	
 	public Vector climbVector(ActiveVehicle v, Vector velocity) {
-		if(v.hasComponent(Component.BALLOON)) {
-			Balloon balloon = (Balloon) v.getComponent(Component.BALLOON);
-			double delta = balloon.getDelta();
-			if(delta == 0) return velocity;
-			velocity.setY(delta);
-			return velocity;
-		}
 		return velocity;
 	}
 
@@ -46,7 +38,11 @@ public class BaseController {
 	}
 	
 	private Vector setY(ActiveVehicle v, Vector velocity, double y) {
-		if(v.getCurrentState().getType().equals(State.GROUND) && !v.hasComponent(Component.WINGS)) velocity.setY(-0.49);
+		if(v.getCurrentState().getType().equals(State.GROUND)
+				&& !v.hasComponent(Component.WINGS)
+				&& !v.hasComponent(Component.BALLOON)) {
+			velocity.setY(-0.49);
+		}
 		if(v.shouldFloat()) {
 			velocity.setY(y);
 		}

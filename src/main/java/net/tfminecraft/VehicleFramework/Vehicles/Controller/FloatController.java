@@ -16,8 +16,12 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
 
 public class FloatController {
 
-	private static final double BASE_BUOYANCY = 0.05;
+	static final double BOB_SPEED = 0.05;
+	static final double MIN_DEPTH = 0.6;
+	static final double MAX_DEPTH = 1.0;
 	private static final double MAX_UPRIVER_LIFT = 0.3;
+
+	private boolean goingDown;
 
 	public Vector calculateFloat(ActiveVehicle v, Vector velocity) {
 		if (!checkFloat(v)) {
@@ -36,13 +40,43 @@ public class FloatController {
 				y = 0.01 * ((100 - hull.getSinkProgress()) / 100.0);
 			}
 		} else {
-			y += 0.01;
-			y = Math.max(y, BASE_BUOYANCY);
-			y += calculateUpriverLift(v);
+			Entity entity = v.getEntity();
+			Location loc = entity.getLocation();
+			Double surface = findWaterSurfaceY(loc);
+			if (surface != null) {
+				double depth = surface - loc.getY();
+				BobStep step = bobStep(depth, goingDown, MIN_DEPTH, MAX_DEPTH, BOB_SPEED);
+				goingDown = step.goingDown;
+				y = step.vy;
+				if (!goingDown) {
+					y += calculateUpriverLift(v);
+				}
+			}
 		}
 
 		velocity.setY(y);
 		return velocity;
+	}
+
+	/** Triangle-wave bob: flip at min/max depth, keep direction inside the band. */
+	public static BobStep bobStep(double depthBelowSurface, boolean goingDown, double minDepth, double maxDepth, double speed) {
+		if (depthBelowSurface >= maxDepth) {
+			return new BobStep(speed, false);
+		}
+		if (depthBelowSurface <= minDepth) {
+			return new BobStep(-speed, true);
+		}
+		return new BobStep(goingDown ? -speed : speed, goingDown);
+	}
+
+	public static final class BobStep {
+		public final double vy;
+		public final boolean goingDown;
+
+		public BobStep(double vy, boolean goingDown) {
+			this.vy = vy;
+			this.goingDown = goingDown;
+		}
 	}
 
 	private double calculateUpriverLift(ActiveVehicle v) {
@@ -63,8 +97,11 @@ public class FloatController {
 		}
 		forward.normalize();
 
-		double currentSurface = waterSurfaceY(loc);
-		double aheadSurface = waterSurfaceY(loc.clone().add(forward.multiply(1.5)));
+		Double currentSurface = findWaterSurfaceY(loc);
+		Double aheadSurface = findWaterSurfaceY(loc.clone().add(forward.multiply(1.5)));
+		if (currentSurface == null || aheadSurface == null) {
+			return 0;
+		}
 		double rise = aheadSurface - currentSurface;
 		if (rise <= 0) {
 			return 0;
@@ -72,7 +109,7 @@ public class FloatController {
 		return Math.min(MAX_UPRIVER_LIFT, rise * 0.5);
 	}
 
-	private double waterSurfaceY(Location loc) {
+	private Double findWaterSurfaceY(Location loc) {
 		int x = loc.getBlockX();
 		int z = loc.getBlockZ();
 		int startY = loc.getBlockY();
@@ -84,7 +121,7 @@ public class FloatController {
 				return y + 1.0;
 			}
 		}
-		return loc.getY();
+		return null;
 	}
 
 	private void breakLilyPadsUnderVehicle(ActiveVehicle v) {

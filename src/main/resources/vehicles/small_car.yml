@@ -6,7 +6,14 @@ small_car:
             name: "Small Car"
             model: small_car
     death:
-        template: explode_medium
+        explode:
+            fragments: 10
+            duration: 320
+            sounds:
+                explode:
+                    sound: "vehicleframework:explosion"
+                    pitch: 1.0
+                    volume: 8.0
     behaviour:
         turn-scaling: false
         rotator: body_controller
@@ -79,7 +86,7 @@ small_car:
                     max: 0
                     min: -20
                     acceleration: 2
-                    speed: 0.25
+                    speed: 0.4
                 first:
                     name: "First"
                     engine-sound:
@@ -96,7 +103,7 @@ small_car:
                     max: 40
                     min: 0
                     acceleration: 3
-                    speed: 0.25
+                    speed: 0.4
                 second:
                     name: "Second"
                     engine-sound:
@@ -113,7 +120,7 @@ small_car:
                     max: 75
                     min: 40
                     acceleration: 2
-                    speed: 0.35
+                    speed: 0.55
                 third:
                     name: "Third"
                     engine-sound:
@@ -130,7 +137,7 @@ small_car:
                     max: 100
                     min: 75
                     acceleration: 1
-                    speed: 0.45
+                    speed: 0.65
             particles:
                 dust:
                     particle: SMOKE_NORMAL
@@ -151,8 +158,15 @@ small_car:
             fuel: arcane_fuel
             fuel-capacity: 500
             damage-chance: 0.7
-            armor: armored
-            role: engine_armored
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.2)
+                - bullet(0.6)
+                - entity_explosion(1.5)
+                - small_bomb(6.0)
+                - cannonball(1.3)
+                - torpedo(5.0)
             turn-rate: 0.7
             vfx:
                 - body
@@ -160,8 +174,14 @@ small_car:
             health: 150.0
             repair-time: 100
             damage-chance: 1.0
-            armor: wagon
-            role: hull_wagon
+            damage:
+                - FALL(0.0)
+                - entity_attack(0.1)
+                - projectile(0.2)
+                - bullet(0.6)
+                - entity_explosion(1.5)
+                - small_bomb(3.0)
+                - cannonball(1.3)
             vfx:
                 - body
     seats:

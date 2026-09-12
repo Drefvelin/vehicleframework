@@ -81,7 +81,7 @@ ignore-ground:
     - AIR
 
 ##Should we log when people enter the captains seat of a vehicle?
-enable-logging: true
+enable-logging: false
 
 ##How far away does the player need to be for the vehicle to despawn?
 despawn-distance: 160
@@ -111,7 +111,7 @@ terrain-follow-debug: false
 ## Append each terrain-follow step to plugins/VehicleFramework/logs/ground_engine.log
 ground-engine-logging: false
 ## When true, ground_engine.log is deleted on every plugin start/reload.
-wipe-log: false
+wipe-log: true
 
 ##Set this to the ID of the MythicMob, in the free pack this is VehicleFrameworkDummy
 ##You can leave it as "none" if you do not have MythicMobs on your server

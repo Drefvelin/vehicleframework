@@ -1,6 +1,5 @@
 package net.tfminecraft.VehicleFramework.Vehicles.Controller;
 
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -19,18 +18,21 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.Wings;
 
 public class LiftController {
 
+	/** Healthy balloon: climb/descend delta, or hover at 0. Damaged balloon sinks with health lift. */
+	public static double balloonVerticalY(double healthLift, double delta) {
+		if (healthLift < 0) {
+			return healthLift;
+		}
+		if (delta != 0) {
+			return delta;
+		}
+		return 0;
+	}
+
 	public Vector calculateLift(BoneRotator rotator, ActiveVehicle v, Vector velocity) {
 		if(v.hasComponent(Component.BALLOON)) {
 			Balloon balloon = (Balloon) v.getComponent(Component.BALLOON);
-			double lift = balloon.getLift();
-			if(lift >= 0) {
-				boolean airBelow = v.getEntity().getLocation().clone().add(0, -1.3, 0).getBlock().getType().equals(Material.AIR);
-				if (!airBelow) {
-					velocity.setY(0);
-				}
-				return velocity;
-			}
-			velocity.setY(lift);
+			velocity.setY(balloonVerticalY(balloon.getLift(), balloon.getDelta()));
 			return velocity;
 		}
 	    if (v.hasComponent(Component.WINGS) && v.hasComponent(Component.ENGINE)) {

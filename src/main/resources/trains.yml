@@ -16,7 +16,6 @@ vehicle-y-offset: 0.51
 max-turn-degrees: 35
 min-lay-distance: 8
 join-distance: 1.5
-place-keepout-radius: 1.5
 min-junction-spacing: 16
 max-junction-length: 32
 junction-arm-distance: 16
@@ -35,7 +34,7 @@ resync-chunks-per-tick: 2
 
 # Moving trains: crumbs and clack while rolling. Does not affect layer clicks or placing 1x3s.
 fx:
-  particle: BLOCK
+  particle: BLOCK_CRACK
   particle-block: GRAVEL
   count: 3
   width: 3
@@ -58,7 +57,7 @@ build:
   sound-2: minecraft:block.iron.place
   sound-2-volume: 1.0
   sound-2-pitch: 2.0
-  particle: BLOCK
+  particle: BLOCK_CRACK
   particle-block: GRAVEL
   count: 6
   width: 1
@@ -66,4 +65,4 @@ build:
   y-offset: 0.08
 
 # One switch for logs/track.log, logs/persistence.log, and logs/recorder.log
-debug-logging: false
+debug-logging: true

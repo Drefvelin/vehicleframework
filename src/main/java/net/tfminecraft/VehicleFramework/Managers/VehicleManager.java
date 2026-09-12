@@ -491,7 +491,6 @@ public class VehicleManager implements Listener{
 	public void swap(PlayerSwapHandItemsEvent e) {
 		Player p = e.getPlayer();
 		if(get(p) == null) return;
-		p.sendMessage("eeeee");
 		ActiveVehicle v = get(p);
 		v.key(p, Keybind.SWAP);
 	}
@@ -591,6 +590,7 @@ public class VehicleManager implements Listener{
 				return;
 			} else if(v.isTrain() && v.getBehaviourHandler().getTrainHandler().isAttachable()){
 				towSelect(p, v);
+				return;
 			} else {
 				p.sendMessage("§cThis vehicle cannot be towed");
 				p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);

@@ -4,21 +4,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Rail;
 import org.bukkit.block.data.Rail.Shape;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 import me.Plugins.TLibs.Enums.NSEW;
-import me.Plugins.TLibs.Utils.LocationUtil;
 
 public class LocationChecker {
 	private static List<Material> water = Arrays.asList(Material.WATER, Material.KELP, Material.KELP_PLANT, Material.SEAGRASS, Material.TALL_SEAGRASS);
@@ -90,8 +84,6 @@ public class LocationChecker {
 	    for (int i = 0; i < 4; i++) {
 	    	
 	        Block b = next.getBlock();
-	        
-	        //p.sendMessage("Current position: " + next.getX() + ", " + next.getY() + ", " + next.getZ());
 
 	        if (!(b.getBlockData() instanceof Rail)) {
 	            Location down = next.clone().add(0, -1, 0);
@@ -101,20 +93,6 @@ public class LocationChecker {
 	            }
 	            next = down;
 	        }
-	        
-	        /*
-	        // Visual feedback (particles and sound)
-	        next.getWorld().spawnParticle(
-	            Particle.BLOCK_DUST, 
-	            next.getX(), next.getY(), next.getZ(),
-	            10, 0.1, 0.1, 0.1, 0,
-	            Material.STONE.createBlockData()
-	        );
-
-	        next.getWorld().playSound(
-	            next, Sound.BLOCK_STONE_BREAK, 1f, 1f
-	        );
-	        */
 
 	        Rail rail = (Rail) b.getBlockData();
 	        Shape shape = rail.getShape();
@@ -145,12 +123,7 @@ public class LocationChecker {
 	
 	private static Location getTrackedLocation(Location loc, List<NSEW> dirs, Shape shape, float yaw) {
 	    Location next = loc.clone();
-	    /*
-	    for(Player p : Bukkit.getOnlinePlayers()) {
-	    	p.sendTitle(" ", dirs.toString(), 0, 20, 0);
-	    }
-	    */
-	    
+
 	    for (NSEW dir : dirs) {
 	        switch (shape) {
 	            case NORTH_SOUTH:

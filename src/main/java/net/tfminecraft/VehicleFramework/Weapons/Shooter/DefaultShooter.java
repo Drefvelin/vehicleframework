@@ -114,11 +114,12 @@ public class DefaultShooter implements Shooter {
 
 	        // Handle explosion on ground impact
 	        new BukkitRunnable() {
-	        	int i = 5;
+	        	int i = 0;
 	            public void run() {
-	                if (i > 5 && checker.hasHit(armorStand, projectiles) || armorStand.isOnGround() || armorStand.isDead()) {
+	                if (i > 5 && (checker.hasHit(armorStand, projectiles) || armorStand.isOnGround() || armorStand.isDead())) {
 	                    shooter.triggerExplosion(players, armorStand.getLocation(), a.getClusterData(), w);
 	                    armorStand.remove();
+						projectiles.remove(armorStand);
 						Cache.projectiles.remove(armorStand);
 	                    cancel();
 	                }

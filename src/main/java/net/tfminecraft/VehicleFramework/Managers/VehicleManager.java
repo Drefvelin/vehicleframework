@@ -88,6 +88,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.VehicleHealthDecay;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SkinHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketInteract;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketItems;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketRules;
@@ -526,7 +527,6 @@ public class VehicleManager implements Listener{
 	public void swap(PlayerSwapHandItemsEvent e) {
 		Player p = e.getPlayer();
 		if(get(p) == null) return;
-		p.sendMessage("eeeee");
 		ActiveVehicle v = get(p);
 		v.key(p, Keybind.SWAP);
 	}
@@ -634,6 +634,7 @@ public class VehicleManager implements Listener{
 				return;
 			} else if(v.isTrain() && v.getBehaviourHandler().getTrainHandler().isAttachable()){
 				towSelect(p, v);
+				return;
 			} else {
 				p.sendMessage("§cThis vehicle cannot be towed");
 				p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
@@ -1164,7 +1165,15 @@ public class VehicleManager implements Listener{
 			return;
 		}
 		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_skin_id");
-		v.changeSkin(i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING));
+		String skinId = i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+		if (skinId == null || !SkinHandler.isModelAvailable(v.getSkinHandler().getSkins().get(skinId))) {
+			p.sendMessage("§cThat skin is not available.");
+			return;
+		}
+		if (!v.changeSkin(skinId)) {
+			p.sendMessage("§cCould not change skin.");
+			return;
+		}
 		inv.skinSelection(p.getOpenInventory().getTopInventory(), p, v, false);
 	}
 

@@ -77,7 +77,7 @@ public class TrainsLoader {
 			Cache.trackBuildWidth = 1;
 			Cache.trackBuildExtra = 0.08;
 			Cache.trackBuildYOffset = 0.08;
-			Cache.trackBuildParticle = Particle.BLOCK_CRACK;
+			Cache.trackBuildParticle = Particle.BLOCK;
 			Cache.trackBuildBlock = Material.GRAVEL;
 			return;
 		}
@@ -93,16 +93,12 @@ public class TrainsLoader {
 		Cache.trackBuildWidth = Math.max(1, build.getInt("width", 1));
 		Cache.trackBuildExtra = build.getDouble("extra", 0.08);
 		Cache.trackBuildYOffset = build.getDouble("y-offset", 0.08);
-		String particleName = build.getString("particle", "BLOCK_CRACK");
+		String particleName = build.getString("particle", "BLOCK");
 		if (particleName == null || particleName.isBlank() || particleName.equalsIgnoreCase("none")) {
 			Cache.trackBuildParticle = null;
 		} else {
-			try {
-				Cache.trackBuildParticle = Particle.valueOf(particleName.trim().toUpperCase());
-			} catch (IllegalArgumentException e) {
-				Cache.trackBuildParticle = Particle.BLOCK_CRACK;
-				VFLogger.log("Invalid track build particle: " + particleName + ". Using BLOCK_CRACK.");
-			}
+			Particle parsed = parseParticle(particleName, "track build");
+			Cache.trackBuildParticle = parsed;
 		}
 		String blockName = build.getString("particle-block", "GRAVEL");
 		try {
@@ -124,7 +120,7 @@ public class TrainsLoader {
 			Cache.trackFxSoundVolume = 0.35f;
 			Cache.trackFxSoundPitch = 0.85f;
 			Cache.trackFxSoundInterval = 2.5;
-			Cache.trackFxParticle = Particle.BLOCK_CRACK;
+			Cache.trackFxParticle = Particle.BLOCK;
 			Cache.trackFxBlock = Material.GRAVEL;
 			return;
 		}
@@ -136,16 +132,11 @@ public class TrainsLoader {
 		Cache.trackFxSoundVolume = (float) fx.getDouble("sound-volume", 0.35);
 		Cache.trackFxSoundPitch = (float) fx.getDouble("sound-pitch", 0.85);
 		Cache.trackFxSoundInterval = Math.max(0.25, fx.getDouble("sound-interval-blocks", 2.5));
-		String particleName = fx.getString("particle", "BLOCK_CRACK");
+		String particleName = fx.getString("particle", "BLOCK");
 		if (particleName == null || particleName.isBlank() || particleName.equalsIgnoreCase("none")) {
 			Cache.trackFxParticle = null;
 		} else {
-			try {
-				Cache.trackFxParticle = Particle.valueOf(particleName.trim().toUpperCase());
-			} catch (IllegalArgumentException e) {
-				Cache.trackFxParticle = Particle.BLOCK_CRACK;
-				VFLogger.log("Invalid track fx particle: " + particleName + ". Using BLOCK_CRACK.");
-			}
+			Cache.trackFxParticle = parseParticle(particleName, "track fx");
 		}
 		String blockName = fx.getString("particle-block", "GRAVEL");
 		try {
@@ -153,6 +144,19 @@ public class TrainsLoader {
 		} catch (Exception e) {
 			Cache.trackFxBlock = Material.GRAVEL;
 			VFLogger.log("Invalid track fx particle-block: " + blockName + ". Using GRAVEL.");
+		}
+	}
+
+	private static Particle parseParticle(String particleName, String kind) {
+		String name = particleName.trim().toUpperCase();
+		if (name.equals("BLOCK_CRACK") || name.equals("BLOCK_DUST")) {
+			name = "BLOCK";
+		}
+		try {
+			return Particle.valueOf(name);
+		} catch (IllegalArgumentException e) {
+			VFLogger.log("Invalid " + kind + " particle: " + particleName + ". Using BLOCK.");
+			return Particle.BLOCK;
 		}
 	}
 }

@@ -107,7 +107,7 @@ public class Harness extends VehicleComponent{
 		e.getWorld().dropItem(e.getLocation(), new ItemStack(Material.LEAD, 1));
 		if (e instanceof AbstractHorse) {
             AbstractHorse horse = (AbstractHorse) e;
-            double horseSpeed = horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getBaseValue();
+            double horseSpeed = horse.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue();
             speed -= horseSpeed; // Adjust the speed field accordingly
             if(speed < 0) speed = 0;
         }
@@ -121,7 +121,7 @@ public class Harness extends VehicleComponent{
 			s.mount(e);
 			if (e instanceof AbstractHorse) {
 	            AbstractHorse horse = (AbstractHorse) e;
-	            double horseSpeed = horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getBaseValue();
+	            double horseSpeed = horse.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue();
 	            speed += horseSpeed; // Adjust the speed field accordingly
 	        }
 			break;

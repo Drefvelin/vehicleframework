@@ -125,7 +125,7 @@ public class ExplosionCreator {
 			}
 		}
 		for(Player p : players) {
-			p.spawnParticle(Particle.EXPLOSION_HUGE, explosionCenter, particles, 0, 0, 0, 0);
+			p.spawnParticle(Particle.EXPLOSION_EMITTER, explosionCenter, particles, 0, 0, 0, 0);
 		}
 	    double halfBlastRadius = blastRadius / 2;
 	    Collection<Entity> nearby = explosionCenter.getWorld().getNearbyEntities(explosionCenter, blastRadius, blastRadius, blastRadius);
@@ -176,7 +176,7 @@ public class ExplosionCreator {
 		if(!(e instanceof LivingEntity)) return;
         if (e instanceof Player) {
         	Player player = (Player) e;
-            double armorValue = player.getAttribute(Attribute.GENERIC_ARMOR).getValue(); // Get armor value
+            double armorValue = player.getAttribute(Attribute.ARMOR).getValue(); // Get armor value
             double damageReductionFactor = Math.max(0, 1 - (armorValue / 80)); // Armor reduces damage by 50% at max (20 armor)
             damage *= damageReductionFactor; // Apply armor scaling
         }
@@ -263,7 +263,7 @@ public class ExplosionCreator {
 
 
 				fallingBlock.getWorld().spawnParticle(
-					Particle.BLOCK_DUST,
+					Particle.BLOCK,
 					fallingBlock.getLocation().add(0.5, 0.5, 0.5),
 					8,
 					0.1, 0.1, 0.1,

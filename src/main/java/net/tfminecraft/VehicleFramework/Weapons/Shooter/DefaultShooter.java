@@ -85,7 +85,7 @@ public class DefaultShooter implements Shooter {
 	            	if(i >= c.getFuse()) {
 	            		int particleCount = (int) Math.round(Weapon.effectiveYield(w, ammoData) * 15);
 	            		for(Player p : players) {
-	        				p.spawnParticle(Particle.EXPLOSION_HUGE, e.getLocation(), particleCount, 0, 0, 0, 0);
+	        				p.spawnParticle(Particle.EXPLOSION_EMITTER, e.getLocation(), particleCount, 0, 0, 0, 0);
 	        			}
 						shooter.triggerExplosion(players, e.getLocation(), ammoData, w);
 	            		sendCluster(e.getLocation(), c, players, projectiles, w);
@@ -117,11 +117,12 @@ public class DefaultShooter implements Shooter {
 
 	        // Handle explosion on ground impact
 	        new BukkitRunnable() {
-	        	int i = 5;
+	        	int i = 0;
 	            public void run() {
-	                if (i > 5 && checker.hasHit(armorStand, projectiles) || armorStand.isOnGround() || armorStand.isDead()) {
+	                if (i > 5 && (checker.hasHit(armorStand, projectiles) || armorStand.isOnGround() || armorStand.isDead())) {
 	                    shooter.triggerExplosion(players, armorStand.getLocation(), a.getClusterData(), w);
 	                    armorStand.remove();
+						projectiles.remove(armorStand);
 						Cache.projectiles.remove(armorStand);
 	                    cancel();
 	                }

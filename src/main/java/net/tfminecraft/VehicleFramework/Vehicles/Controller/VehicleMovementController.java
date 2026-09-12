@@ -200,6 +200,10 @@ public class VehicleMovementController implements MovementInterface{
 	
 	private void forward(Player p) {
 		if(!v.getSeat(p).getType().equals(SeatType.CAPTAIN)) return;
+		if (state.isBreakState()) {
+			zeroBreakVelocity();
+			return;
+		}
 		if(baseController.getDirection(v).equals(Direction.STILL)) return;
 		if (applyTerrainFollow(Direction.FORWARD)) {
 			return;
@@ -209,6 +213,10 @@ public class VehicleMovementController implements MovementInterface{
 	}
 	private void backward(Player p) {
 		if(!v.getSeat(p).getType().equals(SeatType.CAPTAIN)) return;
+		if (state.isBreakState()) {
+			zeroBreakVelocity();
+			return;
+		}
 		if(baseController.getDirection(v).equals(Direction.STILL)) return;
 		if (applyTerrainFollow(Direction.BACKWARD)) {
 			return;
@@ -219,6 +227,10 @@ public class VehicleMovementController implements MovementInterface{
 
 	private void move() {
 		if(v.hasParent()) return;
+		if (state.isBreakState()) {
+			zeroBreakVelocity();
+			return;
+		}
 		if (applyTerrainFollow(baseController.getDirection(v))) {
 			return;
 		}
@@ -258,6 +270,9 @@ public class VehicleMovementController implements MovementInterface{
 	}
 	
 	private boolean applyTerrainFollow(Direction dir) {
+		if (state.isBreakState()) {
+			return false;
+		}
 		if (state.isDefault()) {
 			return false;
 		}
@@ -324,6 +339,7 @@ public class VehicleMovementController implements MovementInterface{
 	
 	private void apply(Vector velocity, Direction dir) {
 		if(state.isDefault()) return;
+		if (state.isBreakState()) return;
 		if(System.currentTimeMillis()-5000 > v.getSpawnTime()) {
 			if(v.isTrain()) {
 				v.getTrainHandler().splineTick();
@@ -377,6 +393,13 @@ public class VehicleMovementController implements MovementInterface{
 	}
 	public RotateController getRotateController() {
 		return rotateController;
+	}
+
+	private void zeroBreakVelocity() {
+		Vector velocity = e.getVelocity();
+		velocity.setX(0);
+		velocity.setZ(0);
+		e.setVelocity(velocity);
 	}
 	
 	

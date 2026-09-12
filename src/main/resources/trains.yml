@@ -35,7 +35,7 @@ resync-chunks-per-tick: 2
 
 # Moving trains: crumbs and clack while rolling. Does not affect layer clicks or placing 1x3s.
 fx:
-  particle: BLOCK_CRACK
+  particle: BLOCK
   particle-block: GRAVEL
   count: 3
   width: 3
@@ -58,7 +58,7 @@ build:
   sound-2: minecraft:block.iron.place
   sound-2-volume: 1.0
   sound-2-pitch: 2.0
-  particle: BLOCK_CRACK
+  particle: BLOCK
   particle-block: GRAVEL
   count: 6
   width: 1

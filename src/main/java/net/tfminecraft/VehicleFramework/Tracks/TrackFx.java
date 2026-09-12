@@ -144,7 +144,7 @@ public final class TrackFx {
 		if (particle == null || block == null) {
 			return null;
 		}
-		if (particle != Particle.BLOCK_CRACK && particle != Particle.BLOCK_DUST && particle != Particle.FALLING_DUST) {
+		if (particle != Particle.BLOCK && particle != Particle.FALLING_DUST) {
 			return null;
 		}
 		return block.createBlockData();

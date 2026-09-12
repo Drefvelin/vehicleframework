@@ -70,7 +70,7 @@ public class DeathHandler {
 	            	        (Math.random() - 0.5) * 0.5  // Small random Z movement
 	            	    );
 	            	for(Player p : vehicle.getNearbyPlayers()) {
-	            		p.spawnParticle(Particle.EXPLOSION_HUGE, vehicle.getEntity().getLocation(), 0, velocity.getX(), velocity.getY(), velocity.getZ(), 0.2);
+	            		p.spawnParticle(Particle.EXPLOSION_EMITTER, vehicle.getEntity().getLocation(), 0, velocity.getX(), velocity.getY(), velocity.getZ(), 0.2);
 	            	}
 	            }
 	        	i++;

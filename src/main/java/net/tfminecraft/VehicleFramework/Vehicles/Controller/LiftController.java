@@ -24,7 +24,10 @@ public class LiftController {
 			Balloon balloon = (Balloon) v.getComponent(Component.BALLOON);
 			double lift = balloon.getLift();
 			if(lift >= 0) {
-				if(v.getEntity().getLocation().clone().add(0, -1.3, 0).getBlock().getType().equals(Material.AIR)) velocity.setY(0);
+				boolean airBelow = v.getEntity().getLocation().clone().add(0, -1.3, 0).getBlock().getType().equals(Material.AIR);
+				if (!airBelow) {
+					velocity.setY(0);
+				}
 				return velocity;
 			}
 			velocity.setY(lift);

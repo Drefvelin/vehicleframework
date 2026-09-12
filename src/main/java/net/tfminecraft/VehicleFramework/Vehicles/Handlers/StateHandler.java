@@ -104,16 +104,17 @@ public class StateHandler {
 	    BoundingBox box = e.getBoundingBox();
 
 	    Set<Block> blocks = getBlocksBoundingBox(box, e.getWorld(), 0.0);
-	    Set<Block> blocksAboveFeet = getBlocksBoundingBox(box, e.getWorld(), 1.0);
 	    Set<Block> blocksBelow = getBlocksBoundingBox(box, e.getWorld(), -0.3);
 
 	    VehicleState floating = states.get(State.FLOATING);
 	    VehicleState flying = states.get(State.FLYING);
 	    boolean floatingConfigured = floating != null && !floating.isDefault();
+	    boolean waterAtFeet = isMostlyWater(blocks, 0.75);
+	    boolean shallowWadable = LocationChecker.isMostlyShallowWadableWater(blocks, 0.75);
 	    if (VehicleStateRules.shouldSwapToFloating(
 	    		floatingConfigured,
-	    		isMostlyWater(blocks, 0.75),
-	    		isMostlyWater(blocksAboveFeet, 0.75))) {
+	    		waterAtFeet,
+	    		shallowWadable)) {
 			swapState(State.FLOATING, "water");
 		} else if (VehicleStateRules.shouldSwapToFlying(
 				flying != null && !flying.isDefault(),
@@ -122,13 +123,17 @@ public class StateHandler {
 	    } else {
 	        swapState(State.GROUND, "ground");
 	    }
+
+	    if (state != null && state.isBreakState()) {
+	    	vehicle.applyBreakBraking();
+	    }
 	}
 
 	private boolean isMostlyWater(Set<Block> blocks, double requiredFraction) {
 		int waterCount = 0;
 
 		for (Block block : blocks) {
-			if (LocationChecker.isInWater(block.getLocation())) {
+			if (LocationChecker.isWaterBlock(block)) {
 				waterCount++;
 			}
 		}

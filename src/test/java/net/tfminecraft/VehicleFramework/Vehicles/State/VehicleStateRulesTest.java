@@ -8,15 +8,26 @@ import org.junit.jupiter.api.Test;
 class VehicleStateRulesTest {
 
 	@Test
-	void oneBlockWater_doesNotFloat() {
-		assertFalse(VehicleStateRules.shouldSwapToFloating(true, true, false));
-		assertFalse(VehicleStateRules.shouldSwapToFloating(false, true, true));
+	void noWater_doesNotFloat() {
+		assertFalse(VehicleStateRules.shouldSwapToFloating(true, false, false));
 		assertFalse(VehicleStateRules.shouldSwapToFloating(true, false, true));
+		assertFalse(VehicleStateRules.shouldSwapToFloating(false, false, false));
 	}
 
 	@Test
-	void twoBlockWater_floatsWhenConfigured() {
-		assertTrue(VehicleStateRules.shouldSwapToFloating(true, true, true));
+	void unconfiguredFloating_doesNotSwap() {
+		assertFalse(VehicleStateRules.shouldSwapToFloating(false, true, false));
+		assertFalse(VehicleStateRules.shouldSwapToFloating(false, true, true));
+	}
+
+	@Test
+	void shallowWadableWater_staysGround() {
+		assertFalse(VehicleStateRules.shouldSwapToFloating(true, true, true));
+	}
+
+	@Test
+	void deepWater_floatsWhenConfigured() {
+		assertTrue(VehicleStateRules.shouldSwapToFloating(true, true, false));
 	}
 
 	@Test

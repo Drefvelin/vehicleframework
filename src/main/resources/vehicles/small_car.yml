@@ -38,6 +38,8 @@ small_car:
                 LEFT_CLICK: HORN
                 SHIFT: SEAT_SELECTION
                 SPACE: LIGHTS
+        floating:
+            break: true
     utilities:
         lights:
             headlight1:

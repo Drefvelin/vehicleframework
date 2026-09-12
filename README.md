@@ -334,7 +334,11 @@ states:
       - ground_fr
       - ground_bl
       - ground_br
+  floating:
+    break: true            # optional stall state when entering water (land vehicles)
 ```
+
+**Break state (`break: true`):** Add a minimal `floating` state with `break: true` on land vehicles (cars, carts). When the vehicle enters **deep water** (liquid below the foot water, e.g. ocean), it swaps to `FLOATING`; throttle bleeds off each tick (engines) or movement is blocked (harness). Shallow 1-block water over solid ground stays `GROUND`. No terrain-follow or keybinds are required on the break state. Ships use a full `floating` state without `break` plus `behaviour.float: true`. Vehicles with no YAML `floating:` section (e.g. planes) never swap.
 
 When enabled, the vehicle **teleports** along flattened `move.movealign` (Y stripped). Visual tilt is `rotateToTarget` with stored steering yaw plus probe pitch/roll, so Euler extract cannot yaw the bone. Velocity is client interpol only and **Y is always 0 while grounded**, so vanilla gravity cannot add airtime. Extra down-rays sample ahead along heading (`speed * climb-lead-ticks`) so climb starts before the wheels reach a rise. Climb rate is `min(step-height, snap-speed + speed * climb-lead-factor)`. A 1-block STEP still raises in place until dest Y is at the step top, then slides horizontally in 0.02-block steps. If raise-in-place is blocked by the first STEP lip, it may ease back (about 0.1) then raise. Reverse does not climb-unstick upward. If the heading is blocked after that, it slides along X then Z (scrape along an edge). While XZ is blocked, dest Y is held (no downhill undo). Tilt does not move the hitbox.
 
@@ -342,7 +346,7 @@ If a destination AABB would overlap a solid, the slide stops at the last clear X
 
 Vertical snap is clamped by `snap-speed` plus speed-scaled lead on **climb**. **Downhill** snaps to probe support in one tick when the destination AABB is clear (no snap-speed cap). After two consecutive probe misses the vehicle is **airborne**: engine XZ is frozen, last grounded momentum is kept, XZ is multiplied by `air-drag` each tick, and Y accelerates by `air-gravity` (velocity Y is not zeroed). The next probe hit returns to kinematic ground.
 
-One-block water stays **ground**: dummy FLOATING (no YAML `floating:` state) is never used, and FLOATING requires water at the feet **and** one block above. Dummy FLYING is also ignored (cars stay GROUND if air is under a raised hitbox). Down-rays collide with fluids so a shallow river surface counts as support; water is still passable for XZ.
+Terrain-follow down-rays **ignore liquids and waterlogged blocks** (water is not valid ground). When a configured `floating` state exists, **deep water** at the feet swaps to `FLOATING`; shallow 1-block wadable water over solid ground stays `GROUND`. Dummy FLOATING (no YAML `floating:` state) is never used. Dummy FLYING is also ignored (cars stay GROUND if air is under a raised hitbox).
 
 Parent probe locators to non-spinning wheel groups (`front_wheels` / `back_wheels`, or the car's `front_axle_turn` / `back_axle_turn`), not spinning rims. Rays are always world-down. Order is front-left, front-right, back-left, back-right looking along the move direction. With all four hits, pitch and roll are visual only (`ConvertedAngle.fromDirection` on the world front-back and left-right axes, clamped to ±25°); they do not move the hitbox. `body_controller` yaw is left to turning. Missing probe bones are logged once and skipped. If none resolve, snap uses the `body` bone as in Batch 1.
 

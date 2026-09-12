@@ -16,6 +16,7 @@ public class VehicleState {
 	protected State type;
 	
 	protected boolean isDefault;
+	protected boolean breakState;
 	
 	//Controllers
 	protected VehicleMovementController moveControls;
@@ -51,6 +52,7 @@ public class VehicleState {
 		}
 		climbHandler = new ClimbHandler(config);
 		terrainFollow = TerrainFollowConfig.from(config);
+		breakState = config.getBoolean("break", false);
 	}
 	
 	public VehicleState(ActiveVehicle vehicle, VehicleState another) {
@@ -62,6 +64,7 @@ public class VehicleState {
 		switchParameter = another.getSwitchParameter();
 		climbHandler = another.getClimbHandler();
 		terrainFollow = another.getTerrainFollow();
+		breakState = another.breakState;
 	}
 	
 	public VehicleState(State type, ActiveVehicle vehicle) {
@@ -88,6 +91,10 @@ public class VehicleState {
 	
 	public boolean isDefault() {
 		return isDefault;
+	}
+
+	public boolean isBreakState() {
+		return breakState;
 	}
 	
 	public void key(Player p, Keybind key) {

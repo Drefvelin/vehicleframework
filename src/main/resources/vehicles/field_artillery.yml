@@ -1,0 +1,69 @@
+field_artillery:
+    name: "§l§eField Artillery"
+    model: field_artillery
+    fixed: true
+    towable: true
+    skins:
+        field_artillery:
+            name: "Field Artillery"
+            model: field_artillery
+    death:
+        template: explode_small
+    behaviour:
+        rotator: field_artillery_controller
+        vector: field_artillery_body.field_artillery_body
+        secondary-rotators:
+            - connector
+        rotation-targets:
+            not_towed:
+                rotator: connector
+                conditions:
+                    - is_passenger(false)
+                pitch: 0.0
+                interval: 0.2
+            towed:
+                rotator: connector
+                conditions:
+                    - is_passenger(true)
+                pitch: 30.0
+                interval: 0.2
+    states:
+        ground:
+            animations:
+                forward:
+                    - forward
+                backward:
+                    - backward
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    components:
+        hull:
+            health: 40.0
+            repair-time: 100
+            damage-chance: 1.0
+            armor: emplacement
+            role: hull_emplacement
+            vfx:
+                - field_artillery_body
+    seats:
+        - captain(gunner)
+    weapons:
+        field_artillery:
+            name: "§eField Artillery"
+            template: naval_cannon
+            seat: gunner
+            body-bone: "field_artillery_controller"
+            head-bone: "gun"
+            rotation-limits:
+              min-pitch: -45
+              max-pitch: 15
+            animations:
+                shoot:
+                    - shoot
+            bones:
+                - exit.exit_align
+            keybinds:
+                W: WEAPON_DOWN
+                S: WEAPON_UP
+                SPACE_W: WEAPON_DOWN
+                SPACE_S: WEAPON_UP

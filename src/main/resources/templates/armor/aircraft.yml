@@ -1,0 +1,7 @@
+aircraft:
+  FALL: 0.0
+  entity_attack: 0.1
+  entity_explosion: 1.3
+  small_bomb: 5.0
+  cannonball: 5.0
+  flak_bullet: 5.0

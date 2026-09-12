@@ -13,6 +13,8 @@ public class EnumDisplayConverter {
             case TURN_RIGHT: return "Turn Right";
             case TURN_LEFT_LOCAL: return "Turn Left";
             case TURN_RIGHT_LOCAL: return "Turn Right";
+            case JUNCTION_LEFT: return "Junction Left";
+            case JUNCTION_RIGHT: return "Junction Right";
             case SEAT_SELECTION: return "Seat Selection";
             case MOVE: return "Move";
             case FORWARD: return "Forward";

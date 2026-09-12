@@ -1,0 +1,44 @@
+coal_car:
+    name: "§l§eCoal Car"
+    model: coal_car
+    fixed: true
+    skins:
+        coal_car:
+            name: "Coal Car"
+            model: coal_car
+    death:
+        template: explode_small
+    behaviour:
+        rotator: body
+        vector: move.movealign
+        tracked: true
+        train:
+            front-connector: connector_front
+            back-connector: connector_back
+    states:
+        ground:
+            animations:
+                forward:
+                    - forward
+                backward:
+                    - backward
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    seats:
+        - passenger(passenger)
+    containers:
+        bunker:
+            seat: passenger
+            name: "§eCoal Bunker"
+            size: 27
+            allow-items:
+                - v.coal_block
+    components:
+        hull:
+            health: 30.0
+            repair-time: 100
+            damage-chance: 1.0
+            armor: emplacement
+            role: hull_emplacement
+            vfx:
+                - body

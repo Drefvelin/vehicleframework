@@ -1,0 +1,29 @@
+torpedo:
+    name: "§eTorpedo"
+    type: torpedo
+    input: m.utils.torpedo
+    yield: 2.5
+    radius: 10
+    damage: 20
+    damage-type: torpedo
+    fuse: 80
+    sounds:
+        splash:
+            sound: minecraft:entity.axolotl.splash
+            pitch: 1.5
+            volume: 3.0
+    particles:
+        bubble:
+            particle: WATER_BUBBLE
+            amount: 40
+            spread: 0.2
+            speed: 0.1
+        spark:
+            particle: FIREWORKS_SPARK
+            amount: 20
+            spread: 0.1
+            speed: 0.1
+    model:
+        type: meg
+        model: torpedo
+        animation: active

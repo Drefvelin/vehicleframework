@@ -1,0 +1,53 @@
+small_bomb:
+    name: "§eSmall Bomb"
+    type: bomb
+    input: m.utils.small_bomb
+    yield: 2.5
+    radius: 10
+    damage: 20
+    damage-type: small_bomb
+    fuse: 20
+    sounds:
+        whistle:
+            sound: vehicleframework:shell_whistle
+            pitch: 1.5
+            volume: 4.0
+            delay: 20
+            pitched: true
+    particles:
+        spark:
+            particle: FIREWORKS_SPARK
+            amount: 20
+            spread: 0.1
+            speed: 0.1
+    model:
+        type: meg
+        model: small_bomb
+        animation: active
+small_bomb_rack:
+    name: "§eSmall Bomb"
+    type: bomb
+    input: m.utils.small_bomb_rack
+    yield: 2.5
+    radius: 10
+    damage: 20
+    damage-type: small_bomb
+    fuse: 20
+    rounds: 8
+    sounds:
+        whistle:
+            sound: vehicleframework:shell_whistle
+            pitch: 1.5
+            volume: 4.0
+            delay: 20
+            pitched: true
+    particles:
+        spark:
+            particle: FIREWORKS_SPARK
+            amount: 20
+            spread: 0.1
+            speed: 0.1
+    model:
+        type: meg
+        model: small_bomb
+        animation: active

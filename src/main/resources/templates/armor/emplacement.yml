@@ -1,0 +1,6 @@
+emplacement:
+  entity_attack: 0.1
+  entity_explosion: 1.3
+  small_bomb: 3.0
+  cannonball: 2.0
+  torpedo: 0.2

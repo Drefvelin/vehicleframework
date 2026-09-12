@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import com.ticxo.modelengine.api.model.ActiveModel;
 
+import net.tfminecraft.VehicleFramework.Util.Text;
 import net.tfminecraft.VehicleFramework.Data.DamageData;
+import net.tfminecraft.VehicleFramework.Loaders.ArmorTemplateLoader;
 import net.tfminecraft.VehicleFramework.Data.HealthData;
 import net.tfminecraft.VehicleFramework.Database.IncompleteComponent;
 import net.tfminecraft.VehicleFramework.Enums.Component;
@@ -42,7 +43,7 @@ public class VehicleComponent {
 	@SuppressWarnings({ "unchecked", "deprecation" })
 	public VehicleComponent(Component type, ConfigurationSection config) {
 		this.type = type;
-		alias = config.getString("alias", WordUtils.capitalize(type.toString().toLowerCase()));
+		alias = config.getString("alias", Text.capitalize(type.toString().toLowerCase()));
 		if(type.equals(Component.HULL)) {
 			fatal = true;
 		} else {
@@ -50,7 +51,7 @@ public class VehicleComponent {
 		}
 		fatal = config.getBoolean("fatal", fatal);
 		healthData = new HealthData(config.getDouble("health"), 0, config.getInt("repair-time"));
-		damageData = new DamageData((List<String>) config.getList("damage", new ArrayList<String>()));
+		damageData = ArmorTemplateLoader.resolve(type.toString().toLowerCase(), config);
 		damageChance = config.getDouble("damage-chance");
 		vfx = new VFX(config.getStringList("vfx"));
 	}

@@ -17,6 +17,7 @@ import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Bullet;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
+import net.tfminecraft.VehicleFramework.Weapons.Weapon;
 import net.tfminecraft.VehicleFramework.Weapons.WeaponEntityFilters;
 
 public class BulletShooter implements Shooter {
@@ -34,7 +35,7 @@ public class BulletShooter implements Shooter {
 		AmmunitionData ammoData = a.getData();
 		Bullet bullet = (Bullet) a;
 		Vector direction = vector.clone().normalize();
-		Vector velocity = direction.clone().multiply(bullet.getSpeed());
+		Vector velocity = direction.clone().multiply(Weapon.effectiveProjectileSpeed(w, bullet));
 		Location start = loc.clone().add(direction.clone().multiply(MUZZLE_OFFSET));
 		double maxRangeSquared = bullet.getRange() * bullet.getRange();
 
@@ -70,6 +71,7 @@ public class BulletShooter implements Shooter {
 				tick++;
 
 				if (current.distanceSquared(start) > maxRangeSquared) {
+					BulletRaycast.triggerExplosion(current, bullet, w);
 					cancel();
 				}
 			}

@@ -1,0 +1,45 @@
+anti_air:
+    name: "§l§eAnti-Air"
+    model: anti_air
+    fixed: true
+    skins:
+        anti_air:
+            name: "Anti-Air"
+            model: anti_air
+    death:
+        template: explode_small
+    behaviour:
+        rotator: body
+        vector: body.body
+    states:
+        ground:
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    components:
+        hull:
+            health: 50.0
+            repair-time: 100
+            damage-chance: 1.0
+            armor: emplacement
+            role: hull_emplacement
+            damage:
+                flak_bullet: 0.2
+            vfx:
+                - body
+    seats:
+        - captain(gunner)
+    weapons:
+        flak_cannon:
+            name: "§eFlak Cannon"
+            template: flak_cannon
+            seat: gunner
+            body-bone: "body"
+            head-bone: "gun_rotator"
+            rotation-limits:
+              min-pitch: -85
+              max-pitch: 0
+            animations:
+                shoot:
+                    - shoot
+            bones:
+                - exit.exitalign

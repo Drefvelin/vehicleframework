@@ -15,6 +15,7 @@ import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Interface.Shooter;
 import net.tfminecraft.VehicleFramework.Projectiles.HitChecker;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
+import net.tfminecraft.VehicleFramework.Weapons.Weapon;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.ClusterBomb;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
@@ -39,7 +40,7 @@ public class DefaultShooter implements Shooter {
 	    Entity e = ammoData.spawn(loc);
 		Cache.projectiles.add(e);
 	    
-	    Vector velocity = vector.clone().multiply(w.getWeaponData().getVelocity());
+	    Vector velocity = vector.clone().multiply(Weapon.effectiveProjectileVelocity(w));
 	    new BukkitRunnable() {
 	        int i = 0;
 	        float pitch = 1.2f;
@@ -82,8 +83,9 @@ public class DefaultShooter implements Shooter {
 	            if(a instanceof ClusterBomb) {
 	            	ClusterBomb c = (ClusterBomb) a;
 	            	if(i >= c.getFuse()) {
+	            		int particleCount = (int) Math.round(Weapon.effectiveYield(w, ammoData) * 15);
 	            		for(Player p : players) {
-	        				p.spawnParticle(Particle.EXPLOSION_EMITTER, e.getLocation(), (int) Math.round(a.getData().getYield()*15), 0, 0, 0, 0);
+	        				p.spawnParticle(Particle.EXPLOSION_EMITTER, e.getLocation(), particleCount, 0, 0, 0, 0);
 	        			}
 						shooter.triggerExplosion(players, e.getLocation(), ammoData, w);
 	            		sendCluster(e.getLocation(), c, players, projectiles, w);
@@ -100,7 +102,8 @@ public class DefaultShooter implements Shooter {
 	private void sendCluster(Location original, ClusterBomb a, List<Player> players, List<Entity> projectiles, ActiveWeapon w) {
 	    World world = original.getWorld();
 	    if (world == null) return;
-	    for (int i = 0; i < a.getAmount(); i++) {
+	    int count = Weapon.effectiveClusterAmount(w, a);
+	    for (int i = 0; i < count; i++) {
 	        Entity armorStand = a.getClusterData().spawn(original);
 	        projectiles.add(armorStand);
 			Cache.projectiles.add(armorStand);

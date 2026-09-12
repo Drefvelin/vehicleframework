@@ -1,0 +1,159 @@
+sloop:
+    name: "§l§eSloop"
+    model: sloop
+    skins:
+        sloop:
+            name: "Sloop"
+            model: sloop
+    death:
+        template: ship
+    behaviour:
+        rotator: body_controller
+        vector: move.movealign
+        float: true
+        float-in:
+            - WATER
+            - KELP
+    states:
+        floating:
+            animations:
+                default:
+                    - regular
+                explode:
+                    - explode
+                sink:
+                    - sink
+                forward:
+                    - forward
+                right:
+                    - right
+                left:
+                    - left
+            keybinds:
+                W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                A: TURN_LEFT
+                D: TURN_RIGHT
+                SHIFT: SEAT_SELECTION
+    components:
+        engine:
+            sounds:
+                sails:
+                    sound: "vehicleframework:ship_sail"
+                    pitch: 1.0
+                    volume: 6.0
+                water_move:
+                    sound: "vehicleframework:ship_water_move"
+                    pitch: 1.0
+                    volume: 4.0
+            health: 200.0
+            repair-time: 60
+            damage-chance: 0.7
+            armor: wooden
+            role: engine_wood
+            max: 100
+            min: -10
+            speed: 0.3
+            turn-rate: 0.2
+            vfx:
+                - engine_vfx1
+                - engine_vfx2
+                - engine_vfx3
+        hull:
+            sinkable: true
+            health: 400.0
+            repair-time: 100
+            damage-chance: 1.0
+            armor: wooden
+            role: hull_wood
+            vfx:
+                - hull_vfx1
+                - hull_vfx2
+                - hull_vfx3
+        pump:
+            health: 80.0
+            repair-time: 40
+            damage-chance: 0.4
+            armor: wooden
+            role: pump_wood
+            power: 50
+            vfx:
+                - pump_vfx1
+    seats:
+        - captain(captain)
+        - passenger(interior_1)
+        - mechanic(mechanic)
+        - passenger(right_gunner_1)
+        - passenger(right_gunner_2)
+        - passenger(left_gunner_1)
+        - passenger(left_gunner_2)
+        - passenger(lookout)
+        - passenger(passenger_1)
+        - passenger(passenger_2)
+        - passenger(passenger_3)
+        - passenger(passenger_4)
+    weapons:
+        front_right_gun:
+            name: "§eFront Right Cannon"
+            template: naval_cannon
+            seat: right_gunner_1
+            body-bone: "gun_body"
+            head-bone: "gun_rotator"
+            rotation-limits:
+              min-yaw: -30
+              max-yaw: 30
+              min-pitch: -60
+              max-pitch: 20
+            animations:
+                shoot:
+                    - shoot
+            bones:
+                - exit.exitalign
+        back_right_gun:
+            name: "§eBack Right Cannon"
+            template: naval_cannon
+            seat: right_gunner_2
+            body-bone: "gun_body4"
+            head-bone: "gun_rotator4"
+            rotation-limits:
+              min-yaw: -30
+              max-yaw: 30
+              min-pitch: -60
+              max-pitch: 20
+            animations:
+                shoot:
+                    - shoot
+            bones:
+                - exit4.exitalign4
+        front_left_gun:
+            name: "§eFront Left Cannon"
+            template: naval_cannon
+            seat: left_gunner_1
+            body-bone: "gun_body2"
+            head-bone: "gun_rotator2"
+            rotation-limits:
+              min-yaw: -30
+              max-yaw: 30
+              min-pitch: -60
+              max-pitch: 20
+            animations:
+                shoot:
+                    - shoot
+            bones:
+                - exit2.exitalign2
+        back_left_gun:
+            name: "§eBack Left Cannon"
+            template: naval_cannon
+            seat: left_gunner_2
+            body-bone: "gun_body3"
+            head-bone: "gun_rotator3"
+            rotation-limits:
+              min-yaw: -30
+              max-yaw: 30
+              min-pitch: -60
+              max-pitch: 20
+            animations:
+                shoot:
+                    - shoot
+            bones:
+                - exit3.exitalign3

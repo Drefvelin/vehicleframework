@@ -1,0 +1,44 @@
+passenger_car:
+    name: "§l§ePassenger Car"
+    model: passenger_car
+    fixed: true
+    skins:
+        passenger_car:
+            name: "Passenger Car"
+            model: passenger_car
+    death:
+        template: explode_small
+    behaviour:
+        rotator: body
+        vector: body.body
+        tracked: true
+        train:
+            front-connector: connector_front
+            back-connector: connector_back
+    states:
+        ground:
+            animations:
+                forward:
+                    - forward
+                backward:
+                    - backward
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    seats:
+        - passenger(passenger)
+        - passenger(passenger2)
+        - passenger(passenger3)
+        - passenger(passenger4)
+        - passenger(passenger5)
+        - passenger(passenger6)
+        - passenger(passenger7)
+        - passenger(passenger8)
+    components:
+        hull:
+            health: 30.0
+            repair-time: 100
+            damage-chance: 1.0
+            armor: emplacement
+            role: hull_emplacement
+            vfx:
+                - body

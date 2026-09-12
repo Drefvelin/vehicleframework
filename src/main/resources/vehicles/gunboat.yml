@@ -1,0 +1,92 @@
+gunboat:
+    name: "§l§eGunboat"
+    model: gunboat
+    skins:
+        gunboat:
+            name: "Guboat"
+            model: gunboat
+    death:
+        template: ship
+    behaviour:
+        rotator: body_controller
+        vector: move.movealign
+        float: true
+        float-in:
+            - WATER
+            - KELP
+    states:
+        floating:
+            animations:
+                default:
+                    - regular
+                explode:
+                    - explode
+                sink:
+                    - sink
+                forward:
+                    - forward
+                right:
+                    - right
+                left:
+                    - left
+            keybinds:
+                W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                A: TURN_LEFT
+                D: TURN_RIGHT
+                SHIFT: SEAT_SELECTION
+    components:
+        engine:
+            sounds:
+                sails:
+                    sound: "vehicleframework:ship_sail"
+                    pitch: 1.0
+                    volume: 6.0
+                water_move:
+                    sound: "vehicleframework:ship_water_move"
+                    pitch: 1.0
+                    volume: 4.0
+            health: 140.0
+            repair-time: 60
+            damage-chance: 0.7
+            armor: wooden
+            role: engine_wood
+            max: 100
+            min: -5
+            speed: 0.37
+            turn-rate: 0.24
+            vfx:
+                - engine_vfx1
+        hull:
+            sinkable: true
+            health: 290.0
+            repair-time: 100
+            damage-chance: 1.0
+            armor: wooden
+            role: hull_wood
+            vfx:
+                - hull_vfx1
+                - hull_vfx2
+    seats:
+        - captain(captain)
+        - mechanic(mechanic)
+        - passenger(front_gunner)
+        - passenger(passenger_1)
+        - passenger(passenger_2)
+    weapons:
+        naval_gun:
+            name: "§eFront Cannon"
+            template: naval_cannon
+            seat: front_gunner
+            body-bone: "gun_body"
+            head-bone: "gun_rotator"
+            rotation-limits:
+              min-yaw: -120
+              max-yaw: 120
+              min-pitch: -60
+              max-pitch: 20
+            animations:
+                shoot:
+                    - shoot
+            bones:
+                - exit.exitalign

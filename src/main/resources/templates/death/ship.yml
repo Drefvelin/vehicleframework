@@ -1,0 +1,20 @@
+ship:
+  explode:
+    fragments: 30
+    duration: 320
+    sounds:
+      sink:
+        sound: "vehicleframework:ship_sinking"
+        pitch: 1.0
+        volume: 5.0
+      explode:
+        sound: "vehicleframework:explosion"
+        pitch: 1.0
+        volume: 8.0
+  sink:
+    duration: 320
+    sounds:
+      sink:
+        sound: "vehicleframework:ship_sinking"
+        pitch: 1.0
+        volume: 5.0

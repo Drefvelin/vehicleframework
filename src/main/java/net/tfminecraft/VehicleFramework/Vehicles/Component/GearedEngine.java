@@ -24,6 +24,7 @@ import net.tfminecraft.VehicleFramework.Enums.CustomAction;
 import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Util.ParticleLoader;
+import net.tfminecraft.VehicleFramework.Database.PersistenceLog;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Gear.Gear;
@@ -252,6 +253,9 @@ public class GearedEngine extends VehicleComponent{
 	@Override
 	public void slowTick(List<Player> nearby) {
 		super.slowTick(nearby);
+		if (v != null && v.isTrain() && !v.hasParent()) {
+			v.getTrainHandler().drainFromChild(tank);
+		}
 		if(started) tank.tick(getGear().getThrottle());
 		playSound(nearby);
 	}
@@ -261,6 +265,15 @@ public class GearedEngine extends VehicleComponent{
 		super.tick(nearby);
 		v.getMoveControls().input(null, Input.MOVE);
 		Gear g = getGear();
+		Integer tapeThrottle = v != null && v.isTrain() && !v.hasParent()
+				? v.getTrainHandler().playbackThrottle(tank)
+				: null;
+		if (tapeThrottle != null) {
+			g.getThrottle().stepToward(tapeThrottle);
+			if (tapeThrottle != 0 && !started && (!tank.useFuel() || tank.getCurrent() > 0)) {
+				setStarted(true);
+			}
+		}
 		int current = g.getThrottle().getCurrent();
 		AccessPanel panel = v.getAccessPanel();
 		panel.setSpeed(getSpeed());
@@ -278,7 +291,14 @@ public class GearedEngine extends VehicleComponent{
 			getGear().getThrottle().setThrottle(current);
 		}
 		panel.setReverse(reverse);
-		normalize(g);
+		if (tapeThrottle == null) {
+			if (v == null || !v.isTrain() || v.hasParent() || !v.getTrainHandler().isRecording()) {
+				normalize(g);
+			}
+			if (v != null && v.isTrain() && !v.hasParent()) {
+				v.getTrainHandler().maybeRecordSample(g.getThrottle().getCurrent());
+			}
+		}
 		if(g.getThrottle().getCurrent() == 0) {
 			return;
 		}
@@ -287,6 +307,9 @@ public class GearedEngine extends VehicleComponent{
 			for(ParticleData pd : particles) {
 				pd.spawnParticle(bone.getBaseLocation(), bone.getVector());
 			}
+		}
+		if (v != null && v.getEntity() != null && !bones.isEmpty()) {
+			PersistenceLog.particleOffset(v, bones.get(0).getBaseLocation(), v.getEntity().getLocation());
 		}
 		if(healthData.getHealthPercentage() < 1 && started) stop();
 		if(tank.getCurrent() == 0 && tank.useFuel()) {

@@ -198,7 +198,7 @@ public final class BulletRaycast {
 		return false;
 	}
 
-	private static void triggerExplosion(Location loc, Bullet bullet, ActiveWeapon weapon) {
+	public static void triggerExplosion(Location loc, Bullet bullet, ActiveWeapon weapon) {
 		if (!bullet.getData().isExplosive()) {
 			return;
 		}

@@ -1,0 +1,191 @@
+cruiser:
+    name: "§l§eCruiser"
+    model: cruiser
+    skins:
+        cruiser:
+            name: "Cruiser"
+            model: cruiser
+    death:
+        template: ship
+    behaviour:
+        rotator: body_controller
+        vector: move.movealign
+        float: true
+        float-in:
+            - WATER
+            - KELP
+    states:
+        floating:
+            animations:
+                default:
+                    - float
+                explode:
+                    - explode
+                sink:
+                    - sink
+                right:
+                    - turn_right
+                left:
+                    - turn_left
+            keybinds:
+                W: THROTTLE_UP
+                S: THROTTLE_DOWN
+                A: TURN_LEFT
+                D: TURN_RIGHT
+                SHIFT: SEAT_SELECTION
+    components:
+        engine:
+            sounds:
+                steam_engine:
+                    sound: "vehicleframework:steam_engine"
+                    pitched: true
+                    pitch: 1.0
+                    volume: 6.0
+                water_move:
+                    sound: "vehicleframework:ship_water_move"
+                    pitch: 1.0
+                    volume: 4.0
+            particles:
+                    exhaust:
+                        particle: CAMPFIRE_COSY_SMOKE
+                        amount: 10
+                        spread: 0.3
+                        speed: 0.2
+            particle-bones:
+                - exhaust.exhaustalign
+                - exhaust2.exhaustalign2
+            requires-start: true
+            health: 500.0
+            repair-time: 60
+            fuel-burn-rate: 10
+            fuel: coal
+            fuel-capacity: 2400
+            damage-chance: 0.7
+            armor: armored
+            role: engine_armored
+            max: 100
+            min: -10
+            speed: 0.22
+            turn-rate: 0.14
+            vfx:
+                - engine_vfx_1
+                - engine_vfx_2
+                - engine_vfx_3
+        hull:
+            sinkable: true
+            health: 800.0
+            repair-time: 100
+            damage-chance: 1.0
+            armor: armored
+            role: hull_armored
+            vfx:
+                - hull_vfx_1
+                - hull_vfx_2
+                - hull_vfx_3
+        pump:
+            health: 150.0
+            repair-time: 40
+            damage-chance: 0.4
+            armor: armored
+            role: pump_armored
+            power: 50
+            vfx:
+                - pump_vfx_1
+                - pump_vfx_2
+    seats:
+        - captain(captain)
+        - mechanic(first_mate)
+        - mechanic(deck_officer)
+        - passenger(front_turret_gunner)
+        - passenger(back_turret_gunner)
+        - passenger(aa_turret_gunner_left)
+        - passenger(aa_turret_gunner_right)
+        - mechanic(mechanic_1)
+        - mechanic(mechanic_2)
+        - passenger(passenger_1)
+        - passenger(passenger_2)
+        - passenger(passenger_3)
+        - passenger(passenger_4)
+        - passenger(passenger_5)
+        - passenger(passenger_6)
+        - passenger(passenger_7)
+        - passenger(passenger_8)
+    weapons:
+        front_turret:
+            name: "§eFront Turret"
+            template: naval_cannon
+            seat: front_turret_gunner
+            body-bone: "body"
+            head-bone: "gun_front"
+            head-axis: z
+            rotation-limits:
+              min-roll: -20
+              max-roll: 35
+            cooldown: 12
+            projectile-damage: 36
+            projectile-yield: 3.5
+            projectile-radius: 12
+            projectile-cluster-amount: 26
+            accepted-ammunition:
+                - cannonball
+                - clusterbomb
+            animations:
+                shoot:
+                    - shoot_front
+            bones:
+                - exit.exitalign
+        back_turret:
+            name: "§eBack Turret"
+            template: naval_cannon
+            seat: back_turret_gunner
+            body-bone: "body2"
+            head-bone: "gun_back"
+            head-axis: z
+            rotation-limits:
+              min-roll: -20
+              max-roll: 35
+            cooldown: 12
+            projectile-damage: 36
+            projectile-yield: 3.5
+            projectile-radius: 12
+            projectile-cluster-amount: 26
+            accepted-ammunition:
+                - cannonball
+                - clusterbomb
+            animations:
+                shoot:
+                    - shoot_back
+            bones:
+                - exit5.exit5align
+        aa_turret_left:
+            name: "§eAnti-Air Turret (Left)"
+            template: aa_turret
+            seat: aa_turret_gunner_left
+            body-bone: "aa_turret_body"
+            head-bone: "gun"
+            rotation-limits:
+              min-pitch: -85
+              max-pitch: 0
+            animations:
+                shoot:
+                    - shoot_aa1_1
+                    - shoot_aa1_2
+            bones:
+                - exit1.exit_align1
+                - exit2.exit_align2
+        aa_turret_right:
+            name: "§eAnti-Air Turret (Right)"
+            template: aa_turret
+            seat: aa_turret_gunner_right
+            body-bone: "aa_turret_body2"
+            head-bone: "gun2"
+            rotation-limits:
+              min-pitch: -85
+              max-pitch: 0
+            animations:
+                shoot:
+                    - shoot_aa2_1
+                    - shoot_aa2_2
+            bones:
+                - exit3.exit_align3
+                - exit4.exit_align4

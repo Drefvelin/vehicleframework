@@ -1,0 +1,40 @@
+aa_turret:
+  name: "Anti-Air Turret"
+  head-axis: x
+  reload-time: 10
+  cooldown: 10
+  accepted-ammunition:
+    - bullet
+  data:
+    shoot-sounds:
+      sound:
+        sound: "minecraft:guns.musket_1"
+        pitch: 1.0
+        volume: 6.0
+    reload-sounds:
+      sound:
+        sound: "minecraft:block.anvil.land"
+        pitch: 1.0
+        volume: 1.0
+    reload-start-sounds:
+      sound:
+        sound: "minecraft:block.anvil.land"
+        pitch: 1.0
+        volume: 1.0
+    particles:
+      particle1:
+        particle: FLAME
+        amount: 4
+        spread: 0.1
+        speed: 1.2
+  keybinds:
+    W: WEAPON_DOWN
+    S: WEAPON_UP
+    A: WEAPON_LEFT
+    D: WEAPON_RIGHT
+    SPACE_W: WEAPON_DOWN
+    SPACE_S: WEAPON_UP
+    SPACE_A: WEAPON_LEFT
+    SPACE_D: WEAPON_RIGHT
+    RIGHT_CLICK: WEAPON_RELOAD
+    SPACE: WEAPON_SHOOT

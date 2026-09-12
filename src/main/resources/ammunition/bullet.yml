@@ -1,0 +1,14 @@
+bullet:
+    name: "§eBullets"
+    type: bullet
+    input: m.utils.bullet_box
+    damage: 15
+    damage-type: bullet
+    rounds: 100
+    range: 120.0
+    particles:
+        smoke:
+            particle: SMOKE_NORMAL
+            amount: 1
+            spread: 0.001
+            speed: 0.001

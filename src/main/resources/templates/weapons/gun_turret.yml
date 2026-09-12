@@ -1,5 +1,5 @@
 gun_turret:
-  name: "§eRear Rifle"
+  name: "§eMounted Rifle"
   head-axis: z
   rotation-limits:
     min-roll: -60

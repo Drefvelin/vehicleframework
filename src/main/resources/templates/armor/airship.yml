@@ -1,0 +1,8 @@
+airship:
+  FALL: 0.0
+  entity_attack: 0.1
+  entity_explosion: 2.0
+  small_bomb: 10.0
+  cannonball: 1.8
+  torpedo: 7.0
+  flak_bullet: 2.0

@@ -1,0 +1,9 @@
+explode_medium:
+  explode:
+    fragments: 10
+    duration: 320
+    sounds:
+      explode:
+        sound: "vehicleframework:explosion"
+        pitch: 1.0
+        volume: 8.0

@@ -1,0 +1,51 @@
+fixed_artillery:
+    name: "§l§eFixed Artillery"
+    model: fixed_artillery
+    fixed: true
+    skins:
+        fixed_artillery:
+            name: "Fixed Artillery"
+            model: fixed_artillery
+    death:
+        template: explode_small
+    behaviour:
+        rotator: weapon_body
+        vector: weapon_body.weapon_body
+    states:
+        ground:
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    components:
+        hull:
+            health: 80.0
+            repair-time: 100
+            damage-chance: 1.0
+            armor: emplacement
+            role: hull_emplacement
+            vfx:
+                - weapon_body
+    seats:
+        - captain(gunner)
+    weapons:
+        flak_cannon:
+            name: "§eFlak Cannon"
+            template: naval_cannon
+            seat: gunner
+            body-bone: "weapon_body"
+            head-bone: "cannon_controller"
+            head-axis: z
+            rotation-limits:
+              min-roll: -15
+              max-roll: 75
+            cooldown: 8
+            projectile-damage: 28
+            projectile-yield: 2.7
+            projectile-radius: 10
+            accepted-ammunition:
+                - cannonball
+                - clusterbomb
+            animations:
+                shoot:
+                    - shoot
+            bones:
+                - exit.exitalign

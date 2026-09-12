@@ -70,6 +70,7 @@ public class ConfigLoader {
 		Cache.skinItem = config.getString("skin-item", "v.bucket");
 		Cache.repairItem = config.getString("repair-item", "v.iron_shovel");
 		Cache.destroyItem = config.getString("destroy-item", "v.stone_axe");
+		Cache.ticketItem = config.getString("ticket-item", "v.paper");
 
 		Cache.mythicMob = config.getString("mythicmob", "none");
 		Cache.allowWhitelist = config.getBoolean("allow-whitelist", false);
@@ -77,7 +78,7 @@ public class ConfigLoader {
 		Cache.weaponDegradedReloadMultiplier = Math.max(1.0, config.getDouble("weapon-degraded-reload-multiplier", 2.0));
 		Cache.weaponAimDebug = config.getBoolean("weapon-aim-debug", false);
 		Cache.terrainFollowDebug = config.getBoolean("terrain-follow-debug", false);
-		Cache.groundEngineLogging = config.getBoolean("ground-engine-logging", true);
-		Cache.wipeLog = config.getBoolean("wipe-log", true);
+		Cache.groundEngineLogging = config.getBoolean("ground-engine-logging", false);
+		Cache.wipeLog = config.getBoolean("wipe-log", false);
 	}
 }

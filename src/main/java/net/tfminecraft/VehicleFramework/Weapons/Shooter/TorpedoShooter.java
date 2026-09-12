@@ -16,6 +16,7 @@ import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Interface.Shooter;
 import net.tfminecraft.VehicleFramework.Projectiles.HitChecker;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
+import net.tfminecraft.VehicleFramework.Weapons.Weapon;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Ammunition;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.FusedExplosive;
 
@@ -39,7 +40,7 @@ public class TorpedoShooter implements Shooter {
 	    
         shooter.lightEffect(loc);
 
-        torpedo.setVelocity(direction.clone().multiply(w.getWeaponData().getVelocity()));
+        torpedo.setVelocity(direction.clone().multiply(Weapon.effectiveProjectileVelocity(w)));
 	    
 	    new BukkitRunnable() {
 	    	int i = 0;

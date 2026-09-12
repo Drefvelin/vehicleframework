@@ -15,6 +15,7 @@ import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.InputHandler;
+import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Bullet;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
 import net.tfminecraft.VehicleFramework.Weapons.Controller.WeaponMovementController;
 import net.tfminecraft.VehicleFramework.Weapons.Data.WeaponData;
@@ -40,6 +41,11 @@ public class ActiveWeapon {
 	
 	protected Integer projectileDamage;
 	protected String projectileDamageType;
+	protected Double projectileSpeed;
+	protected Float projectileYield;
+	protected Integer projectileRadius;
+	protected Boolean projectileExplosive;
+	protected Integer projectileClusterAmount;
 	
 	protected Player controller;
 	
@@ -58,6 +64,11 @@ public class ActiveWeapon {
 		aimMode = stored.getAimMode();
 		projectileDamage = stored.getProjectileDamage();
 		projectileDamageType = stored.getProjectileDamageType();
+		projectileSpeed = stored.getProjectileSpeed();
+		projectileYield = stored.getProjectileYield();
+		projectileRadius = stored.getProjectileRadius();
+		projectileExplosive = stored.getProjectileExplosive();
+		projectileClusterAmount = stored.getProjectileClusterAmount();
 		
 	}
 	
@@ -135,6 +146,14 @@ public class ActiveWeapon {
 
 	public String effectiveDamageType(AmmunitionData ammo) {
 		return Weapon.effectiveDamageType(projectileDamageType, ammo);
+	}
+
+	public double effectiveBulletSpeed(Bullet bullet) {
+		return Weapon.effectiveProjectileSpeed(projectileSpeed, bullet);
+	}
+
+	public double effectiveProjectileVelocity() {
+		return Weapon.effectiveProjectileSpeed(projectileSpeed, weaponData.getVelocity());
 	}
 	
 	public void damage(String cause, double a) {

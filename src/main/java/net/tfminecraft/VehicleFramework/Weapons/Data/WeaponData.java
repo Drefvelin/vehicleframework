@@ -14,6 +14,8 @@ import net.tfminecraft.VehicleFramework.Enums.SoundArg;
 import net.tfminecraft.VehicleFramework.Util.SoundLoader;
 
 public class WeaponData {
+
+	public static final double DEFAULT_VELOCITY = 3.0;
 	
 	private HashMap<SoundArg, List<SoundData>> sounds = new HashMap<>();
 	private String reloadAnimation;
@@ -30,7 +32,7 @@ public class WeaponData {
 			sounds.put(SoundArg.SHOOT, new ArrayList<SoundData>());
 			reloadAnimation = "none";
 			shootAnimation = "none";
-			velocity = 3.0;
+			velocity = DEFAULT_VELOCITY;
 			return;
 		}
 		if(config.isConfigurationSection("reload-sounds")) {
@@ -65,7 +67,7 @@ public class WeaponData {
 				particles.add(new ParticleData(particleConfig.getConfigurationSection(key)));
 			}
 		}
-		velocity = config.getDouble("velocity", 3.0);		
+		velocity = config.getDouble("velocity", DEFAULT_VELOCITY);
 	}
 
 	public List<SoundData> getSounds(SoundArg arg) {

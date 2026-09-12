@@ -1,0 +1,17 @@
+flak_bullet:
+    name: "§eFlak Shells"
+    type: bullet
+    input: m.utils.flak_shells
+    explosive: true
+    damage: 20
+    damage-type: flak_bullet
+    yield: 0.0
+    radius: 10
+    rounds: 30
+    range: 160.0
+    particles:
+        smoke:
+            particle: SMOKE_NORMAL
+            amount: 1
+            spread: 0.03
+            speed: 0.03

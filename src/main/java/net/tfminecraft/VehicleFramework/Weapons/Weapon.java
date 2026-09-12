@@ -11,6 +11,8 @@ import net.tfminecraft.VehicleFramework.Data.DamageData;
 import net.tfminecraft.VehicleFramework.Data.HealthData;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.InputHandler;
+import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Bullet;
+import net.tfminecraft.VehicleFramework.Weapons.Ammunition.ClusterBomb;
 import net.tfminecraft.VehicleFramework.Weapons.Ammunition.Data.AmmunitionData;
 import net.tfminecraft.VehicleFramework.Weapons.Data.WeaponData;
 import net.tfminecraft.VehicleFramework.Weapons.Handlers.AmmunitionHandler;
@@ -44,6 +46,11 @@ public class Weapon {
 	protected String aimVector;
 	protected Integer projectileDamage;
 	protected String projectileDamageType;
+	protected Double projectileSpeed;
+	protected Float projectileYield;
+	protected Integer projectileRadius;
+	protected Boolean projectileExplosive;
+	protected Integer projectileClusterAmount;
 
 	public static final double DEFAULT_CURSOR_RANGE = 80.0;
 	
@@ -66,6 +73,23 @@ public class Weapon {
 		}
 		if (config.contains("projectile-damage-type")) {
 			projectileDamageType = config.getString("projectile-damage-type").toUpperCase();
+		}
+		if (config.contains("projectile-speed")) {
+			projectileSpeed = config.getDouble("projectile-speed");
+		} else if (config.contains("projectile-velocity")) {
+			projectileSpeed = config.getDouble("projectile-velocity");
+		}
+		if (config.contains("projectile-yield")) {
+			projectileYield = (float) config.getDouble("projectile-yield");
+		}
+		if (config.contains("projectile-radius")) {
+			projectileRadius = config.getInt("projectile-radius");
+		}
+		if (config.contains("projectile-explosive")) {
+			projectileExplosive = config.getBoolean("projectile-explosive");
+		}
+		if (config.contains("projectile-cluster-amount")) {
+			projectileClusterAmount = config.getInt("projectile-cluster-amount");
 		}
 		damageData = new DamageData((List<String>) config.getList("damage", new ArrayList<String>()));
 		if(config.isConfigurationSection("animations")) {
@@ -180,6 +204,82 @@ public class Weapon {
 		return projectileDamageType;
 	}
 
+	public Double getProjectileSpeed() {
+		return projectileSpeed;
+	}
+
+	public Float getProjectileYield() {
+		return projectileYield;
+	}
+
+	public Integer getProjectileRadius() {
+		return projectileRadius;
+	}
+
+	public Boolean getProjectileExplosive() {
+		return projectileExplosive;
+	}
+
+	public Integer getProjectileClusterAmount() {
+		return projectileClusterAmount;
+	}
+
+	public static float effectiveYield(ActiveWeapon weapon, AmmunitionData ammo) {
+		if (weapon == null) {
+			return effectiveYield((Float) null, ammo);
+		}
+		return effectiveYield(weapon.projectileYield, ammo);
+	}
+
+	public static float effectiveYield(Float override, AmmunitionData ammo) {
+		if (override != null) {
+			return override;
+		}
+		return ammo == null ? 0f : ammo.getYield();
+	}
+
+	public static int effectiveRadius(ActiveWeapon weapon, AmmunitionData ammo) {
+		if (weapon == null) {
+			return effectiveRadius((Integer) null, ammo);
+		}
+		return effectiveRadius(weapon.projectileRadius, ammo);
+	}
+
+	public static int effectiveRadius(Integer override, AmmunitionData ammo) {
+		if (override != null) {
+			return override;
+		}
+		return ammo == null ? 0 : ammo.getRadius();
+	}
+
+	public static boolean effectiveExplosive(ActiveWeapon weapon, AmmunitionData ammo) {
+		if (weapon == null) {
+			return effectiveExplosive((Boolean) null, ammo);
+		}
+		return effectiveExplosive(weapon.projectileExplosive, ammo);
+	}
+
+	public static boolean effectiveExplosive(Boolean override, AmmunitionData ammo) {
+		if (override != null) {
+			return override;
+		}
+		return ammo != null && ammo.isExplosive();
+	}
+
+	public static int effectiveClusterAmount(ActiveWeapon weapon, ClusterBomb cluster) {
+		if (weapon == null) {
+			return effectiveClusterAmount((Integer) null, cluster);
+		}
+		return effectiveClusterAmount(weapon.projectileClusterAmount, cluster);
+	}
+
+	public static int effectiveClusterAmount(Integer override, ClusterBomb cluster) {
+		if (override != null) {
+			return override;
+		}
+		return cluster == null ? 0 : cluster.getAmount();
+	}
+
 	public static int effectiveDamage(ActiveWeapon weapon, AmmunitionData ammo) {
 		if (weapon == null) {
 			return effectiveDamage((Integer) null, ammo);
@@ -206,6 +306,31 @@ public class Weapon {
 			return projectileDamageTypeOverride;
 		}
 		return ammo == null ? "PROJECTILE" : ammo.getDamageType();
+	}
+
+	public static double effectiveProjectileSpeed(ActiveWeapon weapon, Bullet bullet) {
+		if (weapon == null) {
+			return effectiveProjectileSpeed((Double) null, bullet);
+		}
+		return weapon.effectiveBulletSpeed(bullet);
+	}
+
+	public static double effectiveProjectileVelocity(ActiveWeapon weapon) {
+		if (weapon == null) {
+			return effectiveProjectileSpeed((Double) null, WeaponData.DEFAULT_VELOCITY);
+		}
+		return weapon.effectiveProjectileVelocity();
+	}
+
+	public static double effectiveProjectileSpeed(Double projectileSpeedOverride, Bullet bullet) {
+		return effectiveProjectileSpeed(projectileSpeedOverride, bullet == null ? Bullet.DEFAULT_SPEED : bullet.getSpeed());
+	}
+
+	public static double effectiveProjectileSpeed(Double projectileSpeedOverride, double fallback) {
+		if (projectileSpeedOverride != null) {
+			return projectileSpeedOverride;
+		}
+		return fallback;
 	}
 	
 }

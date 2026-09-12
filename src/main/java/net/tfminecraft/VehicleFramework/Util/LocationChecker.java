@@ -76,7 +76,7 @@ public class LocationChecker {
 		if(!isInWater(loc) && !isInAir(loc)) return true;
 		return false;
 	}
-	
+
 	public static Location getNextTrackedLocation(Location loc, List<NSEW> dirs, float yaw) {
 	    Location align = loc.getBlock().getLocation();
 	    Location next = new Location(align.getWorld(), align.getX(), align.getY(), align.getZ()).add(0.5, 0, 0.5);
@@ -219,7 +219,5 @@ public class LocationChecker {
 
 	    return next;
 	}
-
-
 
 }

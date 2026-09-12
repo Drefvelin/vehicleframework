@@ -25,6 +25,7 @@ import net.tfminecraft.VehicleFramework.Enums.Input;
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Util.ParticleLoader;
 import net.tfminecraft.VehicleFramework.Util.SoundLoader;
+import net.tfminecraft.VehicleFramework.Database.PersistenceLog;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
@@ -185,6 +186,9 @@ public class Engine extends VehicleComponent{
 	@Override
 	public void slowTick(List<Player> nearby) {
 		super.slowTick(nearby);
+		if (v != null && v.isTrain() && !v.hasParent()) {
+			v.getTrainHandler().drainFromChild(tank);
+		}
 		if(started) tank.tick(throttle);
 		playSound(nearby);
 	}
@@ -193,6 +197,15 @@ public class Engine extends VehicleComponent{
 	public void tick(List<Player> nearby) {
 		super.tick(nearby);
 		v.getMoveControls().input(null, Input.MOVE);
+		Integer tapeThrottle = v != null && v.isTrain() && !v.hasParent()
+				? v.getTrainHandler().playbackThrottle(tank)
+				: null;
+		if (tapeThrottle != null) {
+			throttle.stepToward(tapeThrottle);
+			if (tapeThrottle != 0 && !started && (!tank.useFuel() || tank.getCurrent() > 0)) {
+				setStarted(true);
+			}
+		}
 		int current = throttle.getCurrent();
 		AccessPanel panel = v.getAccessPanel();
 		panel.setSpeed(getSpeed());
@@ -210,7 +223,14 @@ public class Engine extends VehicleComponent{
 			throttle.setThrottle(current);
 		}
 		panel.setReverse(reverse);
-		normalize();
+		if (tapeThrottle == null) {
+			if (v == null || !v.isTrain() || v.hasParent() || !v.getTrainHandler().isRecording()) {
+				normalize();
+			}
+			if (v != null && v.isTrain() && !v.hasParent()) {
+				v.getTrainHandler().maybeRecordSample(throttle.getCurrent());
+			}
+		}
 		if(throttle.getCurrent() == 0) {
 			return;
 		}
@@ -219,6 +239,9 @@ public class Engine extends VehicleComponent{
 			for(ParticleData pd : particles) {
 				pd.spawnParticle(bone.getBaseLocation(), bone.getVector());
 			}
+		}
+		if (v != null && v.getEntity() != null && !bones.isEmpty()) {
+			PersistenceLog.particleOffset(v, bones.get(0).getBaseLocation(), v.getEntity().getLocation());
 		}
 		if(healthData.getHealthPercentage() < 1 && started) stop();
 		if(tank.getCurrent() == 0 && tank.useFuel()) {

@@ -1,0 +1,45 @@
+aa_turret:
+    name: "§l§eAnti-Air Turret"
+    model: aa_turret
+    fixed: true
+    skins:
+        aa_turret:
+            name: "Anti-Air Turret"
+            model: aa_turret
+    death:
+        template: explode_small
+    behaviour:
+        rotator: aa_turret_body
+        vector: aa_turret_body.aa_turret_body
+    states:
+        ground:
+            keybinds:
+                SHIFT: SEAT_SELECTION
+    components:
+        hull:
+            health: 30.0
+            repair-time: 100
+            damage-chance: 1.0
+            armor: emplacement
+            role: hull_emplacement
+            vfx:
+                - aa_turret_body
+    seats:
+        - captain(aa_turret_gunner)
+    weapons:
+        aa_turret:
+            name: "§eAnti-Air Turret"
+            template: aa_turret
+            seat: aa_turret_gunner
+            body-bone: "aa_turret_body"
+            head-bone: "gun"
+            rotation-limits:
+              min-pitch: -85
+              max-pitch: 0
+            animations:
+                shoot:
+                    - shoot
+                    - shoot2
+            bones:
+                - exit1.exit_align1
+                - exit2.exit_align2

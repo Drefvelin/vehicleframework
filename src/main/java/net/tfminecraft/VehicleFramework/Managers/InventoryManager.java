@@ -28,6 +28,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Component.Pump;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Wings;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SkinHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Skins.VehicleSkin;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
@@ -173,7 +174,7 @@ public class InventoryManager {
 		List<String> lore = new ArrayList<>();
 		if(tool.equalsIgnoreCase("repair")) {
 			lore.add("§aSelected");
-			m.addEnchant(Enchantment.DURABILITY, 1, true);
+			m.addEnchant(Enchantment.UNBREAKING, 1, true);
 			m.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		} else {
 			lore.add("§eClick to Select");
@@ -196,7 +197,7 @@ public class InventoryManager {
 		List<String> lore = new ArrayList<>();
 		if(tool.equalsIgnoreCase("water")) {
 			lore.add("§aSelected");
-			m.addEnchant(Enchantment.DURABILITY, 1, true);
+			m.addEnchant(Enchantment.UNBREAKING, 1, true);
 			m.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		} else {
 			lore.add("§eClick to Select");
@@ -276,8 +277,12 @@ public class InventoryManager {
 			i = VehicleFramework.plugin.getServer().createInventory(new VFInventoryHolder(v.getUUID(), VFGUI.SKIN_SELECTION), 27, "§7Select Skin");
 		}
 		int x = 0;
+		String currentId = v.getSkinHandler().getCurrentSkin().getId();
 		for(VehicleSkin skin : v.getSkinHandler().getSkins().values()) {
-			i.setItem(x, getSkinItem(skin, v.getSkinHandler().getCurrentSkin().getId()));
+			if (!SkinHandler.isModelAvailable(skin) && !skin.getId().equalsIgnoreCase(currentId)) {
+				continue;
+			}
+			i.setItem(x, getSkinItem(skin, currentId));
 			x++;
 		}
 		//i.setItem(26, createDismountButton());

@@ -7,6 +7,9 @@ import java.util.Set;
 
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.ticxo.modelengine.api.ModelEngineAPI;
+
+import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.State;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
@@ -19,12 +22,27 @@ public class SkinHandler {
 	
 	private HashMap<String, VehicleSkin> skins = new HashMap<>();
 
+	public static boolean isModelAvailable(String modelId) {
+		if (modelId == null || modelId.isBlank()) {
+			return false;
+		}
+		return ModelEngineAPI.getBlueprint(modelId) != null;
+	}
+
+	public static boolean isModelAvailable(VehicleSkin skin) {
+		return skin != null && isModelAvailable(skin.getModel());
+	}
+
 	public SkinHandler(String model, ConfigurationSection config) {
 		Set<String> set = config.getKeys(false);
 
 		List<String> list = new ArrayList<String>(set);
 		for(String key : list) {
-			skins.put(key, new VehicleSkin(key, config.getConfigurationSection(key)));
+			VehicleSkin skin = new VehicleSkin(key, config.getConfigurationSection(key));
+			if (!isModelAvailable(skin)) {
+				VFLogger.log("Skin '" + key + "' references missing ModelEngine model '" + skin.getModel() + "'");
+			}
+			skins.put(key, skin);
 		}
 		currentSkin = skins.get(model);
 	}
@@ -38,6 +56,7 @@ public class SkinHandler {
 	public boolean canChangeSkin(String id, boolean override) {
 		if(currentSkin.getId().equalsIgnoreCase(id) && !override) return false;
 		if(!skins.containsKey(id)) return false;
+		if (!override && !isModelAvailable(skins.get(id))) return false;
 		if(v.getSeatHandler().hasPassengers() && !override) return false;
 		if(v.getStateHandler().getCurrentState().getType().equals(State.FLYING) && !override) return false;
 		if(v.hasComponent(Component.ENGINE) && !override) {
@@ -50,7 +69,9 @@ public class SkinHandler {
 	
 	public String changeSkin(String id) {
 		if(!skins.containsKey(id)) return null;
-		currentSkin = skins.get(id);
+		VehicleSkin skin = skins.get(id);
+		if (!isModelAvailable(skin)) return null;
+		currentSkin = skin;
 		return currentSkin.getModel();
 	}
 

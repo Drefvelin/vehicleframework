@@ -44,6 +44,7 @@ import net.tfminecraft.VehicleFramework.VFLogger;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Engine;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Fuel.FuelTank;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.GearedEngine;
+import net.tfminecraft.VehicleFramework.Vehicles.Component.Gear.Gear;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Propulsion.Throttle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.SinkableHull;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
@@ -703,6 +704,24 @@ public class ActiveVehicle {
 	public boolean shouldFloat() {
 		return getBehaviourHandler().shouldFloat();
 	}
+
+	public void applyBreakBraking() {
+		if (hasComponent(Component.GEARED_ENGINE)) {
+			GearedEngine engine = (GearedEngine) getComponent(Component.GEARED_ENGINE);
+			Gear gear = engine.getGear();
+			Throttle throttle = gear.getThrottle();
+			if (throttle.getCurrent() > throttle.getMin()) {
+				throttle.change(gear.getAcceleration() * -1);
+			}
+		} else if (hasComponent(Component.ENGINE)) {
+			Engine engine = (Engine) getComponent(Component.ENGINE);
+			Throttle throttle = engine.getThrottle();
+			if (throttle.getCurrent() > throttle.getMin()) {
+				throttle.decrease();
+			}
+		}
+	}
+
 	public boolean isTrain() {
 		return getBehaviourHandler().isTrain();
 	}

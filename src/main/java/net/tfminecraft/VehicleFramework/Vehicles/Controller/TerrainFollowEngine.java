@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -90,7 +91,7 @@ public final class TerrainFollowEngine {
 			Location downStart = bodyDownStart(v, current, config);
 			debugStarts.add(downStart);
 			RayTraceResult down = rayDown(downStart);
-			if (down != null && down.getHitPosition() != null) {
+			if (down != null) {
 				hitCount = 1;
 				wheelSupportY = down.getHitPosition().getY() + locOffset;
 				if (downStart.getWorld() != null) {
@@ -104,7 +105,7 @@ public final class TerrainFollowEngine {
 			hit = new boolean[n];
 			for (int i = 0; i < n; i++) {
 				RayTraceResult down = rayDown(probeStarts.get(i));
-				if (down != null && down.getHitPosition() != null) {
+				if (down != null) {
 					hit[i] = true;
 					hitY[i] = down.getHitPosition().getY();
 					hitCount++;
@@ -411,7 +412,7 @@ public final class TerrainFollowEngine {
 			double dist = lookahead * fractions[i];
 			Location start = origin.clone().add(heading.getX() * dist, 0, heading.getZ() * dist);
 			RayTraceResult down = rayDown(start);
-			if (down != null && down.getHitPosition() != null) {
+			if (down != null) {
 				hit[i] = true;
 				hitY[i] = down.getHitPosition().getY();
 				if (debugHits != null && start.getWorld() != null) {
@@ -517,12 +518,30 @@ public final class TerrainFollowEngine {
 		if (start == null || start.getWorld() == null) {
 			return null;
 		}
-		return start.getWorld().rayTraceBlocks(
+		RayTraceResult down = start.getWorld().rayTraceBlocks(
 				start,
 				new Vector(0, -1, 0),
 				DOWN_RAY_LENGTH,
 				FluidCollisionMode.ALWAYS,
 				true);
+		if (!isValidGroundHit(down)) {
+			return null;
+		}
+		return down;
+	}
+
+	static boolean isValidGroundHit(RayTraceResult down) {
+		if (down == null || down.getHitBlock() == null || down.getHitPosition() == null) {
+			return false;
+		}
+		Block block = down.getHitBlock();
+		if (block.isLiquid()) {
+			return false;
+		}
+		if (block.getBlockData() instanceof Waterlogged waterlogged && waterlogged.isWaterlogged()) {
+			return false;
+		}
+		return true;
 	}
 
 	static List<Location> resolveProbeStarts(ActiveVehicle v, TerrainFollowConfig config) {

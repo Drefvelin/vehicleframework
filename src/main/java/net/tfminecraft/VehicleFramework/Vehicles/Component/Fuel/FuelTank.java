@@ -116,18 +116,17 @@ public class FuelTank {
     }
 
     public void tick(Throttle throttle) {
-        double amount = 1;
-        if(throttle.getMax() == 0) amount = 1;
-        if(throttle.getCurrent() == 0) return;
-        else {
-            double percentage = (double) throttle.getCurrent()/throttle.getMax();
-            if(percentage < 0) percentage *=-1;
-            percentage = Math.max(1, percentage);
-            if(current == 0) return;
-            amount = rate*percentage;
-        }
-        current-=amount;
-        if(current < 0) current = 0;
+        if (throttle.getCurrent() == 0) return;
+        if (current == 0) return;
+
+        int span = Math.max(Math.abs(throttle.getMax()), Math.abs(throttle.getMin()));
+        if (span == 0) span = 100;
+
+        double percentage = Math.abs(throttle.getCurrent()) / (double) span;
+        percentage = Math.max(1, percentage);
+        double amount = rate * percentage;
+        current -= amount;
+        if (current < 0) current = 0;
     }
 
     public int getPercentage() {

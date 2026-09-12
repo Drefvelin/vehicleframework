@@ -131,7 +131,7 @@ public final class BulletRaycast {
 					world.playSound(glassHit, Sound.BLOCK_GLASS_BREAK, 0.8f, 1.2f);
 					ImpactVfx.spawn(
 							glassHit,
-							Particle.BLOCK_CRACK,
+							Particle.BLOCK,
 							10,
 							0.1, 0.1, 0.1,
 							0,
@@ -151,7 +151,7 @@ public final class BulletRaycast {
 				ammoData.hitFX(players, impact, 1f);
 				ImpactVfx.spawn(
 						impact,
-						Particle.EXPLOSION_NORMAL,
+						Particle.EXPLOSION,
 						2,
 						0.2, 0.2, 0.2,
 						0,

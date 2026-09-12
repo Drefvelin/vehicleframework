@@ -83,7 +83,7 @@ public class DefaultShooter implements Shooter {
 	            	ClusterBomb c = (ClusterBomb) a;
 	            	if(i >= c.getFuse()) {
 	            		for(Player p : players) {
-	        				p.spawnParticle(Particle.EXPLOSION_HUGE, e.getLocation(), (int) Math.round(a.getData().getYield()*15), 0, 0, 0, 0);
+	        				p.spawnParticle(Particle.EXPLOSION_EMITTER, e.getLocation(), (int) Math.round(a.getData().getYield()*15), 0, 0, 0, 0);
 	        			}
 						shooter.triggerExplosion(players, e.getLocation(), ammoData, w);
 	            		sendCluster(e.getLocation(), c, players, projectiles, w);

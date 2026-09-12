@@ -57,6 +57,8 @@ horse_cart:
                 A: TURN_LEFT
                 D: TURN_RIGHT
                 SHIFT: SEAT_SELECTION
+        floating:
+            break: true
     components:
         harness:
             health: 100.0

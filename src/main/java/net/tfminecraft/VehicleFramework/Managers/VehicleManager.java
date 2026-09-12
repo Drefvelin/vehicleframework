@@ -73,6 +73,7 @@ import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.Harness;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.Container;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SkinHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
@@ -957,7 +958,15 @@ public class VehicleManager implements Listener{
 			return;
 		}
 		NamespacedKey key = new NamespacedKey(VehicleFramework.plugin, "vf_skin_id");
-		v.changeSkin(i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING));
+		String skinId = i.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+		if (skinId == null || !SkinHandler.isModelAvailable(v.getSkinHandler().getSkins().get(skinId))) {
+			p.sendMessage("§cThat skin is not available.");
+			return;
+		}
+		if (!v.changeSkin(skinId)) {
+			p.sendMessage("§cCould not change skin.");
+			return;
+		}
 		inv.skinSelection(p.getOpenInventory().getTopInventory(), p, v, false);
 	}
 

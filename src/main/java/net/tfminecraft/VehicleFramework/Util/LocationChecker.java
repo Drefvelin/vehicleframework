@@ -2,6 +2,7 @@ package net.tfminecraft.VehicleFramework.Util;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -9,8 +10,10 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Rail;
 import org.bukkit.block.data.Rail.Shape;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -22,8 +25,52 @@ public class LocationChecker {
 	private static List<Material> air = Arrays.asList(Material.AIR, Material.LIGHT);
 	
 	public static boolean isInWater(Location loc) {
-		if(water.contains(loc.getBlock().getType())) return true;
+		return isWaterBlock(loc.getBlock());
+	}
+
+	public static boolean isWaterBlock(Block block) {
+		if (block == null) {
+			return false;
+		}
+		if (water.contains(block.getType())) {
+			return true;
+		}
+		if (block.isLiquid()) {
+			return true;
+		}
+		if (block.getBlockData() instanceof Waterlogged waterlogged && waterlogged.isWaterlogged()) {
+			return true;
+		}
 		return false;
+	}
+
+	public static boolean isShallowWadableBlock(Block footBlock) {
+		if (!isWaterBlock(footBlock)) {
+			return false;
+		}
+		Block below = footBlock.getRelative(BlockFace.DOWN);
+		return !isWaterBlock(below);
+	}
+
+	public static boolean isMostlyShallowWadableWater(Set<Block> feetBlocks, double requiredFraction) {
+		if (feetBlocks == null || feetBlocks.isEmpty()) {
+			return false;
+		}
+		int waterCount = 0;
+		int shallowCount = 0;
+		for (Block block : feetBlocks) {
+			if (!isWaterBlock(block)) {
+				continue;
+			}
+			waterCount++;
+			if (isShallowWadableBlock(block)) {
+				shallowCount++;
+			}
+		}
+		if (waterCount == 0) {
+			return false;
+		}
+		return (double) shallowCount / waterCount >= requiredFraction;
 	}
 	
 	public static boolean isInAir(Location loc) {

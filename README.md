@@ -14,7 +14,7 @@ To achieve this, I leveraged the external plugin **ModelEngine**, but used parts
 ## Features
 - Highly customizable vehicles based on YAML configuration files (Controlled from [ActiveVehicle.java](src/main/java/net/tfminecraft/VehicleFramework/Vehicles/ActiveVehicle.java))
 - Advanced movement and rotation logic with Joml and ModelEngine ([BoneRotator.java](src/main/java/net/tfminecraft/VehicleFramework/Bones/BoneRotator.java))
-- Json database with crash handling and dynamic loading based on chunks ([Database.java](src/main/java/net/tfminecraft/VehicleFramework/Database/Database.java))
+- SQLite instance store (`data/vehicles.db`) with chunk-based spawn ([VehiclePersistence.java](src/main/java/net/tfminecraft/VehicleFramework/Database/VehiclePersistence.java))
 
 
 ## Technical Overview
@@ -31,13 +31,9 @@ To achieve this, I leveraged the external plugin **ModelEngine**, but used parts
 ## Key Challenges Solved
 
 ### Robust Persistence & Crash Recovery
-Since all runtime data is lost when a Minecraft server restarts, I implemented a custom JSON-based persistence system. A major challenge was handling unexpected server crashes, where no clean save could occur. I solved this by adding:
+Since all runtime data is lost when a Minecraft server restarts, live vehicles are stored in SQLite (`plugins/VehicleFramework/data/vehicles.db`). Each row holds a `payload_json` blob plus chunk/owner columns so spawn can load by chunk without scanning JSON files. Periodic `VACUUM INTO` snapshots land in `data/backups/` (three newest kept). If `vehicles.db` fails to open, the plugin copies the newest good snapshot over the live file and retries; with no usable backup it stays disabled.
 
-- a 5-minute snapshot system  
-- a **dirty bit** to detect unclean shutdowns  
-- automatic restoration of the last known good snapshot  
-
-To reduce RAM usage, vehicles are not fully loaded until a player is close enough. I built a two-tier loading system where lightweight `SpawnLocation` objects are stored, and the full `ActiveVehicle` is created only when needed. This originally introduced memory leaks, which I resolved by ensuring both objects share the same UUID and by tightening lifecycle management.
+To reduce RAM usage, vehicles are not fully loaded until a player is close enough. Lightweight in-memory `SpawnLocation` objects queue work, and the full `ActiveVehicle` is created only when needed. Both share the same UUID so lifecycle stays aligned. Track splines still use JSON under `data/tracks/`; vehicle type templates stay YAML.
 
 ### Full Project Refactor as Scope Expanded
 The current plugin is far larger and more complex than what I originally planned. As I expanded into more advanced usage of the ModelEngine API, the initial architecture became a bottleneck. To fix this, I performed a full project refactor - keeping the original concept, but rebuilding the entire foundation.
@@ -312,6 +308,20 @@ death:
   crash:
     nop: true
 ```
+
+Scripted `conditions` (death overrides and `behaviour.rotation-targets`) are AND'd as a list. `health_percent` gates on a component's HP % (`hull`, `engine`, `wings`, …). Missing or unknown component fails closed.
+
+```yaml
+conditions:
+  - health_percent(hull;less_than=40)   # also: component=hull;less_than=40
+  - state(flying)
+```
+
+Ops: `less_than` (`<`), `more_than` (`>`), `at_most` (`<=`), `at_least` (`>=`). One comparison per line.
+
+Custom-effect lists stay strings. `condition(type;payload)` gates **everything after it** (fail closed, no nested parens). Several in a row AND. Example: `condition(health_percent;hull;less_than=40)` then `death(explode)`.
+
+Wings lift scales with HP as `1 - damage-factor * (1 - healthRatio)` (`damage-factor` default `1.0` = full linear loss; `0.5` keeps half lift at 0% HP).
 
 ### Land terrain-follow (opt-in)
 

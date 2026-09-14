@@ -14,17 +14,20 @@ import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 public class Wings extends VehicleComponent{
 	private double lift;
 	private float turnRate;
+	private double damageFactor;
 	
 	public Wings(ConfigurationSection config) {
 		super(Component.WINGS, config);
 		lift = config.getDouble("lift", 0.5);
 		turnRate = (float) config.getDouble("turn-rate", 0.2);
+		damageFactor = config.getDouble("damage-factor", 1.0);
 	}
 	public Wings(ActiveVehicle v, Wings another, ActiveModel m, IncompleteComponent ic) {
 		super(another, v, m, ic);
 		this.v = v;
 		lift = another.getBaseLift();
 		turnRate = another.getBaseTurnRate();
+		damageFactor = another.getDamageFactor();
 	}
 
 	@Override
@@ -43,8 +46,14 @@ public class Wings extends VehicleComponent{
 	public double getBaseLift() {
 		return lift;
 	}
+
+	public double getDamageFactor() {
+		return damageFactor;
+	}
 	
 	public double getLift() {
-		return lift*(healthData.getHealthPercentage()/100.0);
+		double healthRatio = healthData.getHealthPercentage() / 100.0;
+		double multiplier = 1.0 - damageFactor * (1.0 - healthRatio);
+		return lift * Math.max(0.0, multiplier);
 	}
 }

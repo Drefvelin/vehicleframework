@@ -61,9 +61,10 @@ import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Data.NamingData;
 import net.tfminecraft.VehicleFramework.Data.OwnedVehicleSummary;
 import net.tfminecraft.VehicleFramework.Data.StoredVehicleMeta;
-import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Database.PersistenceLog;
+import net.tfminecraft.VehicleFramework.Database.VehiclePersistence;
+import net.tfminecraft.VehicleFramework.Database.VehicleSnapshot;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.Keybind;
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
@@ -99,7 +100,6 @@ import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
 
 public class VehicleManager implements Listener{
 	private ItemAPI api = TLibs.getItemAPI();
-	private Database db = new Database();
 	private InventoryManager inv = new InventoryManager();
 	private RepairManager repairManager = new RepairManager(this);
 	private SpawnManager spawnManager = new SpawnManager(this);
@@ -178,13 +178,14 @@ public class VehicleManager implements Listener{
 		ActiveVehicle live = getByUUID(vehicleUuid.trim());
 		if (live != null) {
 			VehicleHealthDecay.applyToLive(live, fractionOfMax, minHealthFraction);
-			db.saveVehicle(live);
+			saveLive(live);
 			return true;
 		}
-		return VehicleHealthDecay.applyToStoredFile(
-				VehicleHealthDecay.storedVehicleFile(vehicleUuid),
-				fractionOfMax,
-				minHealthFraction);
+		VehiclePersistence persistence = VehiclePersistence.current();
+		if (persistence == null) {
+			return false;
+		}
+		return persistence.applyStoredDecay(vehicleUuid.trim(), fractionOfMax, minHealthFraction);
 	}
 	
 	public ActiveVehicle get(Entity e) {
@@ -220,6 +221,9 @@ public class VehicleManager implements Listener{
 		for (Entity entity : world.getNearbyEntities(loc, radius, radius, radius)) {
 			if(get(entity) == null) continue;
 			ActiveVehicle v = get(entity);
+			if (!persistDestroy(v)) {
+				continue;
+			}
 			v.remove(VehicleRemoveReason.ADMIN_KILL);
 			count++;
 			if(p != null) VFLogger.message(p, "§cKilled "+v.getName());
@@ -242,6 +246,10 @@ public class VehicleManager implements Listener{
 	
 	public ActiveVehicle spawn(Location loc, Vehicle v, IncompleteVehicle i) {
 		ActiveVehicle vehicle = spawner.spawn(loc, v, this, i);
+		if (vehicle == null || vehicle.getEntity() == null) {
+			VFLogger.log("Failed to spawn vehicle " + (v == null ? "unknown" : v.getId()));
+			return null;
+		}
 		register(vehicle);
 		ConsistRelinker.tryLink(vehicle);
 		PersistenceLog.spawned(vehicle, loc);
@@ -250,7 +258,6 @@ public class VehicleManager implements Listener{
 	}
 	
 	public void start() {
-		if(db.isDirtyFlag()) db.restoreBackupSnapshot();
 		spawnManager.start();
 		vehicleFastTickCycle();
 		vehicleSlowTickCycle();
@@ -259,7 +266,7 @@ public class VehicleManager implements Listener{
 
 	public void reload() {
 		PersistenceLog.append("VEHICLE_MANAGER_RELOAD");
-		spawnManager.start();
+		spawnManager.reload();
 	}
 	private void vehicleSlowTickCycle() {
 		new BukkitRunnable() {
@@ -316,11 +323,25 @@ public class VehicleManager implements Listener{
 		new BukkitRunnable() {
 			@Override
 	        public void run() {
-				VFLogger.info("Performing backup...");
-				db.backupFiles();
-				for(ActiveVehicle v : vehicles.values()) {
-					db.saveBackup(v);
+				VFLogger.info("Checkpointing vehicles...");
+				VehiclePersistence persistence = VehiclePersistence.current();
+				if (persistence == null) {
+					return;
 				}
+				int failed = 0;
+				for (ActiveVehicle v : vehicles.values()) {
+					if (v.isDestroyed()) {
+						continue;
+					}
+					if (!persistence.saveLive(v)) {
+						failed++;
+					}
+				}
+				if (failed > 0) {
+					VFLogger.log("Checkpoint failed for " + failed + " vehicles");
+				}
+				persistence.checkpointWal(false);
+				persistence.vacuumIntoBackup();
 	        }
 	    }.runTaskTimer(VehicleFramework.plugin, 0L, 6000L);
 	}
@@ -594,6 +615,10 @@ public class VehicleManager implements Listener{
 		claimOwnership(p, v);
 		//Destroy
 		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.destroyItem)) {
+			if (!persistDestroy(v)) {
+				p.sendMessage("§cCould not remove vehicle");
+				return;
+			}
 			v.remove(VehicleRemoveReason.PLAYER_DESTROY);
 			p.sendMessage("§cRemoved");
 			return;
@@ -1301,32 +1326,69 @@ public class VehicleManager implements Listener{
 		HashMap<Entity, ActiveVehicle> vc = (HashMap<Entity, ActiveVehicle>) vehicles.clone();
 		for(Map.Entry<Entity, ActiveVehicle> entry : vc.entrySet()) {
 			ActiveVehicle v = entry.getValue();
-			unload(v);
+			if (!unload(v)) {
+				VFLogger.log("Failed to persist vehicle " + v.getUUID() + " during unload");
+			}
 		}
 	}
 
-	public void unload(ActiveVehicle v) {
-		PersistenceLog.unload(v, v.isDestroyed() ? "destroyed" : "unload");
-		if(!v.isDestroyed()) {
-			db.saveVehicle(v);
-			v.remove(VehicleRemoveReason.UNLOAD);
-		} else {
-			v.remove(VehicleRemoveReason.UNLOAD);
+	private boolean saveLive(ActiveVehicle vehicle) {
+		VehiclePersistence persistence = VehiclePersistence.current();
+		if (persistence == null) {
+			VFLogger.log("Cannot save vehicle: SQLite repository is not open");
+			return false;
 		}
+		return persistence.saveLive(vehicle);
+	}
+
+	public boolean persistDestroy(ActiveVehicle v) {
+		if (v == null || v.getUUID() == null) {
+			return false;
+		}
+		VehiclePersistence persistence = VehiclePersistence.current();
+		if (persistence == null) {
+			VFLogger.log("Cannot tombstone vehicle " + v.getUUID() + ": SQLite is not open");
+			return false;
+		}
+		return persistence.tombstone(v.getUUID().toString());
+	}
+
+	public boolean unload(ActiveVehicle v) {
+		if (v == null) {
+			return false;
+		}
+		PersistenceLog.unload(v, v.isDestroyed() ? "destroyed" : "unload");
+		if (v.isDestroyed()) {
+			if (!persistDestroy(v)) {
+				return false;
+			}
+		} else if (!saveLive(v)) {
+			return false;
+		}
+		v.remove(VehicleRemoveReason.UNLOAD);
+		return true;
 	}
 
 	public Map<Vehicle, Integer> getVehiclesByOwner(String owner) {
 		Map<Vehicle, Integer> owned = new HashMap<>();
+		Set<String> liveUuids = new HashSet<>();
 		for(Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 			ActiveVehicle v = entry.getValue();
 			if(v.getOwnerData().getOwner().equalsIgnoreCase(owner)) {
+				if (v.getUUID() != null) {
+					liveUuids.add(v.getUUID().toLowerCase());
+				}
 				Vehicle base = VehicleLoader.getByString(v.getId());
 				if(base == null) continue;
 				owned.put(base, owned.getOrDefault(base, 0) + 1);
 			}
 		}
 
-		Map<String, Integer> stored = db.getStoredVehicleCountsByOwner(owner);
+		Map<String, Integer> stored = Map.of();
+		VehiclePersistence persistence = VehiclePersistence.current();
+		if (persistence != null) {
+			stored = persistence.countByOwner(owner, liveUuids);
+		}
 		for(Map.Entry<String, Integer> entry : stored.entrySet()) {
 			Vehicle base = VehicleLoader.getByString(entry.getKey());
 			if(base == null) continue;
@@ -1348,7 +1410,28 @@ public class VehicleManager implements Listener{
 		if (pending.isPresent()) {
 			return pending;
 		}
-		return db.getStoredSpawnLocation(vehicleUuid);
+		VehiclePersistence persistence = VehiclePersistence.current();
+		if (persistence == null) {
+			return Optional.empty();
+		}
+		return persistence.findLive(vehicleUuid).flatMap(VehicleManager::locationFromSnapshot);
+	}
+
+	private static Optional<Location> locationFromSnapshot(VehicleSnapshot snapshot) {
+		if (snapshot == null || snapshot.getWorld() == null) {
+			return Optional.empty();
+		}
+		World world = Bukkit.getWorld(snapshot.getWorld());
+		if (world == null) {
+			return Optional.empty();
+		}
+		return Optional.of(new Location(
+				world,
+				snapshot.getX(),
+				snapshot.getY(),
+				snapshot.getZ(),
+				snapshot.getYaw(),
+				0f));
 	}
 
 	public List<OwnedVehicleSummary> listOwnedVehicles(String owner) {
@@ -1357,11 +1440,21 @@ public class VehicleManager implements Listener{
 		}
 		return collectOwnedVehicles(
 				liveOwner -> liveOwner != null && liveOwner.equalsIgnoreCase(owner),
-				db.listStoredVehiclesByOwner(owner));
+				persistenceListByOwner(owner));
 	}
 
 	public List<OwnedVehicleSummary> listAllPlayerOwnedVehicles() {
-		return collectOwnedVehicles(Database::isPlayerOwner, db.listStoredPlayerOwnedVehicles());
+		VehiclePersistence persistence = VehiclePersistence.current();
+		List<StoredVehicleMeta> stored = persistence == null ? List.of() : persistence.listPlayerOwned();
+		return collectOwnedVehicles(StoredVehicleMeta::isPlayerOwner, stored);
+	}
+
+	private List<StoredVehicleMeta> persistenceListByOwner(String owner) {
+		VehiclePersistence persistence = VehiclePersistence.current();
+		if (persistence == null) {
+			return List.of();
+		}
+		return persistence.listByOwner(owner);
 	}
 
 	private List<OwnedVehicleSummary> collectOwnedVehicles(
@@ -1403,7 +1496,11 @@ public class VehicleManager implements Listener{
 	}
 
 	public Optional<StoredVehicleMeta> readStoredVehicle(String vehicleUuid) {
-		return db.readStoredVehicle(vehicleUuid);
+		VehiclePersistence persistence = VehiclePersistence.current();
+		if (persistence == null) {
+			return Optional.empty();
+		}
+		return persistence.readMeta(vehicleUuid);
 	}
 
 	public void clearOwnership(String vehicleUuid) {
@@ -1414,7 +1511,12 @@ public class VehicleManager implements Listener{
 		if (live != null) {
 			live.getOwnerData().setOwner("none");
 			live.getOwnerData().setWhiteListed(false);
+			saveLive(live);
+			return;
 		}
-		db.clearStoredOwnership(vehicleUuid);
+		VehiclePersistence persistence = VehiclePersistence.current();
+		if (persistence != null) {
+			persistence.clearOwnership(vehicleUuid);
+		}
 	}
 }

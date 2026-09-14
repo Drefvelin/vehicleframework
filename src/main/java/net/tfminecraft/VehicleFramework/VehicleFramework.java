@@ -10,8 +10,10 @@ import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 import net.tfminecraft.VehicleFramework.Cache.Cache;
 import net.tfminecraft.VehicleFramework.Database.LogWriter;
-import net.tfminecraft.VehicleFramework.Database.Database;
 import net.tfminecraft.VehicleFramework.Database.PersistenceLog;
+import net.tfminecraft.VehicleFramework.Database.VehiclePersistence;
+import net.tfminecraft.VehicleFramework.Database.VehicleRepository;
+import net.tfminecraft.VehicleFramework.Database.VehicleSqliteBackup;
 import net.tfminecraft.VehicleFramework.Loaders.AmmunitionLoader;
 import net.tfminecraft.VehicleFramework.Loaders.ConfigLoader;
 import net.tfminecraft.VehicleFramework.Loaders.FuelLoader;
@@ -37,8 +39,6 @@ import net.tfminecraft.VehicleFramework.Vehicles.Controller.GroundEngineLog;
 public class VehicleFramework extends JavaPlugin{
 	
 	public static VehicleFramework plugin;
-
-	private static boolean dirtyBit = false;
 	
 	private static LogWriter log;
 	private final CommandManager commandManager = new CommandManager();
@@ -52,14 +52,13 @@ public class VehicleFramework extends JavaPlugin{
 	private final ArmorTemplateLoader armorTemplateLoader = new ArmorTemplateLoader();
 	private final DeathTemplateLoader deathTemplateLoader = new DeathTemplateLoader();
 	private final FuelLoader fuelLoader = new FuelLoader();
-	private final Database db = new Database();
+	private static VehicleRepository vehicleRepository;
 	private static TrackRegistry trackRegistry;
 	private static TrackDisplayManager trackDisplayManager;
 	private static VehiclePacketListener packetListener;
 	
 	@Override
 	public void onEnable() {
-		dirtyBit = db.isDirtyFlag();
 		Bukkit.getLogger().info("Initializing VF");
 		printBanner();
 		plugin = this;
@@ -67,6 +66,11 @@ public class VehicleFramework extends JavaPlugin{
 		log = new LogWriter(getDataFolder());
 		VFLogger.info("Running checks...");
 		createFolders();
+		openSqlite();
+		if (vehicleRepository == null) {
+			getServer().getPluginManager().disablePlugin(this);
+			return;
+		}
 		createConfigs();
 		loadConfigs();
 		Cache.applyTrackDisplayStyle();
@@ -80,23 +84,27 @@ public class VehicleFramework extends JavaPlugin{
 		VFLogger.info("Setup complete!");
 		int pluginId = 26823; // Replace with your actual bStats plugin ID
 		Metrics metrics = new Metrics(this, pluginId);
-		db.setDirtyFlag(true);
 	}
 	@Override
 	public void onDisable() {
 		PersistenceLog.append("DISABLE_BEGIN");
-		db.setDirtyFlag(false);
 		if (trackDisplayManager != null) {
 			TrackBuildAnimator.finishAll();
 			trackDisplayManager.despawnAll();
 		}
 		vehicleManager.unloadAll();
-		vehicleManager.getSpawnManager().save();
+		VehiclePersistence persistence = VehiclePersistence.current();
+		if (persistence != null) {
+			persistence.checkpointWal(true);
+			persistence.vacuumIntoBackup();
+		}
+		closeVehicleRepository();
 		Cache.removeLights();
 		Cache.removeProjectiles();
 	}
 	public void registerListeners() {
 		getServer().getPluginManager().registerEvents(vehicleManager, this);
+		getServer().getPluginManager().registerEvents(vehicleManager.getSpawnManager(), this);
 		getServer().getPluginManager().registerEvents(vehicleManager.getRepairManager(), this);
 		getServer().getPluginManager().registerEvents(new TrackToolListener(), this);
 		trackDisplayManager = new TrackDisplayManager();
@@ -112,11 +120,41 @@ public class VehicleFramework extends JavaPlugin{
 	public void startManagers() {
 		vehicleManager.start();
 	}
+	public static VehicleRepository getVehicleRepository() {
+		return vehicleRepository;
+	}
+
+	private void openSqlite() {
+		File liveFile = new File(getDataFolder(), "data/vehicles.db");
+		File backupDir = VehicleSqliteBackup.backupDir(getDataFolder());
+		try {
+			vehicleRepository = VehicleRepository.openWithRestore(liveFile, backupDir);
+		} catch (Exception ex) {
+			vehicleRepository = null;
+			VFLogger.log("Failed to open SQLite vehicles.db; VehicleFramework cannot start. " + ex.getMessage());
+		}
+	}
+
+	private static void closeVehicleRepository() {
+		if (vehicleRepository == null) {
+			return;
+		}
+		try {
+			vehicleRepository.close();
+		} catch (Exception ex) {
+			VFLogger.log("Failed to close SQLite vehicles.db: " + ex.getMessage());
+		} finally {
+			vehicleRepository = null;
+		}
+	}
+
 	public void createFolders() {
 		if (!getDataFolder().exists()) getDataFolder().mkdir();
 		File subFolder = new File(getDataFolder(), "data");
 		if(!subFolder.exists()) subFolder.mkdir();
 		subFolder = new File(getDataFolder(), "data/tracks");
+		if(!subFolder.exists()) subFolder.mkdir();
+		subFolder = new File(getDataFolder(), "data/backups");
 		if(!subFolder.exists()) subFolder.mkdir();
 		subFolder = new File(getDataFolder(), "vehicles");
 		if(!subFolder.exists()) subFolder.mkdir();

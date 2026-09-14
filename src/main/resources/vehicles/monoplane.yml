@@ -130,6 +130,7 @@ monoplane:
             - particle(campfire_cosy_smoke;exhaust2.exhaust2align;5;0.2;0.4)
             - delay(30)
         fire_start:
+            - condition(health_percent;hull;less_than=40)
             - death(explode)
     components:
         engine:
@@ -170,6 +171,7 @@ monoplane:
         wings:
             lift: 6.7
             turn-rate: 0.55
+            damage-factor: 0.5
             health: 200.0
             repair-time: 100
             damage-chance: 1.0

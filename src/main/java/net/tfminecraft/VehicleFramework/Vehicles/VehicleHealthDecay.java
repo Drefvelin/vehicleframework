@@ -1,23 +1,11 @@
 package net.tfminecraft.VehicleFramework.Vehicles;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import net.tfminecraft.VehicleFramework.Loaders.VehicleLoader;
 import net.tfminecraft.VehicleFramework.Vehicles.Component.VehicleComponent;
@@ -26,12 +14,10 @@ import net.tfminecraft.VehicleFramework.Weapons.ActiveWeapon;
 import net.tfminecraft.VehicleFramework.Weapons.Weapon;
 
 /**
- * Generic health decay for spawned and file-backed vehicles. Callers supply
+ * Generic health decay for spawned and stored vehicles. Callers supply
  * fraction-of-max and remaining-health floor; this class does not know about upkeep.
  */
 public final class VehicleHealthDecay {
-	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
 	private VehicleHealthDecay() {}
 
 	public interface MaxHealthLookup {
@@ -59,17 +45,6 @@ public final class VehicleHealthDecay {
 			next = 0.0;
 		}
 		return next;
-	}
-
-	public static File storedVehicleFile(String vehicleUuid) {
-		if (vehicleUuid == null || vehicleUuid.isBlank()) {
-			return new File("plugins/VehicleFramework/data/vehicles", "invalid.json");
-		}
-		String id = vehicleUuid.trim();
-		if (id.toLowerCase(Locale.ROOT).endsWith(".json")) {
-			id = id.substring(0, id.length() - 5);
-		}
-		return new File("plugins/VehicleFramework/data/vehicles", id + ".json");
 	}
 
 	public static void applyToLive(
@@ -108,44 +83,7 @@ public final class VehicleHealthDecay {
 		}
 	}
 
-	public static boolean applyToStoredFile(
-			File file,
-			double fractionOfMax,
-			double minHealthFraction) {
-		if (file == null || !file.isFile()) {
-			return false;
-		}
-		JsonObject root;
-		try (Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-			JsonElement parsed = JsonParser.parseReader(reader);
-			if (parsed == null || !parsed.isJsonObject()) {
-				return false;
-			}
-			root = parsed.getAsJsonObject();
-		} catch (IOException | RuntimeException e) {
-			return false;
-		}
-		String typeId = jsonString(root, "id");
-		if (typeId == null || typeId.isBlank()) {
-			return false;
-		}
-		Vehicle template = VehicleLoader.getByString(typeId);
-		if (template == null) {
-			return false;
-		}
-		boolean changed = applyToJson(root, lookupFromTemplate(template), fractionOfMax, minHealthFraction);
-		if (!changed) {
-			return true;
-		}
-		try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-			GSON.toJson(root, writer);
-		} catch (IOException e) {
-			return false;
-		}
-		return true;
-	}
-
-	static boolean applyToJson(
+	public static boolean applyToJson(
 			JsonObject root,
 			MaxHealthLookup lookup,
 			double fractionOfMax,
@@ -159,7 +97,7 @@ public final class VehicleHealthDecay {
 		return changed;
 	}
 
-	static MaxHealthLookup lookupFromTemplate(Vehicle template) {
+	public static MaxHealthLookup lookupFromTemplate(Vehicle template) {
 		Map<String, Double> components = new HashMap<>();
 		Map<String, Double> weapons = new HashMap<>();
 		if (template != null && template.getComponentHandler() != null) {
@@ -241,17 +179,6 @@ public final class VehicleHealthDecay {
 			changed = true;
 		}
 		return changed;
-	}
-
-	private static String jsonString(JsonObject object, String key) {
-		if (object == null || !object.has(key) || object.get(key).isJsonNull()) {
-			return null;
-		}
-		try {
-			return object.get(key).getAsString();
-		} catch (RuntimeException e) {
-			return null;
-		}
 	}
 
 	private static double jsonDouble(JsonObject object, String key) {

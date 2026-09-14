@@ -19,6 +19,7 @@ import net.tfminecraft.VehicleFramework.VehicleFramework;
 import net.tfminecraft.VehicleFramework.Bones.VectorBone;
 import net.tfminecraft.VehicleFramework.Enums.Component;
 import net.tfminecraft.VehicleFramework.Enums.VehicleDeath;
+import net.tfminecraft.VehicleFramework.Util.ConditionChecker;
 import net.tfminecraft.VehicleFramework.Vehicles.ActiveVehicle;
 
 public class CustomEffect {
@@ -71,7 +72,29 @@ public class CustomEffect {
 		else if(command.equalsIgnoreCase("death")) death(v, info);
 		else if(command.equalsIgnoreCase("start_fire")) startFire(v, info);
 		else if(command.equalsIgnoreCase("freeze_bone")) freezeBone(m, info);
+		else if(command.equalsIgnoreCase("condition")) {
+			if (!checkEffectCondition(v, info)) {
+				finished = true;
+				return;
+			}
+		}
 		run(players, v, i+1);
+	}
+
+	private static boolean checkEffectCondition(ActiveVehicle v, String info) {
+		if (info == null || info.isBlank()) {
+			return false;
+		}
+		int sep = info.indexOf(';');
+		if (sep < 0) {
+			return ConditionChecker.checkCondition(v, info, "");
+		}
+		String type = info.substring(0, sep).trim();
+		String value = info.substring(sep + 1).trim();
+		if (type.isEmpty()) {
+			return false;
+		}
+		return ConditionChecker.checkCondition(v, type, value);
 	}
 	
 	private void particle(List<Player> players, ActiveModel m, String info) {

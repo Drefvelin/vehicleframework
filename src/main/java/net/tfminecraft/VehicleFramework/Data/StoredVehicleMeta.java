@@ -28,4 +28,14 @@ public final class StoredVehicleMeta {
     public String getOwner() {
         return owner;
     }
+
+    public static boolean isPlayerOwner(String owner) {
+        if (owner == null || owner.isBlank()) {
+            return false;
+        }
+        if (!owner.regionMatches(true, 0, "player_", 0, 7)) {
+            return false;
+        }
+        return !owner.equalsIgnoreCase("player_none") && owner.length() > 7;
+    }
 }

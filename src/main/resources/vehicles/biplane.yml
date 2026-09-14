@@ -130,6 +130,7 @@ biplane:
             - particle(campfire_cosy_smoke;exhaust2.exhaust2align;5;0.2;0.4)
             - delay(30)
         fire_start:
+            - condition(health_percent;hull;less_than=40)
             - death(explode)
             - sound(engine;minecraft:entity.zombie.attack_iron_door;6.0;1.0)
             - delay(1)
@@ -173,6 +174,7 @@ biplane:
         wings:
             lift: 6.1
             turn-rate: 0.6
+            damage-factor: 0.5
             health: 200.0
             repair-time: 100
             damage-chance: 1.0

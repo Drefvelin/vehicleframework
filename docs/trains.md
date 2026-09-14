@@ -17,7 +17,7 @@ This document is the source of truth for spline tracks. Vanilla `Rail` blocks ar
 | **1** | Spline object, persist tracks, persist consist links, generate between anchors, 1x3 (then optional longer straights) visuals, travel by lerp on the spline, existing chunk load/unload | Recorder item, tickets/stations/fares, whitelist coal inventory, loco pulling coal from the car behind, force-loaded corridors, unloaded `s += dt` autopilot |
 | **2** | Circuit recorder, whitelist containers, coal car to loco, tickets, optional chunk tickets / unloaded advance | - |
 
-Phase 1 **does** save the consist and the spline. Phase 1 **does not** invent a new vehicle streamer. Vehicles keep `SpawnManager` + per-car JSON. Track **displays** spawn/despawn on **chunk** load/unload.
+Phase 1 **does** save the consist and the spline. Phase 1 **does not** invent a new vehicle streamer. Vehicles keep `SpawnManager` plus SQLite payloads. Track **displays** spawn/despawn on **chunk** load/unload.
 
 ## Core rule: spline is the object
 
@@ -146,7 +146,7 @@ Do **not** require spawning the whole consist when one chunk loads. Accept tempo
 - Serialize parent/child UUIDs (and spline binding when present).
 - Reattach when the other vehicle becomes an `ActiveVehicle`.
 - No change to `SpawnManager` policy.
-- Vehicle JSON holds the consist (`parent`, `child`, `splineId`, `s`). Spline JSON stays the path. Cars still spawn per chunk like any other vehicle.
+- Vehicle `payload_json` in SQLite holds the consist (`parent`, `child`, `splineId`, `s`). Spline JSON stays the path. Cars still spawn per chunk like any other vehicle.
 
 ### Batch T5 - Travel on spline
 
@@ -174,6 +174,6 @@ Do **not** require spawning the whole consist when one chunk loads. Accept tempo
 
 - Train YAML: `behaviour.train` in [`BehaviourHandler`](../src/main/java/net/tfminecraft/VehicleFramework/Vehicles/Handlers/BehaviourHandler.java)
 - Movement entry: [`VehicleMovementController`](../src/main/java/net/tfminecraft/VehicleFramework/Vehicles/Controller/VehicleMovementController.java) `v.isTrain()` -> `splineTick`
-- Vehicle JSON: [`Database.saveVehicle`](../src/main/java/net/tfminecraft/VehicleFramework/Database/Database.java)
+- Vehicle persist: [`VehiclePersistence`](../src/main/java/net/tfminecraft/VehicleFramework/Database/VehiclePersistence.java) (`saveLive`)
 - Chunk spawn: [`SpawnManager`](../src/main/java/net/tfminecraft/VehicleFramework/Managers/SpawnManager.java)
 - Junctions: [`TrackJunction`](../src/main/java/net/tfminecraft/VehicleFramework/Tracks/TrackJunction.java), [`TrackRegistry`](../src/main/java/net/tfminecraft/VehicleFramework/Tracks/TrackRegistry.java), [`TrackJunctionTravel`](../src/main/java/net/tfminecraft/VehicleFramework/Tracks/TrackJunctionTravel.java)

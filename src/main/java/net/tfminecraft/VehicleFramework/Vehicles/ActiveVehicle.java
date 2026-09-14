@@ -466,6 +466,10 @@ public class ActiveVehicle {
 			VFLogger.log(name+" has no "+type.toString()+" data");
 			return;
 		}
+		if (!vehicleManager.persistDestroy(this)) {
+			VFLogger.log("Cannot destroy " + name + ": SQLite tombstone failed");
+			return;
+		}
 		DeathData data = getDeathData(type);
 		if(data.hasOverrides()) {
 			for(DeathOverride o : data.getOverrides()) {

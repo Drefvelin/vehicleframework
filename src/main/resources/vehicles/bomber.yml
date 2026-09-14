@@ -109,6 +109,7 @@ bomber:
             - sound(engine2;minecraft:entity.zombie.attack_iron_door;6.0;0.8)
             - particle(explosion_large;enginefire2.enginefirealign2;5;0.2;0.8)
         fire_start:
+            - condition(health_percent;hull;less_than=40)
             - death(explode)
     components:
         engine:
@@ -153,6 +154,7 @@ bomber:
         wings:
             lift: 8.0
             turn-rate: 0.2
+            damage-factor: 0.5
             health: 600.0
             repair-time: 100
             damage-chance: 1.0

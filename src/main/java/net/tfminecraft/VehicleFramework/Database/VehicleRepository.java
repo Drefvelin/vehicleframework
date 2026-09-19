@@ -113,6 +113,12 @@ public final class VehicleRepository {
 
 	private static final String SELECT_LIVE_BY_UUID = SELECT_BY_UUID + " AND deleted = 0";
 
+	private static final String SELECT_LIVE_CHUNK_KEYS = """
+			SELECT uuid, world, chunk_x, chunk_z
+			FROM vehicles
+			WHERE deleted = 0
+			""";
+
 	private static final String SELECT_CHUNK = SELECT_COLUMNS + """
 			WHERE world = ? AND chunk_x = ? AND chunk_z = ? AND deleted = 0
 			""";
@@ -149,6 +155,8 @@ public final class VehicleRepository {
 			""";
 
 	private final SqliteDatabase database;
+	private final OccupiedChunkIndex occupiedChunks = new OccupiedChunkIndex();
+	private int chunkQueryCount;
 
 	private VehicleRepository(SqliteDatabase database) {
 		this.database = database;
@@ -224,6 +232,18 @@ public final class VehicleRepository {
 				String.valueOf(SCHEMA_VERSION),
 				"schema_version");
 		assertQuickCheck();
+		rebuildOccupiedChunks();
+	}
+
+	private void rebuildOccupiedChunks() {
+		List<OccupiedChunkIndex.LiveLocation> rows = queryList(
+				SELECT_LIVE_CHUNK_KEYS,
+				result -> new OccupiedChunkIndex.LiveLocation(
+						result.getString(1),
+						result.getString(2),
+						result.getInt(3),
+						result.getInt(4)));
+		occupiedChunks.replace(rows);
 	}
 
 	private void assertQuickCheck() {
@@ -258,7 +278,7 @@ public final class VehicleRepository {
 		if (snapshot == null || snapshot.getUuid() == null || snapshot.getUuid().isBlank()) {
 			return;
 		}
-		database.executeUpdate(
+		int updated = database.executeUpdate(
 				UPSERT,
 				snapshot.getUuid(),
 				snapshot.getTypeId(),
@@ -276,6 +296,9 @@ public final class VehicleRepository {
 				snapshot.getRevision(),
 				snapshot.isDeleted() ? 1 : 0,
 				snapshot.getUpdatedAt());
+		if (updated > 0) {
+			occupiedChunks.putLive(snapshot);
+		}
 	}
 
 	public boolean saveLive(VehicleSnapshot snapshot) {
@@ -298,7 +321,11 @@ public final class VehicleRepository {
 				snapshot.getPayloadJson(),
 				snapshot.getSchemaVersion(),
 				snapshot.getUpdatedAt());
-		return updated > 0;
+		if (updated > 0) {
+			occupiedChunks.putLive(snapshot);
+			return true;
+		}
+		return false;
 	}
 
 	public Optional<VehicleSnapshot> find(String uuid) {
@@ -315,10 +342,19 @@ public final class VehicleRepository {
 		return queryOne(SELECT_LIVE_BY_UUID, VehicleRepository::mapSnapshot, uuid);
 	}
 
+	public boolean hasLiveInChunk(String world, int chunkX, int chunkZ) {
+		return occupiedChunks.isOccupied(world, chunkX, chunkZ);
+	}
+
+	int chunkQueryCount() {
+		return chunkQueryCount;
+	}
+
 	public List<VehicleSnapshot> findChunk(String world, int chunkX, int chunkZ) {
-		if (world == null || world.isBlank()) {
+		if (world == null || world.isBlank() || !hasLiveInChunk(world, chunkX, chunkZ)) {
 			return List.of();
 		}
+		chunkQueryCount++;
 		return queryList(SELECT_CHUNK, VehicleRepository::mapSnapshot, world, chunkX, chunkZ);
 	}
 
@@ -341,14 +377,22 @@ public final class VehicleRepository {
 		if (uuid == null || uuid.isBlank()) {
 			return 0;
 		}
-		return database.executeUpdate(TOMBSTONE_REVISION, revision, updatedAt, uuid, revision);
+		int updated = database.executeUpdate(TOMBSTONE_REVISION, revision, updatedAt, uuid, revision);
+		if (updated > 0) {
+			occupiedChunks.remove(uuid);
+		}
+		return updated;
 	}
 
 	public int tombstone(String uuid) {
 		if (uuid == null || uuid.isBlank()) {
 			return 0;
 		}
-		return database.executeUpdate(TOMBSTONE_LIVE, System.currentTimeMillis(), uuid);
+		int updated = database.executeUpdate(TOMBSTONE_LIVE, System.currentTimeMillis(), uuid);
+		if (updated > 0) {
+			occupiedChunks.remove(uuid);
+		}
+		return updated;
 	}
 
 	public List<VehicleSnapshot> listAllLive() {

@@ -135,6 +135,15 @@ public final class VehiclePersistence {
 		}
 	}
 
+	public boolean hasLiveInChunk(String world, int chunkX, int chunkZ) {
+		try {
+			return repository.hasLiveInChunk(world, chunkX, chunkZ);
+		} catch (Exception ex) {
+			log("SQLite chunk occupancy check failed: " + ex.getMessage());
+			return false;
+		}
+	}
+
 	public Optional<VehicleSnapshot> findLive(String uuid) {
 		try {
 			return repository.findLive(uuid);

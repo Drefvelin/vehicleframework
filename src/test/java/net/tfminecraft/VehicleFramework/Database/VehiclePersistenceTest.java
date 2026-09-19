@@ -178,6 +178,26 @@ class VehiclePersistenceTest {
 		}
 	}
 
+	@Test
+	void chunkOccupancyFollowsSaveAndTombstone() {
+		VehicleRepository repository = VehicleRepository.open(tempDir.resolve("chunk.db").toFile());
+		try {
+			VehiclePersistence persistence = new VehiclePersistence(repository);
+			assertFalse(persistence.hasLiveInChunk("world", 1, 2));
+			assertTrue(persistence.findChunk("world", 1, 2).isEmpty());
+			assertTrue(persistence.saveLive(snapshot(PAYLOAD, 1)));
+			assertTrue(persistence.hasLiveInChunk("world", 1, 2));
+			assertEquals(1, persistence.findChunk("world", 1, 2).size());
+			assertTrue(persistence.tombstone(UUID));
+			assertFalse(persistence.hasLiveInChunk("world", 1, 2));
+			assertTrue(persistence.findChunk("world", 1, 2).isEmpty());
+			assertTrue(persistence.saveLive(snapshot(PAYLOAD, 1)));
+			assertTrue(persistence.hasLiveInChunk("world", 1, 2));
+		} finally {
+			repository.close();
+		}
+	}
+
 	private static VehicleSnapshot snapshot(String payload, int ignoredRevision) {
 		return new VehicleSnapshot(
 				UUID,

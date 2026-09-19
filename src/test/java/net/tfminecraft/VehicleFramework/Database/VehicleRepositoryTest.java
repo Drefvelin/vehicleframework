@@ -110,8 +110,8 @@ class VehicleRepositoryTest {
 					64,
 					0,
 					0f,
-					0,
-					0,
+					9,
+					9,
 					PAYLOAD,
 					VehicleRepository.SCHEMA_VERSION,
 					3,
@@ -120,6 +120,8 @@ class VehicleRepositoryTest {
 			repository.upsert(older);
 			assertEquals("horse_cart", repository.find("u1").orElseThrow().getTypeId());
 			assertEquals(5, repository.find("u1").orElseThrow().getRevision());
+			assertTrue(repository.hasLiveInChunk("world", 0, 0));
+			assertFalse(repository.hasLiveInChunk("world", 9, 9));
 		} finally {
 			repository.close();
 		}
@@ -244,6 +246,8 @@ class VehicleRepositoryTest {
 		try {
 			assertTrue(restored.findLive("u1").isPresent());
 			assertTrue(restored.findLive("u1").orElseThrow().getPayloadJson().contains("horse_cart"));
+			assertTrue(restored.hasLiveInChunk("world", 1, 2));
+			assertEquals(1, restored.findChunk("world", 1, 2).size());
 		} finally {
 			restored.close();
 		}
@@ -256,6 +260,63 @@ class VehicleRepositoryTest {
 		assertThrows(
 				RuntimeException.class,
 				() -> VehicleRepository.openWithRestore(live, tempDir.resolve("empty-backups").toFile()));
+	}
+
+	@Test
+	void findChunkReturnsLiveRowsAndSkipsEmpty() {
+		File dbFile = tempDir.resolve("chunk.db").toFile();
+		VehicleRepository repository = VehicleRepository.open(dbFile);
+		try {
+			assertTrue(repository.findChunk("world", 3, 4).isEmpty());
+			assertEquals(0, repository.chunkQueryCount());
+			assertFalse(repository.hasLiveInChunk("world", 3, 4));
+
+			assertTrue(repository.saveLive(snapshot("u1", "world", 3, 4, 1)));
+			assertEquals(1, repository.findChunk("world", 3, 4).size());
+			assertEquals("u1", repository.findChunk("world", 3, 4).get(0).getUuid());
+			assertEquals(2, repository.chunkQueryCount());
+
+			assertTrue(repository.findChunk("world", 0, 0).isEmpty());
+			assertEquals(2, repository.chunkQueryCount());
+		} finally {
+			repository.close();
+		}
+	}
+
+	@Test
+	void findChunkVacatesAfterTombstoneAndMove() {
+		File dbFile = tempDir.resolve("move.db").toFile();
+		VehicleRepository repository = VehicleRepository.open(dbFile);
+		try {
+			assertTrue(repository.saveLive(snapshot("u1", "world", 1, 2, 1)));
+			assertTrue(repository.saveLive(snapshot("u1", "world", 5, 6, 1)));
+			assertTrue(repository.findChunk("world", 1, 2).isEmpty());
+			assertEquals(1, repository.findChunk("world", 5, 6).size());
+			int queries = repository.chunkQueryCount();
+			assertEquals(1, repository.tombstone("u1"));
+			assertTrue(repository.findChunk("world", 5, 6).isEmpty());
+			assertEquals(queries, repository.chunkQueryCount());
+		} finally {
+			repository.close();
+		}
+	}
+
+	@Test
+	void reopenRebuildsOccupiedChunks() {
+		File dbFile = tempDir.resolve("reopen.db").toFile();
+		VehicleRepository repository = VehicleRepository.open(dbFile);
+		try {
+			assertTrue(repository.saveLive(snapshot("u1", "world", 7, 8, 1)));
+		} finally {
+			repository.close();
+		}
+		VehicleRepository reopened = VehicleRepository.open(dbFile);
+		try {
+			assertTrue(reopened.hasLiveInChunk("world", 7, 8));
+			assertEquals(1, reopened.findChunk("world", 7, 8).size());
+		} finally {
+			reopened.close();
+		}
 	}
 
 	private static VehicleSnapshot snapshot(String uuid, String world, int chunkX, int chunkZ, int revision) {

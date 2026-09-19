@@ -111,7 +111,13 @@ public class SpawnManager implements Listener {
 		if (persistence == null) {
 			return;
 		}
-		for (VehicleSnapshot snapshot : persistence.findChunk(chunk.getWorld().getName(), chunk.getX(), chunk.getZ())) {
+		String world = chunk.getWorld().getName();
+		int x = chunk.getX();
+		int z = chunk.getZ();
+		if (!persistence.hasLiveInChunk(world, x, z)) {
+			return;
+		}
+		for (VehicleSnapshot snapshot : persistence.findChunk(world, x, z)) {
 			enqueueSnapshot(snapshot);
 		}
 	}

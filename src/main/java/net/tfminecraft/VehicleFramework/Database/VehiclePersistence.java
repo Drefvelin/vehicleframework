@@ -44,16 +44,46 @@ public final class VehiclePersistence {
 	}
 
 	public boolean saveLive(ActiveVehicle vehicle) {
-		try {
-			Optional<VehicleSnapshot> snapshot = ActiveVehicleSnapshotFactory.fromLive(vehicle);
-			if (snapshot.isEmpty()) {
-				return false;
-			}
-			return repository.saveLive(snapshot.get());
-		} catch (Exception ex) {
-			log("SQLite save failed: " + ex.getMessage());
-			return false;
+		return saveLiveResult(vehicle).isSaved();
+	}
+
+	public VehiclePersistResult saveLiveResult(ActiveVehicle vehicle) {
+		if (repository == null) {
+			return VehiclePersistResult.failed("SQLite is not open");
 		}
+		try {
+			ActiveVehicleSnapshotFactory.SnapshotAttempt attempt = ActiveVehicleSnapshotFactory.tryFromLive(vehicle);
+			if (attempt.snapshot().isEmpty()) {
+				return resolveFailedLiveSave(uuidOf(vehicle), attempt.failureReason());
+			}
+			if (repository.saveLive(attempt.snapshot().get())) {
+				return VehiclePersistResult.saved();
+			}
+			return resolveFailedLiveSave(uuidOf(vehicle), "SQL wrote 0 rows");
+		} catch (Exception ex) {
+			String message = ex.getMessage();
+			return resolveFailedLiveSave(
+					uuidOf(vehicle),
+					message == null || message.isBlank() ? "SQLite save failed" : "SQLite save failed: " + message);
+		}
+	}
+
+	public VehiclePersistResult resolveFailedLiveSave(String uuid, String reason) {
+		String why = reason == null || reason.isBlank() ? "unknown" : reason;
+		if (uuid != null && !uuid.isBlank() && repository != null) {
+			try {
+				if (repository.findLive(uuid).isPresent()) {
+					return VehiclePersistResult.alreadyStored(why);
+				}
+			} catch (Exception ignored) {
+				// fall through to failed
+			}
+		}
+		return VehiclePersistResult.failed(why + ", no SQLite row");
+	}
+
+	private static String uuidOf(ActiveVehicle vehicle) {
+		return vehicle == null ? null : vehicle.getUUID();
 	}
 
 	public boolean saveLive(VehicleSnapshot snapshot) {

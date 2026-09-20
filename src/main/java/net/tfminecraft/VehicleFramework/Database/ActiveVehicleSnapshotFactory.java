@@ -33,30 +33,43 @@ public final class ActiveVehicleSnapshotFactory {
 	}
 
 	public static Optional<VehicleSnapshot> fromLive(ActiveVehicle vehicle) {
-		if (vehicle == null || vehicle.getUUID() == null) {
-			return Optional.empty();
+		return tryFromLive(vehicle).snapshot();
+	}
+
+	public static SnapshotAttempt tryFromLive(ActiveVehicle vehicle) {
+		if (vehicle == null) {
+			return SnapshotAttempt.fail("vehicle is null");
+		}
+		if (vehicle.getUUID() == null || vehicle.getUUID().isBlank()) {
+			return SnapshotAttempt.fail("no UUID");
 		}
 		Entity entity = vehicle.getEntity();
 		if (entity == null || entity.isDead() || !entity.isValid()) {
-			return Optional.empty();
+			return SnapshotAttempt.fail("entity invalid");
 		}
 		Location loc;
 		try {
 			loc = entity.getLocation();
 		} catch (Exception ex) {
-			return Optional.empty();
+			return SnapshotAttempt.fail("could not read location");
 		}
 		if (loc == null || loc.getWorld() == null) {
-			return Optional.empty();
+			return SnapshotAttempt.fail("no world");
 		}
-		String payload = encodePayload(vehicle);
+		String payload;
+		try {
+			payload = encodePayload(vehicle);
+		} catch (Exception ex) {
+			String message = ex.getMessage();
+			return SnapshotAttempt.fail(message == null || message.isBlank() ? "encode failed" : "encode failed: " + message);
+		}
 		if (payload == null || payload.isBlank()) {
-			return Optional.empty();
+			return SnapshotAttempt.fail("empty payload");
 		}
 		String owner = vehicle.getOwnerData() == null ? "none" : vehicle.getOwnerData().getOwner();
 		double x = loc.getX();
 		double z = loc.getZ();
-		return Optional.of(new VehicleSnapshot(
+		return SnapshotAttempt.ok(new VehicleSnapshot(
 				vehicle.getUUID().toString(),
 				vehicle.getId(),
 				vehicle.getName(),
@@ -73,6 +86,16 @@ public final class ActiveVehicleSnapshotFactory {
 				1,
 				false,
 				System.currentTimeMillis()));
+	}
+
+	public record SnapshotAttempt(Optional<VehicleSnapshot> snapshot, String failureReason) {
+		public static SnapshotAttempt ok(VehicleSnapshot snapshot) {
+			return new SnapshotAttempt(Optional.of(snapshot), null);
+		}
+
+		public static SnapshotAttempt fail(String reason) {
+			return new SnapshotAttempt(Optional.empty(), reason);
+		}
 	}
 
 	static int chunkCoord(double block) {

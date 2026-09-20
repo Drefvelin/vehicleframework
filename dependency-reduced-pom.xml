@@ -15,24 +15,6 @@
         <version>3.2.5</version>
       </plugin>
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>3.1.0</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <mkdir />
-                <copy />
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.6.1</version>
         <executions>
@@ -58,6 +40,24 @@
             <version>2.14</version>
           </dependency>
         </dependencies>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir />
+                <copy />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
@@ -170,8 +170,8 @@
   <properties>
     <maven.compiler.release>25</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <tfmc.refs>D:/Documents/TFMC/ReferenceLibs</tfmc.refs>
-    <tfmc.tlibs>D:/Documents/TFMC/Builds/TLibs</tfmc.tlibs>
-    <tfmc.builds>D:/Documents/TFMC/Builds/VehicleFramework</tfmc.builds>
+    <tfmc.refs>D:/Dokumenter/My Plugins/Reference Libs</tfmc.refs>
+    <tfmc.tlibs>D:/Dokumenter/My Plugins/TFMC/TLibs</tfmc.tlibs>
+    <tfmc.builds>D:/Dokumenter/My Plugins/TFMC/VehicleFramework</tfmc.builds>
   </properties>
 </project>

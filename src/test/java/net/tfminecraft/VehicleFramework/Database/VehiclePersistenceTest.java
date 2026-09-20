@@ -198,6 +198,34 @@ class VehiclePersistenceTest {
 		}
 	}
 
+	@Test
+	void failedSnapshotWithLiveRowIsAlreadyStored() {
+		VehicleRepository repository = VehicleRepository.open(tempDir.resolve("vehicles.db").toFile());
+		try {
+			VehiclePersistence persistence = new VehiclePersistence(repository);
+			assertTrue(persistence.saveLive(snapshot(PAYLOAD, 1)));
+			VehiclePersistResult result = persistence.resolveFailedLiveSave(UUID, "entity invalid");
+			assertTrue(result.isAlreadyStored());
+			assertEquals("entity invalid", result.reason());
+		} finally {
+			repository.close();
+		}
+	}
+
+	@Test
+	void failedSnapshotWithoutRowIsFailed() {
+		VehicleRepository repository = VehicleRepository.open(tempDir.resolve("vehicles.db").toFile());
+		try {
+			VehiclePersistence persistence = new VehiclePersistence(repository);
+			VehiclePersistResult result = persistence.resolveFailedLiveSave(UUID, "entity invalid");
+			assertTrue(result.isFailed());
+			assertTrue(result.reason().contains("entity invalid"));
+			assertTrue(result.reason().contains("no SQLite row"));
+		} finally {
+			repository.close();
+		}
+	}
+
 	private static VehicleSnapshot snapshot(String payload, int ignoredRevision) {
 		return new VehicleSnapshot(
 				UUID,

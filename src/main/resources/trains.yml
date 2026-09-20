@@ -4,10 +4,10 @@
 item-small: ia.tfmc:track_small
 item-medium: ia.tfmc:track_medium
 item-large: ia.tfmc:track_large
-item-layer: v.iron_shovel
-item-remover: v.iron_pickaxe
-item-recorder: v.clock
-item-junction: v.diamond_shovel
+item-layer: m.utils.train_track_layer
+item-remover: m.utils.train_track_remover
+item-recorder: m.utils.train_track_recorder
+item-junction: m.utils.train_track_junction
 item-switch: ia.tfmc:railroad_switch
 item-track: ia.tfmc:train_track
 snap-distance: 3

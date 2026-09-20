@@ -244,9 +244,7 @@ public class SpawnManager implements Listener {
 			if (!entityInChunk(entity, c)) {
 				continue;
 			}
-			if (!vehicleManager.unload(v)) {
-				VFLogger.log("Failed to persist vehicle " + v.getUUID() + " on chunk unload");
-			}
+			vehicleManager.unload(v, "on chunk unload");
 		}
 	}
 

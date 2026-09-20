@@ -63,6 +63,7 @@ import net.tfminecraft.VehicleFramework.Data.OwnedVehicleSummary;
 import net.tfminecraft.VehicleFramework.Data.StoredVehicleMeta;
 import net.tfminecraft.VehicleFramework.Database.IncompleteVehicle;
 import net.tfminecraft.VehicleFramework.Database.PersistenceLog;
+import net.tfminecraft.VehicleFramework.Database.VehiclePersistResult;
 import net.tfminecraft.VehicleFramework.Database.VehiclePersistence;
 import net.tfminecraft.VehicleFramework.Database.VehicleSnapshot;
 import net.tfminecraft.VehicleFramework.Enums.Component;
@@ -273,6 +274,7 @@ public class VehicleManager implements Listener{
 	        @SuppressWarnings("unchecked")
 			@Override
 	        public void run() {
+				updateInventory();
 	            for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 	            	ActiveVehicle v = entry.getValue();
 	                try {
@@ -294,7 +296,6 @@ public class VehicleManager implements Listener{
 		new BukkitRunnable() {
 			@Override
 	        public void run() {
-				updateInventory();
 	            for (Map.Entry<Entity, ActiveVehicle> entry : vehicles.entrySet()) {
 	            	ActiveVehicle v = entry.getValue();
 	                try {
@@ -326,19 +327,18 @@ public class VehicleManager implements Listener{
 				VFLogger.info("Checkpointing vehicles...");
 				VehiclePersistence persistence = VehiclePersistence.current();
 				if (persistence == null) {
+					VFLogger.log("Checkpoint skipped: SQLite is not open");
 					return;
 				}
-				int failed = 0;
 				for (ActiveVehicle v : vehicles.values()) {
 					if (v.isDestroyed()) {
 						continue;
 					}
-					if (!persistence.saveLive(v)) {
-						failed++;
+					VehiclePersistResult result = persistence.saveLiveResult(v);
+					if (result.isFailed()) {
+						VFLogger.log("Failed to persist " + describeVehicle(v) + " at " + describeLocation(v)
+								+ " during checkpoint: " + result.reason());
 					}
-				}
-				if (failed > 0) {
-					VFLogger.log("Checkpoint failed for " + failed + " vehicles");
 				}
 				persistence.checkpointWal(false);
 				persistence.vacuumIntoBackup();
@@ -1325,10 +1325,7 @@ public class VehicleManager implements Listener{
 	public void unloadAll() {
 		HashMap<Entity, ActiveVehicle> vc = (HashMap<Entity, ActiveVehicle>) vehicles.clone();
 		for(Map.Entry<Entity, ActiveVehicle> entry : vc.entrySet()) {
-			ActiveVehicle v = entry.getValue();
-			if (!unload(v)) {
-				VFLogger.log("Failed to persist vehicle " + v.getUUID() + " during unload");
-			}
+			unload(entry.getValue(), "during unload");
 		}
 	}
 
@@ -1354,19 +1351,71 @@ public class VehicleManager implements Listener{
 	}
 
 	public boolean unload(ActiveVehicle v) {
+		return unload(v, "during unload");
+	}
+
+	public boolean unload(ActiveVehicle v, String context) {
 		if (v == null) {
 			return false;
 		}
+		String when = context == null || context.isBlank() ? "during unload" : context;
 		PersistenceLog.unload(v, v.isDestroyed() ? "destroyed" : "unload");
 		if (v.isDestroyed()) {
 			if (!persistDestroy(v)) {
+				VFLogger.log("Failed to persist " + describeVehicle(v) + " at " + describeLocation(v)
+						+ " " + when + ": tombstone failed");
 				return false;
 			}
-		} else if (!saveLive(v)) {
-			return false;
+		} else {
+			VehiclePersistence persistence = VehiclePersistence.current();
+			if (persistence == null) {
+				VFLogger.log("Failed to persist " + describeVehicle(v) + " at " + describeLocation(v)
+						+ " " + when + ": SQLite is not open");
+				return false;
+			}
+			VehiclePersistResult result = persistence.saveLiveResult(v);
+			if (result.isAlreadyStored()) {
+				VFLogger.info("Vehicle " + describeVehicle(v) + " already saved. Entity was already unloaded.");
+			} else if (result.isFailed()) {
+				VFLogger.log("Failed to persist " + describeVehicle(v) + " at " + describeLocation(v)
+						+ " " + when + ": " + result.reason());
+				return false;
+			}
 		}
 		v.remove(VehicleRemoveReason.UNLOAD);
 		return true;
+	}
+
+	static String describeVehicle(ActiveVehicle v) {
+		if (v == null) {
+			return "unknown vehicle";
+		}
+		String id = v.getId() == null || v.getId().isBlank() ? "unknown" : v.getId();
+		String uuid = v.getUUID() == null || v.getUUID().isBlank() ? "no-uuid" : v.getUUID();
+		String name = v.getName();
+		if (name != null && !name.isBlank()) {
+			return id + " '" + name + "' (" + uuid + ")";
+		}
+		return id + " (" + uuid + ")";
+	}
+
+	static String describeLocation(ActiveVehicle v) {
+		if (v == null) {
+			return "unknown location";
+		}
+		Entity entity = v.getEntity();
+		if (entity == null || entity.isDead() || !entity.isValid()) {
+			return "unknown location";
+		}
+		try {
+			Location loc = entity.getLocation();
+			if (loc == null || loc.getWorld() == null) {
+				return "unknown location";
+			}
+			return loc.getWorld().getName() + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ();
+		} catch (Exception ex) {
+			return "unknown location";
+		}
 	}
 
 	public Map<Vehicle, Integer> getVehiclesByOwner(String owner) {

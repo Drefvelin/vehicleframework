@@ -151,7 +151,7 @@ public final class BulletRaycast {
 				ammoData.hitFX(players, impact, 1f);
 				ImpactVfx.spawn(
 						impact,
-						Particle.EXPLOSION,
+						Particle.POOF,
 						2,
 						0.2, 0.2, 0.2,
 						0,

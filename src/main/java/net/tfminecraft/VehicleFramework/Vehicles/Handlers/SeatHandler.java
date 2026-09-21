@@ -7,8 +7,11 @@ import java.util.List;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.bone.manager.MountManager;
+import com.ticxo.modelengine.api.model.bone.type.Mount;
+import com.ticxo.modelengine.api.mount.controller.MountController;
 import com.ticxo.modelengine.api.mount.controller.MountControllerTypes;
 
 import net.tfminecraft.VehicleFramework.VFLogger;
@@ -86,10 +89,17 @@ public class SeatHandler {
 	public boolean isPassenger(Entity e) {
 		return passengers.contains(e);
 	}
-	/** Input requires both VF ownership and a live ModelEngine/Bukkit attachment. */
+	/** Require the same seat in VF, ME's passenger map, and ME's rider update registry. */
 	public boolean isMounted(Entity e) {
-		return isPassenger(e) && manager != null
-				&& manager.getPassengerSeatMap().containsKey(e) && e.isInsideVehicle();
+		if (!isPassenger(e) || manager == null) return false;
+		Mount mount = manager.getPassengerSeatMap().get(e);
+		if (mount == null || !mount.getPassengers().contains(e)) return false;
+		MountController controller = mountController(e);
+		return controller != null && controller.getMount() == mount;
+	}
+
+	MountController mountController(Entity e) {
+		return ModelEngineAPI.getMountPairManager().getController(e.getUniqueId());
 	}
 	public void changeSeat(Entity e, Seat seat) {
 		if(seat == null || seat.isOccupied()) return;
@@ -100,8 +110,7 @@ public class SeatHandler {
 	}
 	public void addPassenger(Entity e, Seat seat) {
 		if(seat == null || seat.isOccupied()) return;
-		// Shift opens VF's seat menu; only VF should explicitly dismount the rider.
-		if (manager == null || !manager.mountPassenger(seat.getBone(), e, MountControllerTypes.WALKING_FORCE)) {
+		if (!tryMount(e, seat)) {
 			if (e instanceof Player p) {
 				PersistenceLog.mount(p, v, seat, manager != null, false);
 				p.sendMessage("§cCould not mount this seat. Please try again.");
@@ -116,6 +125,29 @@ public class SeatHandler {
 		if (e instanceof Player p) {
 			PersistenceLog.mount(p, v, seat, true, manager.getPassengerSeatMap().containsKey(e));
 		}
+	}
+
+	private boolean tryMount(Entity e, Seat seat) {
+		logMountState("MOUNT_ATTEMPT", e, seat);
+		// Shift opens VF's seat menu; only VF should explicitly dismount the rider.
+		boolean accepted = manager != null
+				&& manager.mountPassenger(seat.getBone(), e, MountControllerTypes.WALKING_FORCE);
+		logMountState("MOUNT_RESULT accepted=" + accepted, e, seat);
+		return accepted;
+	}
+
+	private void logMountState(String phase, Entity e, Seat seat) {
+		if (!PersistenceLog.isEnabled() || !(e instanceof Player p)) return;
+		Mount target = manager == null ? null : manager.getSeat(seat.getBone()).orElse(null);
+		Mount mapped = manager == null ? null : manager.getPassengerSeatMap().get(e);
+		MountController controller = mountController(e);
+		PersistenceLog.append(phase + " seat=" + seat.getBone()
+				+ " seatGlobal=" + (target == null ? "none" : target.getGlobalLocation())
+				+ " meSeatMap=" + (mapped != null)
+				+ " meSeatPassenger=" + (mapped != null && mapped.getPassengers().contains(e))
+				+ " meController=" + (controller != null)
+				+ " controllerSeatMatches=" + (controller != null && controller.getMount() == mapped)
+				+ " " + PersistenceLog.player(p) + " " + PersistenceLog.vehicle(v));
 	}
 	public void dismountPassenger(Entity e, boolean change) {
 		if (manager != null) {
@@ -188,10 +220,10 @@ public class SeatHandler {
 			verify.remove(e);
 			if(isMounted(e)) continue;
 			PersistenceLog.remount(e, v, s.getBone());
+			logMountState("MOUNT_RECOVERY", e, s);
 			// A stale ME entry must be removed before it will accept a fresh mount.
 			manager.dismountPassenger(e);
-			// VF owns Shift (seat selection) and explicit dismounts, not the ME controller.
-			if (!manager.mountPassenger(s.getBone(), e, MountControllerTypes.WALKING_FORCE)) {
+			if (!tryMount(e, s)) {
 				dismountPassenger(e, false);
 			}
 		}

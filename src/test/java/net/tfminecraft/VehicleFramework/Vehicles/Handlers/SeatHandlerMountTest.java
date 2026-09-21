@@ -7,6 +7,7 @@ import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Location;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import com.ticxo.modelengine.api.model.bone.manager.MountManager;
 import com.ticxo.modelengine.api.model.bone.type.Mount;
 import com.ticxo.modelengine.api.mount.controller.MountControllerTypes;
+import com.ticxo.modelengine.api.mount.controller.MountController;
 
 import net.tfminecraft.VehicleFramework.Enums.SeatType;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
@@ -61,10 +63,10 @@ class SeatHandlerMountTest {
     }
 
     @Test
-    void detachedPassengerWithStaleMapIsDismountedBeforeRecovery() throws Exception {
+    void missingControllerWithStaleSeatMapIsDismountedBeforeRecovery() throws Exception {
         Fixture f = new Fixture();
         f.handler.addPassenger(f.entity, f.seat);
-        f.attached[0] = false; // ME still lists the rider, Bukkit no longer does.
+        f.attached[0] = false; // Seat map remains, but ME no longer updates this rider.
         assertFalse(f.handler.isMounted(f.entity), "Detached riders must not control the train");
         f.handler.slowTick();
         assertEquals(2, f.mounts);
@@ -109,7 +111,7 @@ class SeatHandlerMountTest {
     }
 
     @Test
-    void physicalMountWithoutManagerEntryDoesNotGrantControl() throws Exception {
+    void controllerWithoutSeatMapEntryDoesNotGrantControl() throws Exception {
         Fixture f = new Fixture();
         f.handler.addPassenger(f.entity, f.seat);
         f.map.clear();
@@ -153,11 +155,36 @@ class SeatHandlerMountTest {
         assertFalse(other.isOccupied());
     }
 
+    @Test
+    void validModelEngineSeatDoesNotRequireNativeBukkitVehicle() throws Exception {
+        Fixture f = new Fixture();
+        f.handler.addPassenger(f.entity, f.seat);
+        assertFalse(f.entity.isInsideVehicle());
+        assertTrue(f.handler.isMounted(f.entity));
+        f.handler.slowTick();
+        assertEquals(1, f.mounts, "Do not remount a valid ME seat based on a Bukkit flag");
+    }
+
+    @Test
+    void controllerForAnotherSeatDoesNotGrantControl() throws Exception {
+        Fixture f = new Fixture();
+        f.handler.addPassenger(f.entity, f.seat);
+        f.riderController = (MountController) Proxy.newProxyInstance(MountController.class.getClassLoader(),
+                new Class<?>[]{MountController.class}, (proxy, method, args) -> null);
+        assertFalse(f.handler.isMounted(f.entity));
+    }
+
     private static class Fixture {
-        final SeatHandler handler = new SeatHandler(List.of(), null);
+        final SeatHandler handler = new SeatHandler(List.of(), null) {
+            @Override
+            MountController mountController(Entity e) {
+                return attached[0] ? riderController : null;
+            }
+        };
         final Seat seat = new Seat(SeatType.CAPTAIN, "driver");
         final boolean[] attached = {false};
-        final Entity entity = entity(UUID.randomUUID(), attached);
+        final Entity entity = entity(UUID.randomUUID(), new boolean[]{false});
+        MountController riderController;
         final Map<Entity, Mount> map = new HashMap<>();
         boolean accept = true;
         int mounts;
@@ -166,6 +193,16 @@ class SeatHandlerMountTest {
 
         Fixture() throws Exception {
             handler.getSeats().add(seat);
+            Mount mount = (Mount) Proxy.newProxyInstance(Mount.class.getClassLoader(),
+                    new Class<?>[]{Mount.class}, (proxy, method, args) -> switch (method.getName()) {
+                        case "getPassengers" -> Set.of(entity);
+                        default -> throw new AssertionError("Unexpected seat API call: " + method);
+                    });
+            riderController = (MountController) Proxy.newProxyInstance(MountController.class.getClassLoader(),
+                    new Class<?>[]{MountController.class}, (proxy, method, args) -> switch (method.getName()) {
+                        case "getMount" -> mount;
+                        default -> throw new AssertionError("Unexpected controller API call: " + method);
+                    });
             setManager((MountManager) Proxy.newProxyInstance(MountManager.class.getClassLoader(),
                     new Class<?>[]{MountManager.class}, (proxy, method, args) -> {
                         switch (method.getName()) {
@@ -173,7 +210,7 @@ class SeatHandlerMountTest {
                                 mounts++;
                                 controller = args[2];
                                 if (accept) {
-                                    map.put(entity, null);
+                                    map.put(entity, mount);
                                     attached[0] = true;
                                 }
                                 return accept;

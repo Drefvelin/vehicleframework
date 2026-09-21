@@ -26,7 +26,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 /**
  * Append-only debug log at {@code logs/persistence.log} in the plugin data folder.
  * Not wiped on reload so a first-reload failure is still there after a second reload.
- * Enable via {@code debug-logging: true} in trains.yml.
+ * Enable via {@code persistence-logging: true} in config.yml.
  */
 public final class PersistenceLog {
 	private static final Logger LOGGER = Logger.getLogger(PersistenceLog.class.getName());
@@ -256,14 +256,6 @@ public final class PersistenceLog {
 				+ " bone=" + xyz(bone)
 				+ " entity=" + xyz(entity)
 				+ " " + vehicle(v));
-	}
-
-	public static void chunkLoad(String world, int x, int z) {
-		append("CHUNK_LOAD " + world + " " + x + "," + z);
-	}
-
-	public static void chunkUnload(String world, int x, int z) {
-		append("CHUNK_UNLOAD " + world + " " + x + "," + z);
 	}
 
 	private static String consistText(ConsistData consist) {

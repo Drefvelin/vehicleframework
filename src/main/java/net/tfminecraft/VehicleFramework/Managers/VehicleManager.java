@@ -95,6 +95,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketInteract;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketItems;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.VehicleTicketRules;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.TowHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SeatHandler.MountResult;
 import net.tfminecraft.VehicleFramework.Vehicles.Seat.Seat;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Train.ConsistRelinker;
 import net.tfminecraft.VehicleFramework.Vehicles.Vehicle;
@@ -136,6 +137,7 @@ public class VehicleManager implements Listener{
 	private HashMap<Entity, ActiveVehicle> vehicles = new HashMap<>();
 
 	private Set<Entity> damagedEntities = new HashSet<>();
+	private final Set<String> mountReloading = ConcurrentHashMap.newKeySet();
 	private final Map<UUID, Boolean> packetSneak = new ConcurrentHashMap<>();
 	private final Map<UUID, Long> mountedLeftClickAt = new ConcurrentHashMap<>();
 
@@ -449,8 +451,16 @@ public class VehicleManager implements Listener{
 			p.sendMessage("§cSeat is no longer available");
 			return;
 		}
-		v.addPassenger(entity, seat);
-		p.sendMessage("§aEntity mounted");
+		MountResult mounted = v.addPassenger(entity, seat);
+		if (mounted == MountResult.MOUNTED) {
+			p.sendMessage("§aEntity mounted");
+			return;
+		}
+		if (mounted == MountResult.REJECTED) {
+			recoverRejectedMount(v, entity, seat.getBone(), p);
+			return;
+		}
+		p.sendMessage("§cSeat is no longer available");
 	}
 
 	private boolean isEntityAllowed(Entity entity, List<String> whitelist) {
@@ -1052,6 +1062,99 @@ public class VehicleManager implements Listener{
 		return until;
 	}
 
+	private boolean takeSeat(Player p, ActiveVehicle v, Seat seat) {
+		if (p == null || v == null || seat == null) {
+			return false;
+		}
+		MountResult result = v.isPassenger(p, true) ? v.changeSeat(p, seat) : v.addPassenger(p, seat);
+		if (result != MountResult.MOUNTED) {
+			if (result == MountResult.REJECTED) {
+				p.closeInventory();
+				recoverRejectedMount(v, p, seat.getBone(), p);
+			}
+			return false;
+		}
+		if (tempVehicle.containsKey(p)) tempVehicle.remove(p);
+		if (!activeVehicle.containsKey(p)) activeVehicle.put(p, v);
+		return true;
+	}
+
+	public void recoverRejectedMount(ActiveVehicle vehicle, Entity rider, String seatBone, Player notify) {
+		if (vehicle == null || vehicle.isDestroyed()) {
+			if (notify != null) notify.sendMessage("§cCould not mount this seat.");
+			return;
+		}
+		String uuid = vehicle.getUUID();
+		if (uuid == null || uuid.isBlank() || !mountReloading.add(uuid)) {
+			if (notify != null) notify.sendMessage("§cCould not mount this seat.");
+			return;
+		}
+		if (notify != null) {
+			notify.sendMessage("§eReloading the vehicle.");
+		}
+		UUID riderId = rider == null ? null : rider.getUniqueId();
+		UUID notifyId = notify == null ? null : notify.getUniqueId();
+		Bukkit.getScheduler().runTask(VehicleFramework.plugin, () -> finishMountReload(uuid, riderId, seatBone, notifyId));
+	}
+
+	private void finishMountReload(String uuid, UUID riderId, String seatBone, UUID notifyId) {
+		try {
+			Player notify = notifyId == null ? null : Bukkit.getPlayer(notifyId);
+			ActiveVehicle vehicle = getByUUID(uuid);
+			if (vehicle == null || vehicle.getEntity() == null || !vehicle.getEntity().isValid()) {
+				if (notify != null) notify.sendMessage("§cCould not mount this seat.");
+				return;
+			}
+			Location loc = vehicle.getEntity().getLocation().clone();
+			if (!unload(vehicle, "after a rejected mount")) {
+				if (notify != null) notify.sendMessage("§cCould not mount this seat.");
+				return;
+			}
+			VehiclePersistence persistence = VehiclePersistence.current();
+			if (persistence == null) {
+				if (notify != null) notify.sendMessage("§cCould not mount this seat.");
+				return;
+			}
+			Optional<IncompleteVehicle> loaded = persistence.loadIncomplete(uuid);
+			if (loaded.isEmpty() || loaded.get().getId() == null || loaded.get().getId().isBlank()) {
+				if (notify != null) notify.sendMessage("§cCould not mount this seat.");
+				return;
+			}
+			Vehicle type = VehicleLoader.getByString(loaded.get().getId());
+			if (type == null) {
+				if (notify != null) notify.sendMessage("§cCould not mount this seat.");
+				return;
+			}
+			ActiveVehicle fresh = spawn(loc, type, loaded.get());
+			if (fresh == null) {
+				if (notify != null) notify.sendMessage("§cCould not mount this seat.");
+				return;
+			}
+			retryMount(fresh, riderId, seatBone, notify);
+		} finally {
+			mountReloading.remove(uuid);
+		}
+	}
+
+	private void retryMount(ActiveVehicle fresh, UUID riderId, String seatBone, Player notify) {
+		Seat seat = fresh.getSeat(seatBone);
+		if (seat == null) {
+			if (notify != null) notify.sendMessage("§cCould not mount this seat.");
+			return;
+		}
+		Entity rider = riderId == null ? null : Bukkit.getEntity(riderId);
+		if (rider instanceof Player player && player.isOnline()) {
+			takeSeat(player, fresh, seat);
+			return;
+		}
+		if (rider == null || !rider.isValid() || rider.isDead()) {
+			return;
+		}
+		if (fresh.addPassenger(rider, seat) == MountResult.REJECTED) {
+			recoverRejectedMount(fresh, rider, seatBone, notify);
+		}
+	}
+
 	public void mount(Player p, String seat, ActiveVehicle v) {
 		Seat s = v.getSeatHandler().getSeat(seat);
 		if(s == null) return;
@@ -1064,13 +1167,7 @@ public class VehicleManager implements Listener{
 			p.sendMessage("§cYou need a ticket for this vehicle.");
 			return;
 		}
-		if(!v.isPassenger(p, true)) {
-	    	v.addPassenger(p, s);
-	    } else {
-	    	v.changeSeat(p, s);
-	    }
-	    if(tempVehicle.containsKey(p)) tempVehicle.remove(p);
-	    if(!activeVehicle.containsKey(p)) activeVehicle.put(p, v);
+		takeSeat(p, v, s);
 	}
 
 	@EventHandler
@@ -1158,13 +1255,7 @@ public class VehicleManager implements Listener{
 			p.sendMessage("§cYou cannot enter this vehicle for §e" + remaining + "§c more seconds.");
 			return;
 		}
-	    if(!v.isPassenger(p, true)) {
-	    	v.addPassenger(p, seat);
-	    } else {
-	    	v.changeSeat(p, seat);
-	    }
-	    if(tempVehicle.containsKey(p)) tempVehicle.remove(p);
-	    if(!activeVehicle.containsKey(p)) activeVehicle.put(p, v);
+	    if (!takeSeat(p, v, seat)) return;
 		inv.seatSelection(p.getOpenInventory().getTopInventory(), p, activeVehicle.get(p), false);
 	}
 	@EventHandler

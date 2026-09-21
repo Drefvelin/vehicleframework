@@ -204,7 +204,7 @@ public class VehicleFramework extends JavaPlugin{
     	}
 		GroundEngineLog.configure(Cache.groundEngineLogging, Cache.wipeLog, getDataFolder());
 		TrackLog.configure(Cache.debugLogging, Cache.debugLogging, getDataFolder());
-		PersistenceLog.configure(Cache.debugLogging, getDataFolder());
+		PersistenceLog.configure(Cache.persistenceLogging, getDataFolder());
 		RecorderLog.configure(Cache.debugLogging, getDataFolder());
 		if (trackRegistry != null) {
 			trackRegistry.loadFromDisk();

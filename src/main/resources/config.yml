@@ -110,6 +110,8 @@ terrain-follow-debug: false
 
 ## Append each terrain-follow step to plugins/VehicleFramework/logs/ground_engine.log
 ground-engine-logging: false
+## Append vehicle save, spawn, unload, and mount events to plugins/VehicleFramework/logs/persistence.log
+persistence-logging: false
 ## When true, ground_engine.log is deleted on every plugin start/reload.
 wipe-log: true
 

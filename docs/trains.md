@@ -66,7 +66,7 @@ Reuse `behaviour.train` front/back connector bones ([`Connector`](../src/main/ja
 
 ## Authoring (phase 1)
 
-Track items, lay rules, and train debug logging live in [`trains.yml`](../src/main/resources/trains.yml) (`plugins/VehicleFramework/trains.yml`). `debug-logging: true` writes `logs/track.log`, `logs/persistence.log`, and `logs/recorder.log`. Persistence pose lines are entity location only. Recorder `POSE` / `SAMPLE` / `JUNCTION` include `eyaw` (stand), `dyaw` (bone `driveYaw`), and on `POSE` also `myaw`/`mpitch` (move `fromDirection`) and `pyaw`/`ppitch` (sample). `POSE` is rate-limited (~250 ms) so it logs without the tape item.
+Track items, lay rules, and train debug logging live in [`trains.yml`](../src/main/resources/trains.yml) (`plugins/VehicleFramework/trains.yml`). `debug-logging: true` writes `logs/track.log` and `logs/recorder.log`. Vehicle save, spawn, unload, and mount lines go to `logs/persistence.log` when `persistence-logging: true` in `config.yml`. Persistence pose lines are entity location only. Recorder `POSE` / `SAMPLE` / `JUNCTION` include `eyaw` (stand), `dyaw` (bone `driveYaw`), and on `POSE` also `myaw`/`mpitch` (move `fromDirection`) and `pyaw`/`ppitch` (sample). `POSE` is rate-limited (~250 ms) so it logs without the tape item.
 
 One spline per track (no stored sections). A **stroke** is one lay with the configured layer item (`item-layer`, default `v.iron_shovel`):
 

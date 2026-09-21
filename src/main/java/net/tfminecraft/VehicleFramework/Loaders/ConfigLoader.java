@@ -79,6 +79,7 @@ public class ConfigLoader {
 		Cache.weaponAimDebug = config.getBoolean("weapon-aim-debug", false);
 		Cache.terrainFollowDebug = config.getBoolean("terrain-follow-debug", false);
 		Cache.groundEngineLogging = config.getBoolean("ground-engine-logging", false);
+		Cache.persistenceLogging = config.getBoolean("persistence-logging", false);
 		Cache.wipeLog = config.getBoolean("wipe-log", false);
 	}
 }

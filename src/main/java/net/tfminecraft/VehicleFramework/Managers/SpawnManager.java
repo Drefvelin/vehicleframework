@@ -227,16 +227,13 @@ public class SpawnManager implements Listener {
 
 	@EventHandler
 	public void chunkLoad(ChunkLoadEvent e) {
-		Chunk c = e.getChunk();
-		PersistenceLog.chunkLoad(c.getWorld().getName(), c.getX(), c.getZ());
-		enqueueChunk(c);
+		enqueueChunk(e.getChunk());
 	}
 
 	@SuppressWarnings("unchecked")
 	@EventHandler
 	public void chunkUnload(ChunkUnloadEvent e) {
 		Chunk c = e.getChunk();
-		PersistenceLog.chunkUnload(c.getWorld().getName(), c.getX(), c.getZ());
 		HashMap<Entity, ActiveVehicle> vc = (HashMap<Entity, ActiveVehicle>) vehicleManager.get().clone();
 		for (Map.Entry<Entity, ActiveVehicle> entry : vc.entrySet()) {
 			ActiveVehicle v = entry.getValue();

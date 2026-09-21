@@ -58,6 +58,7 @@ import net.tfminecraft.VehicleFramework.Vehicles.Handlers.Container.ContainerHan
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.DeathHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.EffectHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SeatHandler;
+import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SeatHandler.MountResult;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.SkinHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.State.AnimationHandler;
 import net.tfminecraft.VehicleFramework.Vehicles.Handlers.StateHandler;
@@ -356,6 +357,9 @@ public class ActiveVehicle {
 	}
 
 	private void loadIncomplete(IncompleteVehicle inc) {
+		if (inc.getUUID() != null && !inc.getUUID().isBlank()) {
+			uuid = inc.getUUID();
+		}
 		entity.setRotation(inc.getYaw(), 0);
 		initializeWeapons(inc.getWeapons());
 		initializeComponents(inc.getComponents());
@@ -409,7 +413,9 @@ public class ActiveVehicle {
 				if(e == null || e.isDead()) continue;
 				Seat s = getSeat(passenger.getSeat());
 				if(s == null || s.isOccupied()) continue;
-				addPassenger(e, s);
+				if (addPassenger(e, s) == MountResult.REJECTED) {
+					vehicleManager.recoverRejectedMount(this, e, s.getBone(), null);
+				}
 			} else {
 				Player p = Bukkit.getPlayerExact(passenger.getPassenger());
 				if(p == null || !p.isOnline()) continue;
@@ -783,13 +789,20 @@ public class ActiveVehicle {
 	public void dismountPassenger(Entity e, boolean change) {
 		seatHandler.dismountPassenger(e, change);
 	}
-	public void addPassenger(Entity e, Seat s) {
-		seatHandler.addPassenger(e, s);
-		updateBoard();
+	public MountResult addPassenger(Entity e, Seat s) {
+		MountResult result = seatHandler.addPassenger(e, s);
+		if (result == MountResult.MOUNTED) {
+			updateBoard();
+		}
+		return result;
 	}
-	public void changeSeat(Entity e, Seat s) {
-		if(seatHandler.getSeat(e) == null) return; 
-		seatHandler.changeSeat(e, s);
+	public MountResult changeSeat(Entity e, Seat s) {
+		if(seatHandler.getSeat(e) == null) return MountResult.UNAVAILABLE;
+		MountResult result = seatHandler.changeSeat(e, s);
+		if (result == MountResult.MOUNTED) {
+			updateBoard();
+		}
+		return result;
 	}
 	public void dismountAll() {
 		seatHandler.dismountAll();

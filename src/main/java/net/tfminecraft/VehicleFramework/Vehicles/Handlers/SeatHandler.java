@@ -36,6 +36,7 @@ public class SeatHandler {
 	}
 	
 	public SeatHandler(ActiveVehicle vehicle, ActiveModel model, SeatHandler another) {
+		v = vehicle;
 		for(Seat s : another.getSeats()) {
 			seats.add(new Seat(vehicle, s));
 		}
@@ -45,11 +46,10 @@ public class SeatHandler {
 			return;
 		}
 		manager = model.getMountManager().get();
-		v = vehicle;
 	}
 	
 	public void updateModel(ActiveModel m) {
-		manager = m.getMountManager().get();
+		manager = m.getMountManager().orElse(null);
 	}
 	
 	public boolean hasPassengers() {
@@ -86,15 +86,27 @@ public class SeatHandler {
 	public boolean isPassenger(Entity e) {
 		return passengers.contains(e);
 	}
+	/** Input requires both VF ownership and a live ModelEngine/Bukkit attachment. */
+	public boolean isMounted(Entity e) {
+		return isPassenger(e) && manager != null
+				&& manager.getPassengerSeatMap().containsKey(e) && e.isInsideVehicle();
+	}
 	public void changeSeat(Entity e, Seat seat) {
+		if(seat == null || seat.isOccupied()) return;
 		dismountPassenger(e, true);
 		addPassenger(e, seat);
+		if(getSeat(e) == null) removePassenger(e);
 		
 	}
 	public void addPassenger(Entity e, Seat seat) {
-		boolean managerOk = manager != null;
-		if (managerOk) {
-			manager.mountPassenger(seat.getBone(), e, MountControllerTypes.WALKING);
+		if(seat == null || seat.isOccupied()) return;
+		// Shift opens VF's seat menu; only VF should explicitly dismount the rider.
+		if (manager == null || !manager.mountPassenger(seat.getBone(), e, MountControllerTypes.WALKING_FORCE)) {
+			if (e instanceof Player p) {
+				PersistenceLog.mount(p, v, seat, manager != null, false);
+				p.sendMessage("§cCould not mount this seat. Please try again.");
+			}
+			return;
 		}
 		if(seat.getType().equals(SeatType.CAPTAIN) && e instanceof Player) {
 			VehicleFramework.getLog().logEntry(((Player) e).getName()+" entered captain seat of "+v.getName()+" at "+e.getLocation().getX()+"x, "+e.getLocation().getZ()+"z");
@@ -102,7 +114,7 @@ public class SeatHandler {
 	    seat.mount(e);
 		if(!isPassenger(e)) passengers.add(e);
 		if (e instanceof Player p) {
-			PersistenceLog.mount(p, v, seat, managerOk, managerOk && manager.getPassengerSeatMap().containsKey(e));
+			PersistenceLog.mount(p, v, seat, true, manager.getPassengerSeatMap().containsKey(e));
 		}
 	}
 	public void dismountPassenger(Entity e, boolean change) {
@@ -166,6 +178,7 @@ public class SeatHandler {
 	public void slowTick() {
 		//check that everyone is in their seats
 		if(manager == null) {
+			dismountAll();
 			return;
 		}
 		List<Entity> verify = new ArrayList<>(passengers);
@@ -173,10 +186,14 @@ public class SeatHandler {
 			if(!s.isOccupied()) continue;
 			Entity e = s.getEntity();
 			verify.remove(e);
-			if(manager.getPassengerSeatMap().containsKey(e)) continue;
+			if(isMounted(e)) continue;
 			PersistenceLog.remount(e, v, s.getBone());
-			manager.mountPassenger(s.getBone(), e, MountControllerTypes.WALKING);
-		    s.mount(e);
+			// A stale ME entry must be removed before it will accept a fresh mount.
+			manager.dismountPassenger(e);
+			// VF owns Shift (seat selection) and explicit dismounts, not the ME controller.
+			if (!manager.mountPassenger(s.getBone(), e, MountControllerTypes.WALKING_FORCE)) {
+				dismountPassenger(e, false);
+			}
 		}
 		if(verify.size() > 0) {
 			for(Entity e : verify) {

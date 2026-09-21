@@ -450,7 +450,7 @@ public class VehicleManager implements Listener{
 			return;
 		}
 		v.addPassenger(entity, seat);
-		p.sendMessage("§aEntity mounted");
+		p.sendMessage(v.isPassenger(entity, false) ? "§aEntity mounted" : "§cCould not mount this seat");
 	}
 
 	private boolean isEntityAllowed(Entity entity, List<String> whitelist) {
@@ -1069,6 +1069,7 @@ public class VehicleManager implements Listener{
 	    } else {
 	    	v.changeSeat(p, s);
 	    }
+	    if(!v.isPassenger(p, false)) return;
 	    if(tempVehicle.containsKey(p)) tempVehicle.remove(p);
 	    if(!activeVehicle.containsKey(p)) activeVehicle.put(p, v);
 	}
@@ -1163,6 +1164,7 @@ public class VehicleManager implements Listener{
 	    } else {
 	    	v.changeSeat(p, seat);
 	    }
+	    if(!v.isPassenger(p, false)) return;
 	    if(tempVehicle.containsKey(p)) tempVehicle.remove(p);
 	    if(!activeVehicle.containsKey(p)) activeVehicle.put(p, v);
 		inv.seatSelection(p.getOpenInventory().getTopInventory(), p, activeVehicle.get(p), false);
@@ -1301,6 +1303,8 @@ public class VehicleManager implements Listener{
 	    ActiveVehicle vehicle = activeVehicle.get(p);
 	    if (vehicle == null) return;
 	    packetSneak.put(p.getUniqueId(), sneak);
+	    // Do not let a detached rider drive while the slow tick repairs their seat.
+	    if (!vehicle.getSeatHandler().isMounted(p)) return;
 
 	    if (vehicle.isTrain()) {
 	    	ActiveVehicle loco = vehicle.ticketSource();

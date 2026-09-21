@@ -467,8 +467,7 @@ public class ActiveVehicle {
 			return;
 		}
 		if (!vehicleManager.persistDestroy(this)) {
-			VFLogger.log("Cannot destroy " + name + ": SQLite tombstone failed");
-			return;
+			VFLogger.log("SQLite tombstone failed for " + name + ", continuing destroy");
 		}
 		DeathData data = getDeathData(type);
 		if(data.hasOverrides()) {

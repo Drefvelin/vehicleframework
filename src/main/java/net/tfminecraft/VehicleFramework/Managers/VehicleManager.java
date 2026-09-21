@@ -222,10 +222,11 @@ public class VehicleManager implements Listener{
 		for (Entity entity : world.getNearbyEntities(loc, radius, radius, radius)) {
 			if(get(entity) == null) continue;
 			ActiveVehicle v = get(entity);
-			if (!persistDestroy(v)) {
-				continue;
-			}
 			v.remove(VehicleRemoveReason.ADMIN_KILL);
+			if (!persistDestroy(v)) {
+				VFLogger.log("Failed to tombstone " + describeVehicle(v) + " at " + describeLocation(v)
+						+ " after admin kill");
+			}
 			count++;
 			if(p != null) VFLogger.message(p, "§cKilled "+v.getName());
 		}
@@ -615,11 +616,11 @@ public class VehicleManager implements Listener{
 		claimOwnership(p, v);
 		//Destroy
 		if(api.getChecker().checkItemWithPath(p.getInventory().getItemInMainHand(), Cache.destroyItem)) {
-			if (!persistDestroy(v)) {
-				p.sendMessage("§cCould not remove vehicle");
-				return;
-			}
 			v.remove(VehicleRemoveReason.PLAYER_DESTROY);
+			if (!persistDestroy(v)) {
+				VFLogger.log("Failed to tombstone " + describeVehicle(v) + " at " + describeLocation(v)
+						+ " after player destroy");
+			}
 			p.sendMessage("§cRemoved");
 			return;
 		}
@@ -1364,7 +1365,6 @@ public class VehicleManager implements Listener{
 			if (!persistDestroy(v)) {
 				VFLogger.log("Failed to persist " + describeVehicle(v) + " at " + describeLocation(v)
 						+ " " + when + ": tombstone failed");
-				return false;
 			}
 		} else {
 			VehiclePersistence persistence = VehiclePersistence.current();

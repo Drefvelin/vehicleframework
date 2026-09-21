@@ -120,7 +120,7 @@ public final class VehiclePersistence {
 				return true;
 			}
 			Optional<VehicleSnapshot> existing = repository.find(uuid);
-			return existing.isPresent() && existing.get().isDeleted();
+			return existing.isEmpty() || existing.get().isDeleted();
 		} catch (Exception ex) {
 			log("SQLite tombstone failed for " + uuid + ": " + ex.getMessage());
 			return false;

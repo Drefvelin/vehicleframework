@@ -135,11 +135,11 @@ class VehiclePersistenceTest {
 	}
 
 	@Test
-	void tombstoneMissingUuidIsFalseAndRepeatIsIdempotent() {
+	void tombstoneMissingUuidIsTrueAndRepeatIsIdempotent() {
 		VehicleRepository repository = VehicleRepository.open(tempDir.resolve("vehicles.db").toFile());
 		try {
 			VehiclePersistence persistence = new VehiclePersistence(repository);
-			assertFalse(persistence.tombstone("missing-uuid"));
+			assertTrue(persistence.tombstone("missing-uuid"));
 			assertTrue(persistence.saveLive(snapshot(PAYLOAD, 1)));
 			assertTrue(persistence.tombstone(UUID));
 			assertTrue(persistence.tombstone(UUID));

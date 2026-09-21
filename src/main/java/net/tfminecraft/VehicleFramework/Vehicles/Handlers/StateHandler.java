@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -145,16 +144,13 @@ public class StateHandler {
 	private Set<Block> getBlocksBoundingBox(BoundingBox box, World world, double yOffset) {
 		Set<Block> blocks = new HashSet<>();
 
-		int minX = (int) Math.floor(box.getMinX());
-		int maxX = (int) Math.floor(box.getMaxX());
-		int minZ = (int) Math.floor(box.getMinZ());
-		int maxZ = (int) Math.floor(box.getMaxZ());
+		int cx = (int) Math.floor(box.getCenterX());
+		int cz = (int) Math.floor(box.getCenterZ());
+		int y = (int) Math.floor(box.getMinY() + yOffset);
 
-		double y = box.getMinY() + yOffset;
-
-		for (int x = minX; x <= maxX; x++) {
-			for (int z = minZ; z <= maxZ; z++) {
-				blocks.add(world.getBlockAt(new Location(world, x, y, z)));
+		for (int x = cx - 1; x <= cx + 1; x++) {
+			for (int z = cz - 1; z <= cz + 1; z++) {
+				blocks.add(world.getBlockAt(x, y, z));
 			}
 		}
 
